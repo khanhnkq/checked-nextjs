@@ -1,5 +1,21 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { useAuthStore } from '../auth-store';
+
+function createValidJwt(): string {
+  const header = Buffer.from(JSON.stringify({ alg: 'HS256' })).toString('base64url');
+  const payload = Buffer.from(
+    JSON.stringify({ sub: 'user-123', exp: Math.floor(Date.now() / 1000) + 3600 })
+  ).toString('base64url');
+  return `${header}.${payload}.sig`;
+}
+
+function createExpiredJwt(): string {
+  const header = Buffer.from(JSON.stringify({ alg: 'HS256' })).toString('base64url');
+  const payload = Buffer.from(
+    JSON.stringify({ sub: 'user-123', exp: Math.floor(Date.now() / 1000) - 100 })
+  ).toString('base64url');
+  return `${header}.${payload}.sig`;
+}
 
 describe('Auth Store (useAuthStore)', () => {
   beforeEach(() => {
@@ -13,7 +29,7 @@ describe('Auth Store (useAuthStore)', () => {
     expect(state.isAuthenticated).toBe(false);
   });
 
-  it('setSession lưu trữ thông tin user và accessToken thành công', () => {
+  it('setSession lưu trữ thông tin user và accessToken thành công khi token còn hạn', () => {
     const mockUser = {
       id: 'user-123',
       email: 'khanh@vku.udn.vn',
@@ -23,13 +39,34 @@ describe('Auth Store (useAuthStore)', () => {
       profileCompleted: true,
       isGoldMember: false,
     };
+    const validToken = createValidJwt();
 
-    useAuthStore.getState().setSession(mockUser, 'mock-jwt-access-token');
+    useAuthStore.getState().setSession(mockUser, validToken);
 
     const state = useAuthStore.getState();
     expect(state.user).toEqual(mockUser);
-    expect(state.accessToken).toBe('mock-jwt-access-token');
+    expect(state.accessToken).toBe(validToken);
     expect(state.isAuthenticated).toBe(true);
+  });
+
+  it('setSession từ chối token đã hết hạn và đưa về trạng thái unauthenticated', () => {
+    const mockUser = {
+      id: 'user-123',
+      email: 'khanh@vku.udn.vn',
+      username: 'khanhnkq',
+      displayName: 'Khánh',
+      isVerified: true,
+      profileCompleted: true,
+      isGoldMember: false,
+    };
+    const expiredToken = createExpiredJwt();
+
+    useAuthStore.getState().setSession(mockUser, expiredToken);
+
+    const state = useAuthStore.getState();
+    expect(state.isAuthenticated).toBe(false);
+    expect(state.accessToken).toBeNull();
+    expect(state.user).toBeNull();
   });
 
   it('updateUser cập nhật từng trường dữ liệu mà không làm mất thông tin cũ', () => {
@@ -42,8 +79,9 @@ describe('Auth Store (useAuthStore)', () => {
       profileCompleted: false,
       isGoldMember: false,
     };
+    const validToken = createValidJwt();
 
-    useAuthStore.getState().setSession(mockUser, 'mock-jwt-token');
+    useAuthStore.getState().setSession(mockUser, validToken);
     useAuthStore.getState().updateUser({ profileCompleted: true, displayName: 'Quốc Khánh Checked' });
 
     const updatedUser = useAuthStore.getState().user;
@@ -53,6 +91,7 @@ describe('Auth Store (useAuthStore)', () => {
   });
 
   it('logout xóa sạch token và đặt isAuthenticated về false', () => {
+    const validToken = createValidJwt();
     useAuthStore.getState().setSession(
       {
         id: 'user-123',
@@ -63,7 +102,7 @@ describe('Auth Store (useAuthStore)', () => {
         profileCompleted: true,
         isGoldMember: true,
       },
-      'token-xyz'
+      validToken
     );
 
     useAuthStore.getState().logout();

@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Camera } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth-store';
+import { isTokenExpired } from '@/lib/auth/jwt';
 import {
   useGetCurrentUser,
   useGetMyFriends,
@@ -39,36 +40,27 @@ export default function HistoryPage() {
   const user = useAuthStore((s) => s.user);
   const accessToken = useAuthStore((s) => s.accessToken);
   const isAuthLoading = useAuthStore((s) => s.isLoading);
-  const [cookieToken, setCookieToken] = useState<string | null>(null);
+  const isHydrated = useAuthStore((s) => s.isHydrated);
 
-  useEffect(() => {
-    if (typeof document !== 'undefined') {
-      const match = document.cookie.match(/(?:^|;\s*)checked_token=([^;]*)/);
-      if (match && match[1]) {
-        setCookieToken(decodeURIComponent(match[1]));
-      }
-    }
-  }, []);
-
-  const hasToken = Boolean(accessToken || cookieToken);
+  const hasValidAuth = Boolean(accessToken && !isTokenExpired(accessToken));
 
   const [selectedFilterId, setSelectedFilterId] = useState<string | null>(null);
   const [selectedPhotoId, setSelectedPhotoId] = useState<string | null>(null);
 
-  // 1. API: Lấy thông tin user hiện tại nếu store chưa có nhưng đã có token
+  // 1. API: Lấy thông tin user hiện tại nếu store chưa có nhưng đã có token hợp lệ
   const { data: userData, isLoading: isUserLoading } = useGetCurrentUser({
     query: {
-      enabled: !user && !isAuthLoading && hasToken,
+      enabled: !user && !isAuthLoading && hasValidAuth,
     },
   });
   const currentUser = user || userData;
 
-  // Tự động điều hướng về /login nếu đã tải xong mà không có phiên đăng nhập
+  // Tự động điều hướng về /login nếu đã hydrate mà không có phiên đăng nhập hợp lệ
   useEffect(() => {
-    if (!isAuthLoading && !hasToken && !user) {
+    if (isHydrated && !isAuthLoading && !hasValidAuth) {
       router.replace('/login?redirect=/history');
     }
-  }, [isAuthLoading, hasToken, user, router]);
+  }, [isHydrated, isAuthLoading, hasValidAuth, router]);
 
   // Helper kiểm tra ảnh có thuộc về người dùng hiện tại hay không (Chuẩn parity iOS)
   const isCurrentUser = (senderId?: string, senderName?: string): boolean => {
@@ -238,7 +230,7 @@ export default function HistoryPage() {
 
   const isLoading =
     isAuthLoading ||
-    (!currentUser && hasToken && isUserLoading) ||
+    (!currentUser && hasValidAuth && isUserLoading) ||
     (isMeFilter
       ? isMyPhotosLoading
       : targetFriendId

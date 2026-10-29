@@ -1,60 +1,59 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { get, set, del } from 'idb-keyval';
 import type { User } from '@/types/user';
+import { isTokenExpired } from '@/lib/auth/jwt';
+import { syncSessionCookies, clearSessionCookies } from '@/lib/auth/session-sync';
 
-interface AuthState {
+export interface AuthState {
   user: User | null;
   accessToken: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  isHydrated: boolean;
 }
 
-interface AuthActions {
+export interface AuthActions {
   setSession: (user: User, token: string) => void;
   setAccessToken: (token: string) => void;
   updateUser: (partial: Partial<User>) => void;
   logout: () => void;
   setLoading: (isLoading: boolean) => void;
+  setHydrated: (isHydrated: boolean) => void;
 }
 
 export type AuthStore = AuthState & AuthActions;
 
-// In-memory fallback cho môi trường không có IndexedDB (như SSR hoặc jsdom test)
+// Memory storage fallback cho SSR và môi trường test
 const memoryStorage = new Map<string, string>();
 
-// IndexedDB Storage Adapter cho Zustand Persist
-const idbStorage = {
-  getItem: async (name: string): Promise<string | null> => {
-    if (typeof window === 'undefined') return null;
-    if (typeof indexedDB === 'undefined') return memoryStorage.get(name) || null;
+const safeLocalStorage = {
+  getItem: (name: string): string | null => {
+    if (typeof window === 'undefined') return memoryStorage.get(name) || null;
     try {
-      return (await get(name)) || null;
+      return window.localStorage.getItem(name);
     } catch {
       return memoryStorage.get(name) || null;
     }
   },
-  setItem: async (name: string, value: string): Promise<void> => {
-    if (typeof window === 'undefined') return;
-    if (typeof indexedDB === 'undefined') {
+  setItem: (name: string, value: string): void => {
+    if (typeof window === 'undefined') {
       memoryStorage.set(name, value);
       return;
     }
     try {
-      await set(name, value);
+      window.localStorage.setItem(name, value);
     } catch {
       memoryStorage.set(name, value);
     }
   },
-  removeItem: async (name: string): Promise<void> => {
-    if (typeof window === 'undefined') return;
-    if (typeof indexedDB === 'undefined') {
+  removeItem: (name: string): void => {
+    if (typeof window === 'undefined') {
       memoryStorage.delete(name);
       return;
     }
     try {
-      await del(name);
+      window.localStorage.removeItem(name);
     } catch {
       memoryStorage.delete(name);
     }
@@ -63,24 +62,51 @@ const idbStorage = {
 
 export const useAuthStore = create<AuthStore>()(
   persist(
-    immer((set) => ({
+    immer((set, get) => ({
       user: null,
       accessToken: null,
       isAuthenticated: false,
       isLoading: true,
+      isHydrated: false,
 
-      setSession: (user, token) =>
+      setSession: (user, token) => {
+        if (!token || isTokenExpired(token)) {
+          get().logout();
+          return;
+        }
+
+        // 1. Đồng bộ cookie trình duyệt tức thời
+        if (typeof document !== 'undefined') {
+          document.cookie = `checked_token=${encodeURIComponent(token)}; path=/; max-age=${7 * 86400}; SameSite=Lax`;
+        }
+
+        // 2. Cập nhật state đồng bộ
         set((state) => {
           state.user = user;
           state.accessToken = token;
           state.isAuthenticated = true;
           state.isLoading = false;
-        }),
+        });
 
-      setAccessToken: (token) =>
+        // 3. Đồng bộ server session cookie ở background
+        syncSessionCookies(token).catch(() => {});
+      },
+
+      setAccessToken: (token) => {
+        if (!token || isTokenExpired(token)) {
+          get().logout();
+          return;
+        }
+
+        if (typeof document !== 'undefined') {
+          document.cookie = `checked_token=${encodeURIComponent(token)}; path=/; max-age=${7 * 86400}; SameSite=Lax`;
+        }
+
         set((state) => {
           state.accessToken = token;
-        }),
+          state.isAuthenticated = true;
+        });
+      },
 
       updateUser: (partial) =>
         set((state) => {
@@ -89,29 +115,55 @@ export const useAuthStore = create<AuthStore>()(
           }
         }),
 
-      logout: () =>
+      logout: () => {
+        // 1. Xóa cookie client-side tức thì
+        if (typeof document !== 'undefined') {
+          document.cookie = 'checked_token=; path=/; max-age=0; SameSite=Lax';
+        }
+
+        // 2. Xóa store state
         set((state) => {
           state.user = null;
           state.accessToken = null;
           state.isAuthenticated = false;
           state.isLoading = false;
-        }),
+        });
+
+        // 3. Xóa cookie server-side
+        clearSessionCookies().catch(() => {});
+      },
 
       setLoading: (isLoading) =>
         set((state) => {
           state.isLoading = isLoading;
         }),
+
+      setHydrated: (isHydrated) =>
+        set((state) => {
+          state.isHydrated = isHydrated;
+        }),
     })),
     {
       name: 'checked-auth-store',
-      storage: createJSONStorage(() => idbStorage),
+      storage: createJSONStorage(() => safeLocalStorage),
       partialize: (state) => ({
         user: state.user,
         accessToken: state.accessToken,
         isAuthenticated: state.isAuthenticated,
       }),
       onRehydrateStorage: () => (state) => {
-        state?.setLoading(false);
+        if (!state) return;
+
+        // Nếu token đã hết hạn trong lúc offline / reload -> tự động logout
+        if (state.accessToken && isTokenExpired(state.accessToken)) {
+          state.logout();
+        } else if (state.accessToken && typeof document !== 'undefined') {
+          // Đảm bảo cookie luôn khớp với token trong localStorage
+          document.cookie = `checked_token=${encodeURIComponent(state.accessToken)}; path=/; max-age=${7 * 86400}; SameSite=Lax`;
+        }
+
+        state.setLoading(false);
+        state.setHydrated(true);
       },
     }
   )

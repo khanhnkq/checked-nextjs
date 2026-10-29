@@ -1,4 +1,5 @@
 import { useAuthStore } from '@/stores/auth-store';
+import { isTokenExpired } from '@/lib/auth/jwt';
 import { env } from '@/lib/config/env';
 
 export class ApiError extends Error {
@@ -88,6 +89,24 @@ export async function customFetcher<T>({
     }
   }
 
+  // Phân biệt endpoint xác thực công khai vs endpoint bảo vệ
+  const isAuthEndpoint =
+    url.includes('/auth/login') ||
+    url.includes('/auth/register') ||
+    url.includes('/auth/verify') ||
+    url.includes('/auth/resend');
+
+  // Kiểm tra token đã hết hạn trước khi gửi request (tránh 401 không cần thiết)
+  if (token && isTokenExpired(token) && !isAuthEndpoint) {
+    if (typeof window !== 'undefined') {
+      useAuthStore.getState().logout();
+      if (window.location.pathname !== '/login') {
+        window.location.href = `/login?redirect=${encodeURIComponent(window.location.pathname)}`;
+      }
+    }
+    throw new ApiError(401, null, 'Phiên đăng nhập đã hết hạn');
+  }
+
   if (token && !headers.has('Authorization')) {
     headers.set('Authorization', `Bearer ${token}`);
   }
@@ -112,13 +131,6 @@ export async function customFetcher<T>({
     throw new ApiError(0, null, 'Lỗi kết nối mạng');
   }
 
-  // Phân biệt endpoint xác thực công khai vs endpoint bảo vệ
-  const isAuthEndpoint =
-    url.includes('/auth/login') ||
-    url.includes('/auth/register') ||
-    url.includes('/auth/verify') ||
-    url.includes('/auth/resend');
-
   // Xử lý 401: Đối với các endpoint bảo vệ, xóa session và điều hướng về trang đăng nhập
   if (response.status === 401 && !isAuthEndpoint && typeof window !== 'undefined') {
     useAuthStore.getState().logout();
@@ -138,6 +150,8 @@ export async function customFetcher<T>({
       errorData?.message ||
       (response.status === 401
         ? 'Thông tin đăng nhập không chính xác'
+        : response.status === 429
+        ? 'Quá nhiều lần thử, vui lòng đợi ít phút'
         : response.status === 404
         ? 'Không tìm thấy tài nguyên'
         : `Yêu cầu thất bại (${response.status})`);

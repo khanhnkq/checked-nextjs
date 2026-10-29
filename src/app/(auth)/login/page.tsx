@@ -1,29 +1,48 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
-import { Camera } from 'lucide-react';
+import { Camera, Lock, User as UserIcon } from 'lucide-react';
 import { useLogin } from '@/lib/api/generated/endpoints';
 import { useAuthStore } from '@/stores/auth-store';
-import { syncSessionCookies } from '@/lib/auth/session-sync';
+import { isTokenExpired } from '@/lib/auth/jwt';
 import { CustomTextField, PrimaryButton } from '@/components/common';
 import type { User } from '@/types/user';
 
 const loginSchema = z.object({
-  identifier: z.string().min(1, 'Nhập email hoặc username'),
+  identifier: z
+    .string()
+    .min(1, 'Nhập email hoặc username')
+    .transform((val) => val.trim()),
   password: z.string().min(6, 'Tối thiểu 6 ký tự'),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
 
-export default function LoginPage() {
+function LoginFormContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+
   const setSession = useAuthStore((s) => s.setSession);
+  const accessToken = useAuthStore((s) => s.accessToken);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const isHydrated = useAuthStore((s) => s.isHydrated);
+
+  // Lấy đường dẫn chuyển tiếp an toàn (chống open redirect)
+  const redirectTarget = searchParams?.get('redirect') || '/';
+  const safeRedirect = redirectTarget.startsWith('/') ? redirectTarget : '/';
+
+  // Nếu người dùng đã có token hợp lệ -> Chuyển thẳng về trang đích
+  useEffect(() => {
+    if (isHydrated && isAuthenticated && accessToken && !isTokenExpired(accessToken)) {
+      router.replace(safeRedirect);
+    }
+  }, [isHydrated, isAuthenticated, accessToken, router, safeRedirect]);
 
   const {
     register,
@@ -41,8 +60,8 @@ export default function LoginPage() {
     mutation: {
       onSuccess: async (data) => {
         const email = data.email || '';
-        
-        // Check verification step
+
+        // Kiểm tra bước xác thực tài khoản
         if (data.isVerified === false) {
           toast.info('Vui lòng xác minh OTP');
           router.push(`/verify-otp?email=${encodeURIComponent(email)}`);
@@ -61,21 +80,32 @@ export default function LoginPage() {
           isGoldMember: false,
         };
 
+        // Lưu session vào store & cookie
         setSession(user, token);
-        await syncSessionCookies(token);
 
         toast.success('Đăng nhập thành công');
 
-        // Check profile completion
+        // Điều hướng thông minh: nếu chưa hoàn thiện hồ sơ thì vào complete-profile, ngược lại vào safeRedirect
         if (!data.profileCompleted) {
           router.push('/complete-profile');
         } else {
-          router.push('/');
+          router.replace(safeRedirect);
         }
       },
       onError: (err: any) => {
-        const message = err?.data?.message || err?.response?.data?.message || err?.message || 'Đăng nhập thất bại';
-        toast.error(message);
+        const status = err?.status || err?.response?.status;
+        if (status === 401) {
+          toast.error('Tài khoản hoặc mật khẩu không chính xác');
+        } else if (status === 429) {
+          toast.error('Quá nhiều lần thử, vui lòng đợi ít phút');
+        } else {
+          const message =
+            err?.data?.message ||
+            err?.response?.data?.message ||
+            err?.message ||
+            'Đăng nhập thất bại';
+          toast.error(message);
+        }
       },
     },
   });
@@ -84,16 +114,35 @@ export default function LoginPage() {
     loginMutation.mutate({ data: formData });
   };
 
+  // Tránh flash form khi đã đăng nhập hợp lệ
+  if (isHydrated && isAuthenticated && accessToken && !isTokenExpired(accessToken)) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-[#FAF8F5]">
+        <div className="w-16 h-16 rounded-3xl bg-[#D4EB70] flex items-center justify-center animate-pulse">
+          <Camera size={30} className="text-[#141613]" strokeWidth={2.2} />
+        </div>
+      </div>
+    );
+  }
+
+  const registerHref =
+    safeRedirect !== '/'
+      ? `/register?redirect=${encodeURIComponent(safeRedirect)}`
+      : '/register';
+
   return (
-    <div className="flex flex-col items-center justify-between min-h-screen px-6 py-10 max-w-md mx-auto pt-safe pb-safe">
+    <div className="flex flex-col items-center justify-between min-h-screen px-6 py-10 max-w-md mx-auto pt-safe pb-safe bg-[#FAF8F5]">
       {/* Top Branding */}
-      <div className="flex flex-col items-center mt-8 gap-4">
-        <div className="w-18 h-18 rounded-3xl bg-[#D4EB70] flex items-center justify-center">
-          <Camera size={34} className="text-[#141613]" strokeWidth={2.2} />
+      <div className="flex flex-col items-center mt-6 gap-3">
+        <div className="w-20 h-20 rounded-3xl bg-[#D4EB70] flex items-center justify-center transition-transform active:scale-95">
+          <Camera size={36} className="text-[#141613]" strokeWidth={2.2} />
         </div>
         <h1 className="text-3xl font-extrabold font-display text-[#141613] tracking-tight">
           Đăng nhập
         </h1>
+        <p className="text-sm font-medium text-[#63685F] tracking-tight">
+          Chia sẻ khoảnh khắc & tài chính
+        </p>
       </div>
 
       {/* Form Fields */}
@@ -105,6 +154,8 @@ export default function LoginPage() {
           label="Tài khoản"
           placeholder="Email hoặc username"
           autoComplete="username"
+          leftIcon={<UserIcon size={18} />}
+          disabled={loginMutation.isPending}
           error={errors.identifier?.message}
           {...register('identifier')}
         />
@@ -114,11 +165,13 @@ export default function LoginPage() {
           type="password"
           placeholder="Mật khẩu"
           autoComplete="current-password"
+          leftIcon={<Lock size={18} />}
+          disabled={loginMutation.isPending}
           error={errors.password?.message}
           {...register('password')}
         />
 
-        <div className="pt-4">
+        <div className="pt-2">
           <PrimaryButton
             type="submit"
             isLoading={loginMutation.isPending}
@@ -130,15 +183,31 @@ export default function LoginPage() {
       </form>
 
       {/* Bottom Switch to Register */}
-      <div className="w-full flex justify-center pb-4">
+      <div className="w-full flex justify-center pb-2">
         <Link
-          href="/register"
+          href={registerHref}
           className="text-sm font-semibold text-[#63685F] hover:text-[#141613] transition-colors"
         >
-          Chưa có tài khoản? <span className="text-[#141613] font-bold underline">Tạo ngay</span>
+          Chưa có tài khoản?{' '}
+          <span className="text-[#141613] font-bold underline">Tạo ngay</span>
         </Link>
       </div>
     </div>
   );
 }
 
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex flex-col items-center justify-center min-h-screen bg-[#FAF8F5]">
+          <div className="w-16 h-16 rounded-3xl bg-[#D4EB70] flex items-center justify-center animate-pulse">
+            <Camera size={30} className="text-[#141613]" strokeWidth={2.2} />
+          </div>
+        </div>
+      }
+    >
+      <LoginFormContent />
+    </Suspense>
+  );
+}
