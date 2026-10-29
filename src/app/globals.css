@@ -1,0 +1,71 @@
+@import "tailwindcss";
+
+@theme {
+  /* Canvas & Surface (Oat Milk Tonal Contrast) */
+  --color-canvas: #EDE9DF;
+  --color-surface: #FFFFFF;
+  --color-surface-subtle: #DFDACD;
+  --color-gray-subtle: #F2F2F4;
+  --color-dark-surface: #141613;
+
+  /* Brand Accents (Matcha Glow) */
+  --color-primary: #D4EB70;
+  --color-primary-soft: #E6F5A3;
+  --color-accent: #BFDD4A;
+  --color-accent-orange: #FF9500;
+
+  /* Typography */
+  --color-text-primary: #141613;
+  --color-text-secondary: #63685F;
+
+  /* Semantics */
+  --color-error: #FF6954;
+  --color-success: #4E8752;
+
+  /* Apple SF Typography Stack */
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Rounded", "Plus Jakarta Sans", sans-serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", sans-serif;
+
+  /* Radii */
+  --radius-camera: 32px;
+  --radius-card: 24px;
+  --radius-sheet: 28px;
+}
+
+/* ============================================================
+   STRICT RULE: ZERO BLUR, ZERO SHADOW & NATIVE IPHONE TOUCH
+   ============================================================ */
+
+html, body {
+  background-color: var(--color-canvas);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden;
+  
+  /* Chống kéo nảy viewport trên Safari iOS */
+  overscroll-behavior-y: none;
+  
+  /* Bỏ viền xanh highlight khi chạm trên di động */
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+/* Safe Area Insets Utilities cho Dynamic Island & Home Indicator */
+.pt-safe {
+  padding-top: max(env(safe-area-inset-top), 12px);
+}
+
+.pb-safe {
+  padding-bottom: max(env(safe-area-inset-bottom), 16px);
+}
+
+/* Hairline Border chuẩn Retina màn hình iPhone */
+.border-hairline {
+  border-width: 0.5px;
+  border-style: solid;
+  border-color: rgba(20, 22, 19, 0.12);
+}

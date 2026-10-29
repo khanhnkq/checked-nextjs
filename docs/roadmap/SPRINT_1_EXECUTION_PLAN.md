@@ -241,12 +241,13 @@ flowchart TD
 
 | Task ID | Nội Dung Công Việc | Phân Loại | Trạng Thái | Người Phụ Trách |
 | :---: | :--- | :---: | :---: | :---: |
-| **1.1** | Setup Next.js 15, Tailwind v4 & Dependencies | Infra | ⏳ Sẵn sàng | Antigravity AI |
-| **1.2** | Cấu hình `@theme` Oat Milk & Matcha Glow | Design System | ⏳ Sẵn sàng | Antigravity AI |
-| **1.3** | Cấu hình Orval API Codegen từ `openapi.yaml` | Codegen | ⏳ Sẵn sàng | Antigravity AI |
-| **1.4** | Thiết lập Vitest + MSW Mock Testing | Testing / TDD | ⏳ Sẵn sàng | Antigravity AI |
-| **1.5** | Xây dựng 6 UI Primitives phẳng chuẩn iPhone | Components | ⏳ Sẵn sàng | Antigravity AI |
-| **1.6** | Cài đặt `useAuthStore` & Silent Refresh (TDD) | State / Logic | ⏳ Sẵn sàng | Antigravity AI |
-| **1.7** | Xây dựng 4 màn hình Auth (Login, Register, OTP, Profile) | Screen / UI | ⏳ Sẵn sàng | Antigravity AI |
-| **1.8** | Xây dựng Middleware Route Guards & Cookie Proxy | Security | ⏳ Sẵn sàng | Antigravity AI |
-| **1.9** | Audit 5 Quality Gates & Đóng Sprint 1 | QA / Review | ⏳ Sẵn sàng | Antigravity AI |
+| **1.1** | Setup Next.js 15, Tailwind v4 & Dependencies | Infra | ✅ Hoàn thành | Antigravity AI |
+| **1.2** | Cấu hình `@theme` Oat Milk & Matcha Glow | Design System | ✅ Hoàn thành | Antigravity AI |
+| **1.3** | Cấu hình Orval API Codegen từ `openapi.yaml` | Codegen | ✅ Hoàn thành | Antigravity AI |
+| **1.4** | Thiết lập Vitest + MSW Mock Testing | Testing / TDD | ✅ Hoàn thành | Antigravity AI |
+| **1.5** | Xây dựng 6 UI Primitives phẳng chuẩn iPhone | Components | ✅ Hoàn thành | Antigravity AI |
+| **1.6** | Cài đặt `useAuthStore` & Silent Refresh (TDD) | State / Logic | ✅ Hoàn thành | Antigravity AI |
+| **1.7** | Xây dựng 4 màn hình Auth (Login, Register, OTP, Profile) | Screen / UI | ✅ Hoàn thành | Antigravity AI |
+| **1.8** | Xây dựng Middleware Route Guards & Cookie Proxy | Security | ✅ Hoàn thành | Antigravity AI |
+| **1.9** | Audit 5 Quality Gates & Đóng Sprint 1 | QA / Review | ✅ Hoàn thành | Antigravity AI |
+
