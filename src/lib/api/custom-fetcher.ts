@@ -78,7 +78,15 @@ export async function customFetcher<T>({
   }
 
   const headers = new Headers(customHeaders);
-  const token = useAuthStore.getState().accessToken;
+  let token = useAuthStore.getState().accessToken;
+
+  // Dự phòng: Đọc checked_token từ cookie nếu Zustand store đang rehydrate
+  if (!token && typeof document !== 'undefined') {
+    const match = document.cookie.match(/(?:^|;\s*)checked_token=([^;]*)/);
+    if (match && match[1]) {
+      token = decodeURIComponent(match[1]);
+    }
+  }
 
   if (token && !headers.has('Authorization')) {
     headers.set('Authorization', `Bearer ${token}`);
@@ -111,16 +119,16 @@ export async function customFetcher<T>({
     url.includes('/auth/verify') ||
     url.includes('/auth/resend');
 
-  // Xử lý 401: Chỉ báo hết hạn phiên đối với các endpoint bảo vệ khi người dùng đã có token
+  // Xử lý 401: Đối với các endpoint bảo vệ, xóa session và điều hướng về trang đăng nhập
   if (response.status === 401 && !isAuthEndpoint && typeof window !== 'undefined') {
-    const hasToken = Boolean(useAuthStore.getState().accessToken);
-    if (hasToken) {
-      useAuthStore.getState().logout();
-      if (window.location.pathname !== '/login') {
-        window.location.href = '/login';
-      }
-      throw new ApiError(401, null, 'Phiên đăng nhập đã hết hạn');
+    useAuthStore.getState().logout();
+    if (typeof document !== 'undefined') {
+      document.cookie = 'checked_token=; Max-Age=0; path=/;';
     }
+    if (window.location.pathname !== '/login') {
+      window.location.href = `/login?redirect=${encodeURIComponent(window.location.pathname)}`;
+    }
+    throw new ApiError(401, null, 'Phiên đăng nhập đã hết hạn');
   }
 
   // Xử lý lỗi trả về từ Backend

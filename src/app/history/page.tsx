@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Camera } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth-store';
@@ -37,17 +37,38 @@ export interface HistoryPhotoItem {
 export default function HistoryPage() {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
+  const accessToken = useAuthStore((s) => s.accessToken);
+  const isAuthLoading = useAuthStore((s) => s.isLoading);
+  const [cookieToken, setCookieToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      const match = document.cookie.match(/(?:^|;\s*)checked_token=([^;]*)/);
+      if (match && match[1]) {
+        setCookieToken(decodeURIComponent(match[1]));
+      }
+    }
+  }, []);
+
+  const hasToken = Boolean(accessToken || cookieToken);
 
   const [selectedFilterId, setSelectedFilterId] = useState<string | null>(null);
   const [selectedPhotoId, setSelectedPhotoId] = useState<string | null>(null);
 
-  // 1. API: Lấy thông tin user hiện tại nếu store chưa có
-  const { data: userData } = useGetCurrentUser({
+  // 1. API: Lấy thông tin user hiện tại nếu store chưa có nhưng đã có token
+  const { data: userData, isLoading: isUserLoading } = useGetCurrentUser({
     query: {
-      enabled: !user,
+      enabled: !user && !isAuthLoading && hasToken,
     },
   });
   const currentUser = user || userData;
+
+  // Tự động điều hướng về /login nếu đã tải xong mà không có phiên đăng nhập
+  useEffect(() => {
+    if (!isAuthLoading && !hasToken && !user) {
+      router.replace('/login?redirect=/history');
+    }
+  }, [isAuthLoading, hasToken, user, router]);
 
   // Helper kiểm tra ảnh có thuộc về người dùng hiện tại hay không (Chuẩn parity iOS)
   const isCurrentUser = (senderId?: string, senderName?: string): boolean => {
@@ -215,11 +236,14 @@ export default function HistoryPage() {
     });
   }, [allPhotosMap, selectedFilterId, friends, currentUser]);
 
-  const isLoading = isMeFilter
-    ? isMyPhotosLoading
-    : targetFriendId
-    ? isFriendFeedLoading
-    : isFeedLoading && isMyPhotosLoading;
+  const isLoading =
+    isAuthLoading ||
+    (!currentUser && hasToken && isUserLoading) ||
+    (isMeFilter
+      ? isMyPhotosLoading
+      : targetFriendId
+      ? isFriendFeedLoading
+      : isFeedLoading || isMyPhotosLoading);
 
   const handlePhotoClick = (photoId: string) => {
     haptics.light();
