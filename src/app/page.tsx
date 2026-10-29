@@ -45,7 +45,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="relative w-full h-screen max-w-[430px] mx-auto bg-[#EDE9DF] flex flex-col justify-between items-center pt-safe pb-safe select-none overflow-hidden">
+    <div className="relative w-full h-dvh max-w-[430px] mx-auto bg-[#EDE9DF] flex flex-col items-center select-none overflow-hidden pt-safe pb-safe">
       {/* Hidden file input for Photo Library Picker */}
       <input
         ref={fileInputRef}
@@ -64,26 +64,27 @@ export default function HomePage() {
         selectedFriendId={selectedFriendId}
         onSelectFriend={setSelectedFriendId}
         onAddFriendClick={() => router.push('/invite')}
+        className="pt-1 flex-shrink-0"
       />
 
       {/* 2. KHUNG CAMERA VUÔNG 1:1 CHUẨN RỘNG RETINA */}
-      <div className="w-full flex justify-center px-[18px] mt-2 mb-auto">
+      <div className="w-full flex justify-center px-[18px] mt-2.5 flex-shrink-0">
         <CameraBox />
       </div>
 
-      {/* 3. CARD BẠN BÈ XẾP CHỒNG 3D NGHIÊNG TỰ NHIÊN */}
-      <div className="my-auto py-2">
+      {/* 3. CARD BẠN BÈ XẾP CHỒNG (CĂN GIỮA TUYỆT ĐỐI GIỮA CAMERA VÀ CONTROLS) */}
+      <div className="flex-1 w-full flex items-center justify-center">
         <button
           type="button"
           onClick={navigateToHistory}
-          className="outline-none active:scale-95 transition-transform"
+          className="outline-none active:scale-95 transition-transform flex items-center justify-center"
         >
           <StackedFriendCardsView />
         </button>
       </div>
 
       {/* 4. BOTTOM CONTROLS CHUẨN LOCKET & CHECKED IOS */}
-      <footer className="w-full flex flex-col items-center gap-3 px-[28px] pb-[20px] mt-auto">
+      <footer className="w-full flex flex-col items-center gap-3.5 px-[28px] pb-6 flex-shrink-0">
         {/* Hàng 3 nút: Thư viện (52px) - Nút Chụp Matcha (86px) - Lật Cam (52px) */}
         <div className="w-full flex items-center justify-between">
           {/* Nút Thư viện ảnh (52x52px) */}
@@ -114,7 +115,7 @@ export default function HomePage() {
         <button
           type="button"
           onClick={navigateToHistory}
-          className="flex items-center gap-1.5 text-xs font-bold font-display text-[#63685F] hover:text-[#141613] active:scale-95 transition-all"
+          className="flex items-center gap-1.5 text-xs font-bold font-display text-[#63685F] hover:text-[#141613] active:scale-95 transition-all pt-0.5"
         >
           <span>Lịch sử khoảnh khắc</span>
           <ChevronDown size={14} className="text-[#63685F]" strokeWidth={2.5} />

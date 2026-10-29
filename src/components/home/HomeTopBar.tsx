@@ -96,16 +96,16 @@ export const HomeTopBar: React.FC<HomeTopBarProps> = ({
           )}
         </button>
 
-        {/* 2. Nút Pill Dropdown ở giữa (144x44px) */}
+        {/* 2. Nút Pill Dropdown ở giữa (144x44px) - Căn giữa tuyệt đối chuẩn iOS */}
         <div className="relative">
           <button
             type="button"
             onClick={handleToggleDropdown}
             aria-label="Lọc bạn bè"
-            className="w-[144px] h-[44px] rounded-full bg-white flex items-center justify-between px-2 active:scale-95 transition-transform"
+            className="relative w-[144px] h-[44px] rounded-full bg-white flex items-center justify-center px-3 active:scale-95 transition-transform"
           >
-            {/* Left 24px icon or avatar */}
-            <div className="w-6 h-6 rounded-full bg-[#DFDACD] flex items-center justify-center overflow-hidden flex-shrink-0">
+            {/* Left 24px icon or avatar - Ghim cố định mép trái */}
+            <div className="absolute left-2.5 w-6 h-6 rounded-full bg-[#DFDACD] flex items-center justify-center overflow-hidden flex-shrink-0">
               {selectedFriendId === null ? (
                 <Users size={12} className="text-[#141613]" />
               ) : selectedAvatar ? (
@@ -115,16 +115,16 @@ export const HomeTopBar: React.FC<HomeTopBarProps> = ({
               )}
             </div>
 
-            {/* Center title */}
-            <span className="text-sm font-bold text-[#141613] truncate max-w-[70px]">
+            {/* Center title - Căn giữa tuyệt đối trong khung 144px */}
+            <span className="text-sm font-bold text-[#141613] truncate max-w-[72px] text-center">
               {selectedTitle}
             </span>
 
-            {/* Right Chevron */}
+            {/* Right Chevron - Ghim cố định mép phải */}
             <ChevronDown
               size={14}
               className={cn(
-                'text-[#141613] transition-transform duration-200 mr-1',
+                'absolute right-3.5 text-[#141613] transition-transform duration-200',
                 isDropdownOpen && 'rotate-180'
               )}
             />
