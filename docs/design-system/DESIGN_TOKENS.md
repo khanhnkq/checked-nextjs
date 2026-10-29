@@ -1,9 +1,9 @@
-# 🎨 DESIGN TOKENS SPECIFICATION (ZERO BLUR, ZERO SHADOW & IOS NATIVE)
+# 🎨 DESIGN TOKENS SPECIFICATION (ZERO BORDER, ZERO BLUR, ZERO SHADOW & IOS NATIVE)
 
 > ⚠️ **QUY TẮC BẮT BUỘC (STRICT DESIGN RULE)**:  
-> **TUYỆT ĐỐI KHÔNG DÙNG BLUR, KHÔNG DÙNG SHADOW!**  
-> Cấm hoàn toàn `blur-*`, `backdrop-blur-*`, filter `blur()`, `shadow-*`, `drop-shadow-*`, `box-shadow`.  
-> Thiết kế chuẩn Apple iPhone: Sử dụng **Phân lớp Tương phản Màu Phẳng (Flat Tonal Contrast)**, độ sâu phân lớp bằng bề mặt màu ấm (`#EDE9DF`, `#FFFFFF`, `#DFDACD`, `#F2F2F4`) và **Đường viền Cơ học Sắc Nét (Crisp Solid Borders)**.
+> **TUYỆT ĐỐI KHÔNG DÙNG BORDER, KHÔNG DÙNG BLUR, KHÔNG DÙNG SHADOW!**  
+> Cấm hoàn toàn `border`, `border-*`, `blur-*`, `backdrop-blur-*`, filter `blur()`, `shadow-*`, `drop-shadow-*`, `box-shadow`.  
+> Thiết kế chuẩn Apple iPhone: Sử dụng **Phân lớp Tương phản Màu Phẳng Thuần Túy (Pure Flat Tonal Contrast)**, độ sâu phân lớp bằng sự đối lập màu sắc bề mặt (`#EDE9DF`, `#FFFFFF`, `#DFDACD`, `#F2F2F4`, `#D4EB70`, `#141613`) và **Hình Khối Bo Tròn Tự Nhiên (Smooth Rounded Geometry)**.
 
 ---
 
@@ -11,7 +11,7 @@
 
 ### 1.1 Khối Màu Nền & Bề Mặt (Canvas & Surfaces)
 
-| Token Name | Hex Code | Tên màu | Mục đích ứng dụng (Phẳng & Sắc Nét) |
+| Token Name | Hex Code | Tên màu | Mục đích ứng dụng (Phẳng & Tương Phản) |
 | :--- | :---: | :--- | :--- |
 | `--color-canvas` | `#EDE9DF` | Oat Milk Warm | Nền chính toàn bộ màn hình, mang lại cảm giác giấy ấm tự nhiên |
 | `--color-surface` | `#FFFFFF` | Pure White | Nền phẳng của các thẻ Card, Bottom Sheet, Nút tròn |
@@ -44,9 +44,15 @@
 
 ---
 
-## 2. HỆ THỐNG ĐƯỜNG VIỀN SẮC NÉT CHUẨN RETINA IPHONE (SOLID BORDERS)
+## 2. PHÂN TÁCH KHÔNG GIAN BẰNG MÀU NỀN & BO GÓC (ZERO BORDER ARCHITECTURE)
 
-Để phân tách các lớp không gian mà **không dùng bóng mờ nhòe**, ứng dụng sử dụng các đường viền đơn sắc phẳng:
+Để phân tách các lớp không gian mà **không dùng đường viền (Zero Border)** và **không dùng bóng mờ (Zero Shadow)**:
+- Tách bạch giữa Canvas (`#EDE9DF`) và Component (`#FFFFFF`, `#DFDACD`, `#D4EB70`, `#141613`).
+- Dùng góc bo mượt mà:
+  - Nút tròn: `rounded-full`
+  - Thẻ & Khung ngắm: `rounded-3xl` (24px - 32px)
+  - Ô input & Box OTP: `rounded-2xl` (16px)
+  - Sheet kéo đáy: `rounded-t-[28px]`
 
 | Token Viền | Quy cách CSS | Ứng dụng |
 | :--- | :--- | :--- |

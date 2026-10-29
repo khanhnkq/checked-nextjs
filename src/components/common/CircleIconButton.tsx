@@ -42,11 +42,11 @@ export const CircleIconButton = React.forwardRef<HTMLButtonElement, CircleIconBu
     };
 
     const variantStyles = {
-      surface: 'bg-[#FFFFFF] text-[#141613] border border-[#141613]/12 active:bg-[#DFDACD]',
-      subtle: 'bg-[#DFDACD] text-[#141613] border border-[#141613]/10 active:bg-[#EDE9DF]',
-      dark: 'bg-[#141613] text-[#FFFFFF] border border-white/10 active:bg-[#282B24]',
-      primary: 'bg-[#D4EB70] text-[#141613] border border-[#141613]/15 active:bg-[#BFDD4A]',
-      ghost: 'bg-transparent text-[#141613] border border-transparent active:bg-[#141613]/8',
+      surface: 'bg-[#FFFFFF] text-[#141613] active:bg-[#DFDACD]',
+      subtle: 'bg-[#DFDACD] text-[#141613] active:bg-[#EDE9DF]',
+      dark: 'bg-[#141613] text-[#FFFFFF] active:bg-[#282B24]',
+      primary: 'bg-[#D4EB70] text-[#141613] active:bg-[#BFDD4A]',
+      ghost: 'bg-transparent text-[#141613] active:bg-[#141613]/8',
     };
 
     const badgeBg = badgeColor === 'matcha' ? 'bg-[#D4EB70] text-[#141613]' : 'bg-[#FF6954] text-white';
@@ -74,7 +74,7 @@ export const CircleIconButton = React.forwardRef<HTMLButtonElement, CircleIconBu
           <span
             className={cn(
               'absolute -top-1 -right-1 flex items-center justify-center font-bold text-[10px] leading-none',
-              'min-w-4 h-4 px-1 rounded-full border-2 border-white pointer-events-none',
+              'min-w-4 h-4 px-1 rounded-full pointer-events-none',
               badgeBg
             )}
           >
@@ -87,3 +87,4 @@ export const CircleIconButton = React.forwardRef<HTMLButtonElement, CircleIconBu
 );
 
 CircleIconButton.displayName = 'CircleIconButton';
+

@@ -121,12 +121,11 @@ export const OTPInput: React.FC<OTPInputProps> = ({
             className={cn(
               'w-12 h-14 sm:w-13 sm:h-16 text-center text-2xl font-bold font-display rounded-2xl',
               'bg-[#F2F2F4] text-[#141613] outline-none transition-all duration-150',
-              'border',
               hasError
-                ? 'border-[#FF6954] text-[#FF6954]'
+                ? 'bg-[#FF6954]/15 text-[#FF6954]'
                 : isFilled
-                ? 'border-[#141613] bg-white'
-                : 'border-[#141613]/10 focus:border-[#141613] focus:ring-2 focus:ring-[#D4EB70]',
+                ? 'bg-white text-[#141613]'
+                : 'bg-[#F2F2F4] focus:bg-white',
               disabled && 'opacity-50 pointer-events-none'
             )}
           />

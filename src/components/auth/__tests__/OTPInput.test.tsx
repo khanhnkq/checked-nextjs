@@ -47,10 +47,12 @@ describe('OTPInput Component', () => {
     expect(handleComplete).toHaveBeenCalledWith('123456');
   });
 
-  it('strictly contains no blur or shadow classes in DOM', () => {
+  it('strictly contains no border, blur or shadow classes in DOM', () => {
     const { container } = render(<OTPInput value="123" onChange={vi.fn()} />);
     const html = container.innerHTML;
+    expect(html).not.toMatch(/border/);
     expect(html).not.toMatch(/shadow-/);
     expect(html).not.toMatch(/blur-/);
   });
 });
+

@@ -18,7 +18,7 @@ export const SkeletonBone: React.FC<SkeletonBoneProps> = ({
   const variantStyles = {
     circle: 'rounded-full flex-shrink-0',
     line: 'rounded-md h-3.5 w-full',
-    card: 'rounded-2xl w-full border border-[#141613]/5',
+    card: 'rounded-2xl w-full',
   };
 
   return (
@@ -39,3 +39,4 @@ export const SkeletonBone: React.FC<SkeletonBoneProps> = ({
     />
   );
 };
+

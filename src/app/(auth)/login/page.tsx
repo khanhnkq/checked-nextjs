@@ -88,7 +88,7 @@ export default function LoginPage() {
     <div className="flex flex-col items-center justify-between min-h-screen px-6 py-10 max-w-md mx-auto pt-safe pb-safe">
       {/* Top Branding */}
       <div className="flex flex-col items-center mt-8 gap-4">
-        <div className="w-18 h-18 rounded-3xl bg-[#D4EB70] flex items-center justify-center border border-[#141613]/12">
+        <div className="w-18 h-18 rounded-3xl bg-[#D4EB70] flex items-center justify-center">
           <Camera size={34} className="text-[#141613]" strokeWidth={2.2} />
         </div>
         <h1 className="text-3xl font-extrabold font-display text-[#141613] tracking-tight">
@@ -141,3 +141,4 @@ export default function LoginPage() {
     </div>
   );
 }
+

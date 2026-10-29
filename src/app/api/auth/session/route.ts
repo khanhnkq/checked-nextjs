@@ -44,3 +44,4 @@ export async function DELETE() {
   cookieStore.delete('checked_refresh_token');
   return NextResponse.json({ success: true });
 }
+

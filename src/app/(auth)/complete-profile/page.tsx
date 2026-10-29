@@ -143,7 +143,7 @@ export default function CompleteProfilePage() {
           />
           <div
             onClick={() => fileInputRef.current?.click()}
-            className="w-30 h-30 rounded-full bg-[#DFDACD] border-2 border-[#141613]/15 overflow-hidden flex items-center justify-center cursor-pointer active:scale-95 transition-transform"
+            className="w-30 h-30 rounded-full bg-[#DFDACD] overflow-hidden flex items-center justify-center cursor-pointer active:scale-95 transition-transform"
           >
             {avatarPreview ? (
               <img
@@ -161,7 +161,7 @@ export default function CompleteProfilePage() {
             type="button"
             onClick={() => fileInputRef.current?.click()}
             aria-label="Chọn ảnh đại diện"
-            className="absolute bottom-0 right-0 w-10 h-10 rounded-full bg-[#D4EB70] border-2 border-white flex items-center justify-center active:scale-90 transition-transform"
+            className="absolute bottom-0 right-0 w-10 h-10 rounded-full bg-[#D4EB70] flex items-center justify-center active:scale-90 transition-transform"
           >
             <Camera size={18} className="text-[#141613]" strokeWidth={2.4} />
           </button>
@@ -192,3 +192,4 @@ export default function CompleteProfilePage() {
     </div>
   );
 }
+

@@ -48,3 +48,4 @@ describe('Environment Validator (src/lib/config/env.ts)', () => {
     expect(optionalEnv('TEST_OPTIONAL', 'default-val')).toBe('default-val');
   });
 });
+

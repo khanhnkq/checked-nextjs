@@ -31,7 +31,7 @@ export default function HomePage() {
         <button
           type="button"
           onClick={() => router.push('/complete-profile')}
-          className="w-10 h-10 rounded-full overflow-hidden border border-[#141613]/15 bg-[#DFDACD] flex items-center justify-center active:scale-95 transition-transform"
+          className="w-10 h-10 rounded-full overflow-hidden bg-[#DFDACD] flex items-center justify-center active:scale-95 transition-transform"
           aria-label="Hồ sơ"
         >
           {user?.avatarUrl ? (
@@ -44,7 +44,7 @@ export default function HomePage() {
         </button>
 
         {/* Center Pill: Filter Friends */}
-        <div className="flex items-center gap-1.5 h-10 px-4 rounded-full bg-white border border-[#141613]/12 active:bg-[#DFDACD] transition-colors cursor-pointer">
+        <div className="flex items-center gap-1.5 h-10 px-4 rounded-full bg-white active:bg-[#DFDACD] transition-colors cursor-pointer">
           <Users size={16} className="text-[#141613]" />
           <span className="text-sm font-bold text-[#141613]">Tất cả</span>
         </div>
@@ -62,7 +62,7 @@ export default function HomePage() {
 
       {/* 2. Main Camera Viewfinder Placeholder */}
       <main className="w-full my-auto flex flex-col items-center">
-        <div className="w-full aspect-square rounded-[32px] bg-[#141613] border-2 border-[#141613]/15 overflow-hidden relative flex flex-col items-center justify-center text-white">
+        <div className="w-full aspect-square rounded-[32px] bg-[#141613] overflow-hidden relative flex flex-col items-center justify-center text-white">
           <Camera size={48} className="text-[#D4EB70] mb-3" strokeWidth={1.8} />
           <p className="text-base font-bold font-display text-white tracking-tight">
             Camera Checked
@@ -73,8 +73,8 @@ export default function HomePage() {
 
           {/* Top In-Camera Status Indicators */}
           <div className="absolute top-4 left-4 right-4 flex justify-between items-center text-xs font-bold text-white/80">
-            <span className="px-2.5 py-1 rounded-full bg-white/10 border border-white/10">1:1</span>
-            <span className="px-2.5 py-1 rounded-full bg-white/10 border border-white/10">Auto</span>
+            <span className="px-2.5 py-1 rounded-full bg-white/10">1:1</span>
+            <span className="px-2.5 py-1 rounded-full bg-white/10">Auto</span>
           </div>
         </div>
       </main>
@@ -127,12 +127,13 @@ export default function HomePage() {
             type="button"
             onClick={handleCaptureClick}
             aria-label="Chụp ảnh"
-            className="w-20 h-20 rounded-full border-2 border-[#D4EB70] flex items-center justify-center active:scale-95 transition-transform"
+            className="w-20 h-20 rounded-full bg-[#D4EB70]/20 flex items-center justify-center active:scale-95 transition-transform"
           >
-            <div className="w-[68px] h-[68px] rounded-full bg-[#D4EB70] border border-[#141613]/10 active:scale-90 transition-transform" />
+            <div className="w-[68px] h-[68px] rounded-full bg-[#D4EB70] active:scale-90 transition-transform" />
           </button>
         </div>
       </footer>
     </div>
   );
 }
+

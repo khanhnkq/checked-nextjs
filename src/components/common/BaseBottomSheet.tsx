@@ -48,11 +48,11 @@ export const BaseBottomSheet: React.FC<BaseBottomSheetProps> = ({
         {/* Flat overlay with zero backdrop-blur */}
         <Drawer.Overlay className="fixed inset-0 z-50 bg-black/40" />
 
-        {/* Bottom Sheet Content with zero shadow, solid top hairline border */}
+        {/* Bottom Sheet Content with zero shadow, zero border */}
         <Drawer.Content
           className={cn(
             'fixed bottom-0 left-0 right-0 z-50 flex flex-col',
-            'bg-white rounded-t-[28px] border-t border-[#141613]/12',
+            'bg-white rounded-t-[28px]',
             'max-h-[92vh] outline-none select-none pb-safe',
             className
           )}
@@ -64,7 +64,7 @@ export const BaseBottomSheet: React.FC<BaseBottomSheetProps> = ({
 
           {/* Header */}
           {(title || showCloseButton) && (
-            <div className="flex items-center justify-between px-5 py-2 border-b border-[#141613]/8">
+            <div className="flex items-center justify-between px-5 py-2">
               <Drawer.Title className="text-lg font-bold text-[#141613] tracking-tight">
                 {title || ''}
               </Drawer.Title>
@@ -90,3 +90,4 @@ export const BaseBottomSheet: React.FC<BaseBottomSheetProps> = ({
     </Drawer.Root>
   );
 };
+

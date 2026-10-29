@@ -42,11 +42,10 @@ export const CustomTextField = React.forwardRef<HTMLInputElement, CustomTextFiel
 
         <div
           className={cn(
-            'relative flex items-center w-full h-13 px-4 rounded-2xl bg-[#F2F2F4]',
-            'border transition-all duration-150',
+            'relative flex items-center w-full h-13 px-4 rounded-2xl transition-all duration-150',
             error
-              ? 'border-[#FF6954] ring-1 ring-[#FF6954]'
-              : 'border-[#141613]/10 focus-within:border-[#141613] focus-within:ring-2 focus-within:ring-[#D4EB70]',
+              ? 'bg-[#FF6954]/12 text-[#FF6954]'
+              : 'bg-[#F2F2F4] focus-within:bg-white',
             disabled && 'opacity-50 pointer-events-none'
           )}
         >
@@ -92,3 +91,4 @@ export const CustomTextField = React.forwardRef<HTMLInputElement, CustomTextFiel
 );
 
 CustomTextField.displayName = 'CustomTextField';
+

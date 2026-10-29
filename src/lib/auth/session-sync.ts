@@ -24,3 +24,4 @@ export async function clearSessionCookies(): Promise<boolean> {
     return false;
   }
 }
+

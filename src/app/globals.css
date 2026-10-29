@@ -33,7 +33,7 @@
 }
 
 /* ============================================================
-   STRICT RULE: ZERO BLUR, ZERO SHADOW & NATIVE IPHONE TOUCH
+   STRICT RULE: ZERO BORDER, ZERO BLUR, ZERO SHADOW (PURE TONAL)
    ============================================================ */
 
 html, body {
@@ -61,11 +61,4 @@ html, body {
 
 .pb-safe {
   padding-bottom: max(env(safe-area-inset-bottom), 16px);
-}
-
-/* Hairline Border chuẩn Retina màn hình iPhone */
-.border-hairline {
-  border-width: 0.5px;
-  border-style: solid;
-  border-color: rgba(20, 22, 19, 0.12);
 }

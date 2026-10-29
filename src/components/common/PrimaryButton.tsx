@@ -36,10 +36,10 @@ export const PrimaryButton = React.forwardRef<HTMLButtonElement, PrimaryButtonPr
     };
 
     const variantStyles = {
-      primary: 'bg-[#D4EB70] text-[#141613] border border-[#141613]/15 active:bg-[#BFDD4A]',
-      secondary: 'bg-[#FFFFFF] text-[#141613] border border-[#141613]/15 active:bg-[#DFDACD]',
-      danger: 'bg-[#FF6954] text-white border border-[#141613]/15 active:bg-[#E55340]',
-      ghost: 'bg-transparent text-[#141613] border border-transparent active:bg-[#141613]/5',
+      primary: 'bg-[#D4EB70] text-[#141613] active:bg-[#BFDD4A]',
+      secondary: 'bg-[#FFFFFF] text-[#141613] active:bg-[#DFDACD]',
+      danger: 'bg-[#FF6954] text-white active:bg-[#E55340]',
+      ghost: 'bg-transparent text-[#141613] active:bg-[#141613]/5',
     };
 
     const sizeStyles = {
@@ -101,3 +101,4 @@ export const PrimaryButton = React.forwardRef<HTMLButtonElement, PrimaryButtonPr
 );
 
 PrimaryButton.displayName = 'PrimaryButton';
+

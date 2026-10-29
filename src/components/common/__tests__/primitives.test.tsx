@@ -6,7 +6,7 @@ import { CircleIconButton } from '../CircleIconButton';
 import { CustomTextField } from '../CustomTextField';
 import { SkeletonBone } from '../SkeletonBone';
 
-describe('UI Primitives (Zero Blur, Zero Shadow, Mechanical Tactile)', () => {
+describe('UI Primitives (Zero Border, Zero Blur, Zero Shadow, Mechanical Tactile)', () => {
   describe('PrimaryButton', () => {
     it('renders with children and handles click event', async () => {
       const user = userEvent.setup();
@@ -27,9 +27,10 @@ describe('UI Primitives (Zero Blur, Zero Shadow, Mechanical Tactile)', () => {
       expect(screen.getByText('Xử lý...')).toBeInTheDocument();
     });
 
-    it('strictly has no blur or shadow classes in DOM', () => {
+    it('strictly has no border, blur or shadow classes in DOM', () => {
       const { container } = render(<PrimaryButton>Button</PrimaryButton>);
       const html = container.innerHTML;
+      expect(html).not.toMatch(/border/);
       expect(html).not.toMatch(/shadow-/);
       expect(html).not.toMatch(/blur-/);
     });
@@ -57,13 +58,14 @@ describe('UI Primitives (Zero Blur, Zero Shadow, Mechanical Tactile)', () => {
       expect(screen.getByText('99+')).toBeInTheDocument();
     });
 
-    it('strictly has no blur or shadow classes in DOM', () => {
+    it('strictly has no border, blur or shadow classes in DOM', () => {
       const { container } = render(
         <CircleIconButton aria-label="Nút icon">
           <span>+</span>
         </CircleIconButton>
       );
       const html = container.innerHTML;
+      expect(html).not.toMatch(/border/);
       expect(html).not.toMatch(/shadow-/);
       expect(html).not.toMatch(/blur-/);
     });
@@ -107,11 +109,12 @@ describe('UI Primitives (Zero Blur, Zero Shadow, Mechanical Tactile)', () => {
       expect(screen.getByText('Mã OTP không hợp lệ')).toBeInTheDocument();
     });
 
-    it('strictly has no blur or shadow classes in DOM', () => {
+    it('strictly has no border, blur or shadow classes in DOM', () => {
       const { container } = render(
         <CustomTextField label="Username" placeholder="khanh" />
       );
       const html = container.innerHTML;
+      expect(html).not.toMatch(/border/);
       expect(html).not.toMatch(/shadow-/);
       expect(html).not.toMatch(/blur-/);
     });
@@ -132,9 +135,10 @@ describe('UI Primitives (Zero Blur, Zero Shadow, Mechanical Tactile)', () => {
       expect(el).toHaveClass('rounded-2xl');
     });
 
-    it('strictly has no blur or shadow classes in DOM', () => {
+    it('strictly has no border, blur or shadow classes in DOM', () => {
       const { container } = render(<SkeletonBone variant="card" />);
       const html = container.innerHTML;
+      expect(html).not.toMatch(/border/);
       expect(html).not.toMatch(/shadow-/);
       expect(html).not.toMatch(/blur-/);
     });

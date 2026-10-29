@@ -21,14 +21,15 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       {children}
-      {/* Toast strictly without blur or shadows */}
+      {/* Toast strictly without border, blur, or shadows */}
       <Toaster
         position="top-center"
         toastOptions={{
           className:
-            '!bg-white !text-[#141613] !border !border-[#141613]/12 !rounded-2xl !p-4 !shadow-none !backdrop-blur-none font-medium',
+            '!bg-white !text-[#141613] !rounded-2xl !p-4 !shadow-none !backdrop-blur-none !border-none font-medium',
         }}
       />
     </QueryClientProvider>
   );
 }
+

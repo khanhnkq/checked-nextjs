@@ -5,18 +5,22 @@
 
 ---
 
-## 🏛️ ĐIỀU LỆ 1: THIẾT KẾ ZERO BLUR & ZERO SHADOW (STRICT VISUAL RULE)
+## 🏛️ ĐIỀU LỆ 1: THIẾT KẾ ZERO BORDER, ZERO BLUR & ZERO SHADOW (STRICT VISUAL RULE)
 
-1. **Tuyệt đối CẤM Blur**:
+1. **Tuyệt đối CẤM Border (Đường viền)**:
+   - CẤM sử dụng các class Tailwind: `border`, `border-*`, `border-t-*`, `border-b-*`, `border-l-*`, `border-r-*`, `border-x-*`, `border-y-*`, `border-[...]`.
+   - CẤM sử dụng CSS: `border`, `border-width`, `border-color`, `border-style`, `outline`.
+2. **Tuyệt đối CẤM Blur (Mờ mịt)**:
    - CẤM sử dụng các class Tailwind: `blur-*`, `backdrop-blur-*`.
    - CẤM sử dụng CSS: `filter: blur(...)`, `backdrop-filter: blur(...)`.
-2. **Tuyệt đối CẤM Shadow**:
+3. **Tuyệt đối CẤM Shadow (Đổ bóng)**:
    - CẤM sử dụng các class Tailwind: `shadow`, `shadow-sm`, `shadow-md`, `shadow-lg`, `shadow-xl`, `shadow-2xl`, `drop-shadow-*`.
    - CẤM sử dụng CSS: `box-shadow`, `text-shadow`, `filter: drop-shadow(...)`.
-3. **Giải pháp thay thế bắt buộc**:
-   - **Tonal Contrast (Phân lớp màu nền phẳng)**: Dùng sự đối lập giữa nền kem Oat Milk (`#EDE9DF`), trắng (`#FFFFFF`), cát ấm Sand Dust (`#DFDACD`), xám sạch (`#F2F2F4`).
-   - **Đường viền sắc sảo (Crisp Solid Borders)**: Tạo chiều sâu và phân tách giao diện bằng các viền đơn sắc: `border border-[#141613]/10`, `border border-[#141613]/15`, hoặc `border-2 border-[#141613]`.
-   - **Tối ưu hiệu năng**: Không dùng blur/shadow giúp ứng dụng đạt tốc độ hiển thị $60fps$ tuyệt đối trên mọi thiết bị di động yếu.
+4. **Giải pháp thay thế bắt buộc (Pure Tonal Contrast)**:
+   - **Tonal Contrast (Phân lớp màu nền phẳng)**: Dùng sự đối lập giữa nền kem Oat Milk (`#EDE9DF`), trắng (`#FFFFFF`), cát ấm Sand Dust (`#DFDACD`), xám sạch (`#F2F2F4`), Matcha Glow (`#D4EB70`), đen sâu (`#141613`).
+   - **Bo góc hình học hữu cơ (Organic Geometric Radii)**: Định hình thẻ và nút bấm bằng các góc bo siêu mượt (`rounded-full`, `rounded-3xl`, `rounded-2xl`).
+   - **Trạng thái Focus / Error**: Dùng thay đổi sắc thái màu nền (ví dụ ô nhập lỗi dùng nền `#FF6954`/15 hoặc chữ đỏ `#FF6954`, focus chuyển sang nền `#FFFFFF`).
+   - **Tối ưu hiệu năng**: Loại bỏ hoàn toàn border, blur, shadow giúp giao diện siêu phẳng, thanh lịch, tải tức thì và đạt $60fps$ tuyệt đối trên mọi thiết bị.
 
 ---
 

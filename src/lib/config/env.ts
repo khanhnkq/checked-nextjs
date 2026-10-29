@@ -67,3 +67,4 @@ export const env = {
     return optionalEnv('NEXT_PUBLIC_ENABLE_DEBUG_LOGS', 'false') === 'true';
   },
 };
+
