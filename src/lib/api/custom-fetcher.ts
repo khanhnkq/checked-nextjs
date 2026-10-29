@@ -13,6 +13,25 @@ export class ApiError extends Error {
 }
 
 /**
+ * Xây dựng URL chuẩn hóa, tự động khử trùng lặp tiền tố /api/v1 giữa baseUrl và endpoint url
+ */
+function buildTargetUrl(rawBaseUrl: string, url: string): URL {
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return new URL(url);
+  }
+
+  const base = rawBaseUrl.replace(/\/+$/, '');
+  const cleanUrl = url.startsWith('/') ? url : `/${url}`;
+
+  // Tránh lỗi /api/v1/api/v1/... nếu cả base và endpoint đều có /api/v1
+  if (base.endsWith('/api/v1') && cleanUrl.startsWith('/api/v1/')) {
+    return new URL(base + cleanUrl.slice('/api/v1'.length));
+  }
+
+  return new URL(base + cleanUrl);
+}
+
+/**
  * Custom Fetcher chuẩn hóa cho Orval và mọi API request
  * Sử dụng env.apiBaseUrl nghiêm ngặt. Nếu NEXT_PUBLIC_API_BASE_URL bị trống sẽ ném lỗi ngay lập tức.
  */
@@ -31,13 +50,8 @@ export async function customFetcher<T>({
   headers?: any;
   signal?: AbortSignal;
 }): Promise<T> {
-  // Lấy baseUrl từ env (Tự động ném lỗi nếu biến môi trường bị trống, không dùng hardcode fallback)
   const baseUrl = env.apiBaseUrl;
-
-  // Xây dựng URL hoàn chỉnh kèm query parameters
-  const targetUrl = new URL(
-    url.startsWith('http') ? url : `${baseUrl}${url.startsWith('/') ? '' : '/'}${url}`
-  );
+  const targetUrl = buildTargetUrl(baseUrl, url);
 
   if (params) {
     Object.entries(params).forEach(([key, value]) => {
