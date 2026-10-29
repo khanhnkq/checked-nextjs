@@ -1,139 +1,125 @@
 'use client';
 
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Camera, History, MessageCircle, LogOut, Flame, DollarSign, Users } from 'lucide-react';
+import { ChevronDown, Image as ImageIcon, RotateCcw } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth-store';
-import { clearSessionCookies } from '@/lib/auth/session-sync';
-import { CircleIconButton } from '@/components/common';
+import {
+  HomeTopBar,
+  CameraBox,
+  StackedFriendCardsView,
+  CaptureButton,
+} from '@/components/home';
 import { haptics } from '@/lib/utils/haptics';
 
 export default function HomePage() {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
-  const logout = useAuthStore((s) => s.logout);
 
-  const handleLogout = async () => {
-    logout();
-    await clearSessionCookies();
-    router.push('/login');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [selectedFriendId, setSelectedFriendId] = useState<string | null>(null);
+
+  const handleCapture = () => {
+    haptics.heavy();
+    // Chuyển sang màn hình Preview ảnh hoặc kích hoạt Camera WebRTC ở Sprint 2
   };
 
-  const handleCaptureClick = () => {
+  const handlePhotoLibraryClick = () => {
+    haptics.click();
+    fileInputRef.current?.click();
+  };
+
+  const handleFileSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    // Xử lý nạp ảnh từ thư viện
+  };
+
+  const handleFlipCamera = () => {
     haptics.medium();
   };
 
+  const navigateToHistory = () => {
+    haptics.click();
+    router.push('/history');
+  };
+
   return (
-    <div className="flex flex-col justify-between min-h-screen px-4 py-4 max-w-md mx-auto pt-safe pb-safe select-none">
-      {/* 1. Home Top Bar */}
-      <header className="flex items-center justify-between h-14 px-2">
-        {/* User Profile Avatar */}
+    <div className="relative w-full h-screen max-w-[430px] mx-auto bg-[#EDE9DF] flex flex-col justify-between items-center pt-safe pb-safe select-none overflow-hidden">
+      {/* Hidden file input for Photo Library Picker */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleFileSelected}
+      />
+
+      {/* 1. TOP BAR & DROPDOWN BẠN BÈ CHUẨN IOS */}
+      <HomeTopBar
+        currentUserAvatar={user?.avatarUrl}
+        onAvatarClick={() => router.push('/profile')}
+        onChatClick={() => router.push('/messages')}
+        chatBadgeCount={0}
+        selectedFriendId={selectedFriendId}
+        onSelectFriend={setSelectedFriendId}
+        onAddFriendClick={() => router.push('/invite')}
+      />
+
+      {/* 2. KHUNG CAMERA VUÔNG 1:1 CHUẨN RỘNG RETINA */}
+      <div className="w-full flex justify-center px-[18px] mt-2 mb-auto">
+        <CameraBox />
+      </div>
+
+      {/* 3. CARD BẠN BÈ XẾP CHỒNG 3D NGHIÊNG TỰ NHIÊN */}
+      <div className="my-auto py-2">
         <button
           type="button"
-          onClick={() => router.push('/complete-profile')}
-          className="w-10 h-10 rounded-full overflow-hidden bg-[#DFDACD] flex items-center justify-center active:scale-95 transition-transform"
-          aria-label="Hồ sơ"
+          onClick={navigateToHistory}
+          className="outline-none active:scale-95 transition-transform"
         >
-          {user?.avatarUrl ? (
-            <img src={user.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
-          ) : (
-            <span className="text-sm font-bold text-[#141613]">
-              {(user?.displayName || user?.username || 'C')[0].toUpperCase()}
-            </span>
-          )}
+          <StackedFriendCardsView />
         </button>
+      </div>
 
-        {/* Center Pill: Filter Friends */}
-        <div className="flex items-center gap-1.5 h-10 px-4 rounded-full bg-white active:bg-[#DFDACD] transition-colors cursor-pointer">
-          <Users size={16} className="text-[#141613]" />
-          <span className="text-sm font-bold text-[#141613]">Tất cả</span>
-        </div>
-
-        {/* Right Action: Logout */}
-        <CircleIconButton
-          size="sm"
-          variant="surface"
-          onClick={handleLogout}
-          aria-label="Đăng xuất"
-        >
-          <LogOut size={16} />
-        </CircleIconButton>
-      </header>
-
-      {/* 2. Main Camera Viewfinder Placeholder */}
-      <main className="w-full my-auto flex flex-col items-center">
-        <div className="w-full aspect-square rounded-[32px] bg-[#141613] overflow-hidden relative flex flex-col items-center justify-center text-white">
-          <Camera size={48} className="text-[#D4EB70] mb-3" strokeWidth={1.8} />
-          <p className="text-base font-bold font-display text-white tracking-tight">
-            Camera Checked
-          </p>
-          <p className="text-xs text-white/60 mt-1 font-medium">
-            Khoảnh khắc của {user?.displayName || user?.username || 'bạn'}
-          </p>
-
-          {/* Top In-Camera Status Indicators */}
-          <div className="absolute top-4 left-4 right-4 flex justify-between items-center text-xs font-bold text-white/80">
-            <span className="px-2.5 py-1 rounded-full bg-white/10">1:1</span>
-            <span className="px-2.5 py-1 rounded-full bg-white/10">Auto</span>
-          </div>
-        </div>
-      </main>
-
-      {/* 3. Bottom Camera Controls & Feature Navigation */}
-      <footer className="flex flex-col gap-4 pb-2">
-        {/* Navigation Shortcuts */}
-        <div className="flex items-center justify-around px-4">
-          <CircleIconButton
-            size="md"
-            variant="surface"
-            aria-label="Lịch sử"
-            onClick={() => haptics.click()}
-          >
-            <History size={20} />
-          </CircleIconButton>
-
-          <CircleIconButton
-            size="md"
-            variant="surface"
-            aria-label="Chi tiêu"
-            onClick={() => haptics.click()}
-          >
-            <DollarSign size={20} />
-          </CircleIconButton>
-
-          <CircleIconButton
-            size="md"
-            variant="surface"
-            aria-label="Calo"
-            onClick={() => haptics.click()}
-          >
-            <Flame size={20} />
-          </CircleIconButton>
-
-          <CircleIconButton
-            size="md"
-            variant="surface"
-            aria-label="Tin nhắn"
-            badge={2}
-            onClick={() => haptics.click()}
-          >
-            <MessageCircle size={20} />
-          </CircleIconButton>
-        </div>
-
-        {/* Central Capture Shutter Button */}
-        <div className="flex items-center justify-center pt-2">
+      {/* 4. BOTTOM CONTROLS CHUẨN LOCKET & CHECKED IOS */}
+      <footer className="w-full flex flex-col items-center gap-3 px-[28px] pb-[20px] mt-auto">
+        {/* Hàng 3 nút: Thư viện (52px) - Nút Chụp Matcha (86px) - Lật Cam (52px) */}
+        <div className="w-full flex items-center justify-between">
+          {/* Nút Thư viện ảnh (52x52px) */}
           <button
             type="button"
-            onClick={handleCaptureClick}
-            aria-label="Chụp ảnh"
-            className="w-20 h-20 rounded-full bg-[#D4EB70]/20 flex items-center justify-center active:scale-95 transition-transform"
+            onClick={handlePhotoLibraryClick}
+            aria-label="Chọn từ thư viện"
+            className="w-[52px] h-[52px] rounded-full bg-white flex items-center justify-center flex-shrink-0 active:scale-90 transition-transform"
           >
-            <div className="w-[68px] h-[68px] rounded-full bg-[#D4EB70] active:scale-90 transition-transform" />
+            <ImageIcon size={22} className="text-[#141613]" strokeWidth={2.2} />
+          </button>
+
+          {/* NÚT CHỤP MATCHA GLOW 3 LỚP (86x86px) */}
+          <CaptureButton onCapture={handleCapture} />
+
+          {/* Nút lật camera (52x52px) */}
+          <button
+            type="button"
+            onClick={handleFlipCamera}
+            aria-label="Lật camera"
+            className="w-[52px] h-[52px] rounded-full bg-white flex items-center justify-center flex-shrink-0 active:scale-90 transition-transform"
+          >
+            <RotateCcw size={22} className="text-[#141613]" strokeWidth={2.2} />
           </button>
         </div>
+
+        {/* Nút text cuộn Lịch sử khoảnh khắc */}
+        <button
+          type="button"
+          onClick={navigateToHistory}
+          className="flex items-center gap-1.5 text-xs font-bold font-display text-[#63685F] hover:text-[#141613] active:scale-95 transition-all"
+        >
+          <span>Lịch sử khoảnh khắc</span>
+          <ChevronDown size={14} className="text-[#63685F]" strokeWidth={2.5} />
+        </button>
       </footer>
     </div>
   );
 }
-
