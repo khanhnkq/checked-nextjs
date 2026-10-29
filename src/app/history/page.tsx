@@ -14,6 +14,7 @@ import {
   HistoryTopBar,
   HistoryGridSkeleton,
   HistoryEmptyState,
+  PhotoDetailView,
 } from '@/components/history';
 import type { FriendOption } from '@/components/home';
 import { haptics } from '@/lib/utils/haptics';
@@ -23,7 +24,7 @@ export interface HistoryPhotoItem {
   imageUrl: string;
   thumbnailUrl?: string;
   senderName?: string;
-  senderAvatarUrl?: string;
+  senderAvatarUrl?: string | null;
   createdAt?: string;
   amount?: number;
   calories?: number;
@@ -188,6 +189,15 @@ export default function HistoryPage() {
           <Camera size={22} strokeWidth={2.2} />
         </button>
       </div>
+
+      {/* 4. TRÌNH XEM ẢNH CHI TIẾT VUỐT DỌC NATIVE PRESENTATION */}
+      {selectedPhotoId && (
+        <PhotoDetailView
+          photos={photos}
+          initialPhotoId={selectedPhotoId}
+          onDismiss={() => setSelectedPhotoId(null)}
+        />
+      )}
     </div>
   );
 }
