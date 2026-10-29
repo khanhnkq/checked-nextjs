@@ -78,19 +78,31 @@ export default function HistoryPage() {
     },
   });
 
-  // 3. API: Lấy feed ảnh bạn bè (hoặc theo friendId nếu đang chọn bạn cụ thể)
+  // 3. API: Lấy feed ảnh bạn bè (luôn duy trì feed tổng hợp của tất cả bạn bè)
   const isMeFilter = selectedFilterId === 'me';
   const targetFriendId =
     selectedFilterId && selectedFilterId !== 'me' ? selectedFilterId : undefined;
 
-  const { data: feedData, isLoading: isFeedLoading } = useGetFeedPhotos(
+  const { data: mainFeedData, isLoading: isFeedLoading } = useGetFeedPhotos(
+    {
+      pageable: { page: 0, size: 50 },
+    },
+    {
+      query: {
+        enabled: !!currentUser,
+      },
+    }
+  );
+
+  // API bổ sung: Lấy riêng feed của bạn bè được chọn nếu có
+  const { data: friendFeedData, isLoading: isFriendFeedLoading } = useGetFeedPhotos(
     {
       friendId: targetFriendId,
       pageable: { page: 0, size: 50 },
     },
     {
       query: {
-        enabled: !!currentUser,
+        enabled: !!currentUser && !!targetFriendId,
       },
     }
   );
@@ -129,7 +141,8 @@ export default function HistoryPage() {
       });
     };
 
-    (feedData?.content || []).forEach(addRaw);
+    (mainFeedData?.content || []).forEach(addRaw);
+    (friendFeedData?.content || []).forEach(addRaw);
     (myPhotosData?.content || []).forEach(addRaw);
 
     return Array.from(map.values()).sort((a, b) => {
@@ -137,7 +150,7 @@ export default function HistoryPage() {
       const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
       return timeB - timeA;
     });
-  }, [feedData?.content, myPhotosData?.content]);
+  }, [mainFeedData?.content, friendFeedData?.content, myPhotosData?.content]);
 
   // 6. Danh sách bạn bè duy nhất cho Dropdown (Friendship list + Sender từ ảnh)
   const friends: FriendOption[] = useMemo(() => {
@@ -202,7 +215,11 @@ export default function HistoryPage() {
     });
   }, [allPhotosMap, selectedFilterId, friends, currentUser]);
 
-  const isLoading = isMeFilter ? isMyPhotosLoading : (isFeedLoading && isMyPhotosLoading);
+  const isLoading = isMeFilter
+    ? isMyPhotosLoading
+    : targetFriendId
+    ? isFriendFeedLoading
+    : isFeedLoading && isMyPhotosLoading;
 
   const handlePhotoClick = (photoId: string) => {
     haptics.light();
