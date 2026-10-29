@@ -82,6 +82,43 @@ describe('Home Components (iOS Parity, Zero Border, Zero Blur, Zero Shadow)', ()
       expect(zoomButton).toHaveTextContent('1x');
     });
 
+    it('renders video element when isLive is true with videoRef', () => {
+      const mockRef = { current: document.createElement('video') } as any;
+      const { container } = render(
+        <CameraBox videoRef={mockRef} isLive={true} facingMode="user" />
+      );
+      const video = container.querySelector('video');
+      expect(video).toBeInTheDocument();
+      expect(video).toHaveClass('-scale-x-100');
+    });
+
+    it('renders permission denied message and handles retry callback', async () => {
+      const handleRetry = vi.fn();
+      const user = userEvent.setup();
+      render(<CameraBox status="denied" onRetryPermission={handleRetry} />);
+
+      expect(screen.getByText('Chưa cấp quyền camera')).toBeInTheDocument();
+      const retryBtn = screen.getByRole('button', { name: 'Cấp quyền' });
+      await user.click(retryBtn);
+      expect(handleRetry).toHaveBeenCalled();
+    });
+
+    it('renders preview image and handles retake', async () => {
+      const handleRetake = vi.fn();
+      const user = userEvent.setup();
+      render(
+        <CameraBox
+          previewImageUrl="data:image/jpeg;base64,sample"
+          onRetake={handleRetake}
+        />
+      );
+
+      expect(screen.getByAltText('Khoảnh khắc vừa chụp')).toBeInTheDocument();
+      const retakeBtn = screen.getByRole('button', { name: 'Chụp lại ảnh' });
+      await user.click(retakeBtn);
+      expect(handleRetake).toHaveBeenCalled();
+    });
+
     it('strictly conforms to zero border, blur, shadow rule', () => {
       const { container } = render(<CameraBox />);
       expect(container.innerHTML).not.toMatch(/border/);

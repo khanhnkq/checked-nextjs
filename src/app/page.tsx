@@ -18,6 +18,8 @@ import {
   type FriendOption,
   type StackedCardPhoto,
 } from '@/components/home';
+import { useWebRTCCamera } from '@/hooks/useWebRTCCamera';
+import { captureVideoFrame, cropImageFileToSquare } from '@/lib/media/canvas-capture';
 import { haptics } from '@/lib/utils/haptics';
 
 export default function HomePage() {
@@ -27,6 +29,10 @@ export default function HomePage() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedFriendId, setSelectedFriendId] = useState<string | null>(null);
+  const [capturedPhotoUrl, setCapturedPhotoUrl] = useState<string | null>(null);
+
+  // Hook Camera WebRTC thực tế (tự động khởi động luồng camera)
+  const camera = useWebRTCCamera({ autoStart: true });
 
   // 1. API: Đồng bộ thông tin người dùng hiện tại từ Backend
   const { data: userData, isLoading: isUserLoading } = useGetCurrentUser({
@@ -84,24 +90,66 @@ export default function HomePage() {
     }));
   }, [feedData?.content]);
 
-  const handleCapture = () => {
+  // Chụp ảnh từ luồng camera WebRTC (crop vuông 1:1 chuẩn xác)
+  const handleCapture = async () => {
     haptics.heavy();
-    // Chuyển sang màn hình Preview ảnh hoặc kích hoạt Camera WebRTC ở Sprint 2
+    if (camera.status === 'streaming' && camera.videoRef.current) {
+      try {
+        const photo = await captureVideoFrame(camera.videoRef.current);
+        setCapturedPhotoUrl(photo.dataUrl);
+      } catch (err) {
+        console.error('Lỗi khi chụp ảnh từ video stream:', err);
+      }
+    } else {
+      // Môi trường giả lập khi không có camera phần cứng (Simulator mode)
+      const canvas = document.createElement('canvas');
+      canvas.width = 1080;
+      canvas.height = 1080;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.fillStyle = '#141613';
+        ctx.fillRect(0, 0, 1080, 1080);
+        ctx.fillStyle = '#D4EB70';
+        ctx.font = 'bold 48px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Checked Moment', 540, 540);
+        setCapturedPhotoUrl(canvas.toDataURL('image/jpeg', 0.9));
+      }
+    }
   };
 
+  // Mở trình chọn ảnh hệ thống (PhotosPicker)
   const handlePhotoLibraryClick = () => {
     haptics.click();
     fileInputRef.current?.click();
   };
 
-  const handleFileSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Nạp ảnh từ Thư viện và tự động crop vuông 1:1
+  const handleFileSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    // Xử lý nạp ảnh từ thư viện
+    try {
+      const photo = await cropImageFileToSquare(file);
+      setCapturedPhotoUrl(photo.dataUrl);
+    } catch (err) {
+      console.error('Lỗi cắt ảnh album:', err);
+    } finally {
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
   };
 
+  // Đổi giữa camera trước và sau
   const handleFlipCamera = () => {
     haptics.medium();
+    camera.toggleFacingMode();
+  };
+
+  // Chụp lại (Hủy ảnh vừa chụp và quay lại camera live)
+  const handleRetake = () => {
+    haptics.click();
+    setCapturedPhotoUrl(null);
   };
 
   const navigateToHistory = () => {
@@ -122,13 +170,14 @@ export default function HomePage() {
         paddingBottom: 'max(env(safe-area-inset-bottom), 20px)',
       }}
     >
-      {/* Hidden file input for Photo Library Picker */}
+      {/* Hidden file input cho PhotosPicker Album */}
       <input
         ref={fileInputRef}
         type="file"
         accept="image/*"
         className="hidden"
         onChange={handleFileSelected}
+        data-testid="photo-library-input"
       />
 
       {/* 1. TOP BAR & DROPDOWN BẠN BÈ GẮN API THỰC TẾ */}
@@ -145,9 +194,21 @@ export default function HomePage() {
         className="flex-shrink-0"
       />
 
-      {/* 2. KHUNG CAMERA VUÔNG 1:1 CHUẨN RỘNG RETINA */}
+      {/* 2. KHUNG CAMERA VUÔNG 1:1 KẾT NỐI WEBRTC HOẶC PREVIEW ẢNH */}
       <div className="w-full flex justify-center px-[18px] flex-shrink-0">
-        <CameraBox />
+        <CameraBox
+          videoRef={camera.videoRef}
+          isLive={camera.status === 'streaming'}
+          status={camera.status}
+          facingMode={camera.facingMode}
+          isFlashOn={camera.isFlashOn}
+          onToggleFlash={camera.toggleFlash}
+          zoomLevel={camera.zoomLevel}
+          onToggleZoom={camera.toggleZoom}
+          onRetryPermission={() => camera.startCamera()}
+          previewImageUrl={capturedPhotoUrl}
+          onRetake={handleRetake}
+        />
       </div>
 
       {/* 3. CARD BẠN BÈ XẾP CHỒNG 3D GẮN API FEED ẢNH THỰC TẾ */}
