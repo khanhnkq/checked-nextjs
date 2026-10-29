@@ -30,6 +30,8 @@ export interface HistoryPhotoItem {
   amount?: number;
   calories?: number;
   note?: string;
+  caption?: string;
+  locationName?: string;
 }
 
 export default function HistoryPage() {
@@ -122,6 +124,8 @@ export default function HistoryPage() {
         amount: p.amount,
         calories: p.calories,
         note: p.note,
+        caption: p.caption,
+        locationName: p.locationName,
       });
     };
 
@@ -279,12 +283,21 @@ export default function HistoryPage() {
         </button>
       </div>
 
-      {/* 4. TRÌNH XEM ẢNH CHI TIẾT VUỐT DỌC NATIVE PRESENTATION */}
+      {/* 4. TRÌNH XEM ẢNH CHI TIẾT VUỐT DỌC NATIVE PRESENTATION CHUẨN IOS */}
       {selectedPhotoId && (
         <PhotoDetailView
           photos={photos}
+          allPhotos={allPhotosMap}
           initialPhotoId={selectedPhotoId}
           onDismiss={() => setSelectedPhotoId(null)}
+          friends={friends}
+          selectedFilterId={selectedFilterId}
+          onSelectFilter={setSelectedFilterId}
+          onChatClick={() => {
+            haptics.click();
+            router.push('/messages');
+          }}
+          currentUser={currentUser}
         />
       )}
     </div>

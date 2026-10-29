@@ -136,6 +136,55 @@ describe('PhotoDetailView (iOS Parity, Vertical Snap, Reactions, Zero Border/Blu
     expect(screen.getByText('Đã bỏ cảm xúc')).toBeInTheDocument();
   });
 
+  it('prevents reactions on own photos and shows warning toast', async () => {
+    const user = userEvent.setup();
+    const ownPhotos: HistoryPhotoItem[] = [
+      {
+        id: 'own-1',
+        imageUrl: '/photos/own.jpg',
+        senderId: 'user-123',
+        senderName: 'Bạn',
+        createdAt: new Date().toISOString(),
+      },
+    ];
+
+    render(
+      <PhotoDetailView
+        photos={ownPhotos}
+        initialPhotoId="own-1"
+        onDismiss={vi.fn()}
+        currentUser={{ id: 'user-123', username: 'quockhanh' }}
+      />
+    );
+
+    const fireBtn = screen.getByRole('button', { name: 'Thả cảm xúc Lửa' });
+    await user.click(fireBtn);
+
+    expect(screen.getByText('Bạn không thể thả cảm xúc vào ảnh của chính mình ✨')).toBeInTheDocument();
+    expect(mockUpsertMutateAsync).not.toHaveBeenCalled();
+  });
+
+  it('allows typing and sending a message in bottom action bar', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <PhotoDetailView
+        photos={mockPhotos}
+        initialPhotoId="photo-1"
+        onDismiss={vi.fn()}
+      />
+    );
+
+    const input = screen.getByPlaceholderText('Gửi tin nhắn...');
+    await user.type(input, 'Món này ngon quá!');
+
+    const sendBtn = screen.getByRole('button', { name: 'Gửi phản hồi' });
+    await user.click(sendBtn);
+
+    expect(screen.getByText('Đã gửi phản hồi! ✨')).toBeInTheDocument();
+    expect(input).toHaveValue('');
+  });
+
   it('strictly conforms to zero border, blur, shadow rule', () => {
     const { container } = render(
       <PhotoDetailView
