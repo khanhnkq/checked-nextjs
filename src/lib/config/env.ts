@@ -4,8 +4,7 @@
  * NẾU BIẾN BỊ TRỐNG HOẶC CHƯA CẤU HÌNH -> BẮT BUỘC NÉM RA LỖI RÕ RÀNG.
  */
 
-export function requireEnv(key: string): string {
-  const value = process.env[key];
+function validateEnvValue(key: string, value: string | undefined): string {
   if (!value || value.trim() === '') {
     throw new Error(
       `[Config Error] Biến môi trường bắt buộc "${key}" đang bị trống hoặc chưa được cấu hình! ` +
@@ -15,9 +14,67 @@ export function requireEnv(key: string): string {
   return value.trim();
 }
 
+/**
+ * Đọc biến môi trường bắt buộc.
+ * Trong Next.js client-side, các biến NEXT_PUBLIC_* phải được đọc qua literal access
+ * để bundler có thể statically inline giá trị vào client bundle.
+ */
+export function requireEnv(key: string): string {
+  let val: string | undefined;
+
+  switch (key) {
+    case 'NEXT_PUBLIC_API_BASE_URL':
+      val = process.env.NEXT_PUBLIC_API_BASE_URL;
+      break;
+    case 'NEXT_PUBLIC_WS_URL':
+      val = process.env.NEXT_PUBLIC_WS_URL;
+      break;
+    case 'NEXT_PUBLIC_APP_URL':
+      val = process.env.NEXT_PUBLIC_APP_URL;
+      break;
+    case 'NEXT_PUBLIC_ENABLE_DEBUG_LOGS':
+      val = process.env.NEXT_PUBLIC_ENABLE_DEBUG_LOGS;
+      break;
+    case 'GEMINI_API_KEY':
+      val = process.env.GEMINI_API_KEY;
+      break;
+    case 'GEMINI_MODEL':
+      val = process.env.GEMINI_MODEL;
+      break;
+    default:
+      val = typeof process !== 'undefined' && process.env ? process.env[key] : undefined;
+  }
+
+  return validateEnvValue(key, val);
+}
+
 export function optionalEnv(key: string, defaultValue = ''): string {
-  const value = process.env[key];
-  return value ? value.trim() : defaultValue;
+  let val: string | undefined;
+
+  switch (key) {
+    case 'NEXT_PUBLIC_API_BASE_URL':
+      val = process.env.NEXT_PUBLIC_API_BASE_URL;
+      break;
+    case 'NEXT_PUBLIC_WS_URL':
+      val = process.env.NEXT_PUBLIC_WS_URL;
+      break;
+    case 'NEXT_PUBLIC_APP_URL':
+      val = process.env.NEXT_PUBLIC_APP_URL;
+      break;
+    case 'NEXT_PUBLIC_ENABLE_DEBUG_LOGS':
+      val = process.env.NEXT_PUBLIC_ENABLE_DEBUG_LOGS;
+      break;
+    case 'GEMINI_API_KEY':
+      val = process.env.GEMINI_API_KEY;
+      break;
+    case 'GEMINI_MODEL':
+      val = process.env.GEMINI_MODEL;
+      break;
+    default:
+      val = typeof process !== 'undefined' && process.env ? process.env[key] : undefined;
+  }
+
+  return val && val.trim() !== '' ? val.trim() : defaultValue;
 }
 
 export const env = {
@@ -67,4 +124,3 @@ export const env = {
     return optionalEnv('NEXT_PUBLIC_ENABLE_DEBUG_LOGS', 'false') === 'true';
   },
 };
-
