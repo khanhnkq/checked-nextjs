@@ -1,9 +1,9 @@
-# 🎨 DESIGN TOKENS SPECIFICATION (ZERO BLUR, ZERO SHADOW)
+# 🎨 DESIGN TOKENS SPECIFICATION (ZERO BLUR, ZERO SHADOW & IOS NATIVE)
 
 > ⚠️ **QUY TẮC BẮT BUỘC (STRICT DESIGN RULE)**:  
 > **TUYỆT ĐỐI KHÔNG DÙNG BLUR, KHÔNG DÙNG SHADOW!**  
 > Cấm hoàn toàn `blur-*`, `backdrop-blur-*`, filter `blur()`, `shadow-*`, `drop-shadow-*`, `box-shadow`.  
-> Thay vào đó, thiết kế sử dụng **Phản xạ Tương phản Phẳng Đơn sắc (Flat Tonal Contrast)**, độ sâu phân lớp bằng bề mặt màu ấm (`#EDE9DF`, `#FFFFFF`, `#DFDACD`, `#F2F2F4`) và **Đường viền Cơ học Sắc Nét (Crisp Solid Borders)**.
+> Thiết kế chuẩn Apple iPhone: Sử dụng **Phân lớp Tương phản Màu Phẳng (Flat Tonal Contrast)**, độ sâu phân lớp bằng bề mặt màu ấm (`#EDE9DF`, `#FFFFFF`, `#DFDACD`, `#F2F2F4`) và **Đường viền Cơ học Sắc Nét (Crisp Solid Borders)**.
 
 ---
 
@@ -44,12 +44,13 @@
 
 ---
 
-## 2. HỆ THỐNG ĐƯỜNG VIỀN SẮC NÉT (THAY THẾ HOÀN TOÀN SHADOW)
+## 2. HỆ THỐNG ĐƯỜNG VIỀN SẮC NÉT CHUẨN RETINA IPHONE (SOLID BORDERS)
 
-Để tạo sự phân tách không gian mà **không dùng bất kỳ bóng đổ mờ (shadow) hay hiệu ứng mờ nhòe (blur)**, Checked sử dụng hệ thống viền phân cấp sắc sảo:
+Để phân tách các lớp không gian mà **không dùng bóng mờ nhòe**, ứng dụng sử dụng các đường viền đơn sắc phẳng:
 
 | Token Viền | Quy cách CSS | Ứng dụng |
 | :--- | :--- | :--- |
+| `--border-hairline`| `0.5px solid rgba(20, 22, 19, 0.12)` | Viền siêu mỏng chuẩn Retina màn hình iPhone |
 | `--border-subtle` | `1px solid rgba(20, 22, 19, 0.08)` | Viền thẻ Card trắng, phân cách danh sách |
 | `--border-medium` | `1px solid rgba(20, 22, 19, 0.16)` | Viền nút tròn, viền ô nhập text input |
 | `--border-strong` | `2px solid #141613` | Viền khung camera, nút chụp nhấn mạnh |
@@ -58,31 +59,35 @@
 
 ---
 
-## 3. HỆ THỐNG PHÔNG CHỮ & TYPOGRAPHY SCALE
+## 3. HỆ THỐNG PHÔNG CHỮ CHUẨN APPLE IPHONE (SF PRO STACK)
 
-- **Display Font (Rounded)**: `Plus Jakarta Sans`, `Nunito`, hoặc `-apple-system, sans-serif`.
-- **Body & Data Font (Sans)**: `Inter`, `Geist Sans`, `system-ui`.
+- **Display Font (Rounded)**: `-apple-system, BlinkMacSystemFont, "SF Pro Rounded", "Plus Jakarta Sans", sans-serif`.
+- **Body & Data Font (Sans)**: `-apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", sans-serif`.
 
 | Tên Token | Size | Line Height | Weight | Letter Spacing | Font Family |
 | :--- | :---: | :---: | :---: | :---: | :--- |
-| `display-xl` | `32px` | `38px` | 800 (ExtraBold) | `-0.03em` | Display Rounded |
-| `display-lg` (Title) | `28px` | `34px` | 700 (Bold) | `-0.02em` | Display Rounded |
-| `headline` | `20px` | `26px` | 600 (SemiBold) | `-0.01em` | Display Rounded |
-| `body-bold` | `16px` | `22px` | 600 (SemiBold) | `0em` | Sans (Inter) |
-| `body` | `16px` | `22px` | 400 (Regular) | `0em` | Sans (Inter) |
-| `caption` | `13px` | `18px` | 500 (Medium) | `0.01em` | Sans (Inter) |
-| `button` | `16px` | `20px` | 700 (Bold) | `-0.01em` | Display Rounded |
-| `currency-lg` | `36px` | `42px` | 800 (ExtraBold) | `-0.03em` | Display Rounded (Tabular) |
+| `display-xl` | `32px` | `38px` | 800 (ExtraBold) | `-0.03em` | SF Pro Rounded |
+| `display-lg` (Title) | `28px` | `34px` | 700 (Bold) | `-0.02em` | SF Pro Rounded |
+| `headline` | `20px` | `26px` | 600 (SemiBold) | `-0.01em` | SF Pro Rounded |
+| `body-bold` | `16px` | `22px` | 600 (SemiBold) | `0em` | SF Pro Text |
+| `body` | `16px` | `22px` | 400 (Regular) | `0em` | SF Pro Text |
+| `caption` | `13px` | `18px` | 500 (Medium) | `0.01em` | SF Pro Text |
+| `button` | `16px` | `20px` | 700 (Bold) | `-0.01em` | SF Pro Rounded |
+| `currency-lg` | `36px` | `42px` | 800 (ExtraBold) | `-0.03em` | SF Pro Rounded (Tabular) |
 
 ---
 
-## 4. HÌNH HỌC & BÁN KÍNH BO GÓC (RADII)
+## 4. HÌNH HỌC, BÁN KÍNH BO GÓC & AN TOÀN IPHONE (SAFE AREA INSETS)
 
 - `rounded-camera`: `32px` — Bo góc khung ngắm camera và card ảnh 1:1.
-- `rounded-sheet`: `28px` — Bo góc trên của Bottom Sheet.
+- `rounded-sheet`: `28px` — Bo góc trên của Bottom Sheet (Drawer `vaul`).
 - `rounded-card`: `24px` — Thẻ chi tiêu, thẻ calo, thẻ tin nhắn.
 - `rounded-pill`: `9999px` (`full`) — Con nhộng Top Bar, Tag Pills.
 - `rounded-button`: `9999px` (`full`) — Nút tròn 44x44, 52x52, nút chụp Matcha Glow.
+
+### 4.1 Căn Chỉnh Dynamic Island & Home Indicator
+- **Đỉnh màn hình (Top Safe Area)**: `padding-top: max(env(safe-area-inset-top), 12px)`.
+- **Đáy màn hình (Bottom Safe Area)**: `padding-bottom: max(env(safe-area-inset-bottom), 16px)`.
 
 ---
 
@@ -107,8 +112,8 @@
   --color-error: #FF6954;
   --color-success: #4E8752;
 
-  --font-display: "Plus Jakarta Sans", "Nunito", -apple-system, sans-serif;
-  --font-sans: "Inter", "Geist Sans", system-ui, sans-serif;
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Rounded", "Plus Jakarta Sans", sans-serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", sans-serif;
 
   --radius-camera: 32px;
   --radius-card: 24px;

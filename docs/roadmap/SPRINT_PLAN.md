@@ -273,3 +273,4 @@ Hoàn thiện trải nghiệm PWA Standalone không thanh URL, cấu hình Servi
 - Toàn bộ 23 màn hình và sheet hoạt động mượt mà, đồng bộ context tuyệt đối với Backend.
 - Đạt chuẩn giao diện Low-Text: ít chữ, dễ hiểu, trực quan.
 - Ứng dụng cài đặt được lên màn hình chính điện thoại như Native App.
+
