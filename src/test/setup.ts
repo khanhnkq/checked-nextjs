@@ -62,3 +62,9 @@ global.ResizeObserver = class ResizeObserver {
   unobserve = vi.fn();
   disconnect = vi.fn();
 };
+
+// Mock HTMLMediaElement.prototype.play and pause for jsdom
+if (typeof window !== 'undefined' && window.HTMLMediaElement) {
+  window.HTMLMediaElement.prototype.play = vi.fn().mockImplementation(() => Promise.resolve());
+  window.HTMLMediaElement.prototype.pause = vi.fn();
+}
