@@ -56,7 +56,7 @@ function VerifyOtpContent() {
         }
       },
       onError: (err: any) => {
-        const message = err?.response?.data?.message || err?.message || 'Mã xác nhận không đúng';
+        const message = err?.data?.message || err?.response?.data?.message || err?.message || 'Mã xác nhận không đúng';
         toast.error(message);
       },
     },

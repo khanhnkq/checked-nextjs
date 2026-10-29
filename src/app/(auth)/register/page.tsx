@@ -50,7 +50,7 @@ export default function RegisterPage() {
         );
       },
       onError: (err: any) => {
-        const message = err?.response?.data?.message || err?.message || 'Đăng ký thất bại';
+        const message = err?.data?.message || err?.response?.data?.message || err?.message || 'Đăng ký thất bại';
         toast.error(message);
       },
     },

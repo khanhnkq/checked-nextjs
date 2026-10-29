@@ -74,7 +74,7 @@ export default function LoginPage() {
         }
       },
       onError: (err: any) => {
-        const message = err?.response?.data?.message || err?.message || 'Đăng nhập thất bại';
+        const message = err?.data?.message || err?.response?.data?.message || err?.message || 'Đăng nhập thất bại';
         toast.error(message);
       },
     },
