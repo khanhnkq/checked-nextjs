@@ -32,7 +32,7 @@ export const CameraBox: React.FC<CameraBoxProps> = ({
   return (
     <div
       className={cn(
-        'w-full max-w-[390px] max-h-[42dvh] aspect-square rounded-[32px] bg-[#141613] relative overflow-hidden select-none flex items-center justify-center',
+        'w-full max-w-[390px] aspect-square rounded-[32px] bg-[#141613] relative overflow-hidden select-none flex items-center justify-center',
         className
       )}
     >

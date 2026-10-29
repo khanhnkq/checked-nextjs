@@ -45,7 +45,13 @@ export default function HomePage() {
   };
 
   return (
-    <div className="relative w-full h-dvh max-w-[430px] mx-auto bg-[#EDE9DF] flex flex-col justify-between items-center select-none overflow-hidden pt-safe pb-safe">
+    <div
+      className="relative w-full h-dvh max-w-[430px] mx-auto bg-[#EDE9DF] flex flex-col justify-between items-center select-none overflow-hidden"
+      style={{
+        paddingTop: 'max(env(safe-area-inset-top), 14px)',
+        paddingBottom: 'max(env(safe-area-inset-bottom), 20px)',
+      }}
+    >
       {/* Hidden file input for Photo Library Picker */}
       <input
         ref={fileInputRef}
@@ -64,19 +70,16 @@ export default function HomePage() {
         selectedFriendId={selectedFriendId}
         onSelectFriend={setSelectedFriendId}
         onAddFriendClick={() => router.push('/invite')}
-        className="pt-1 flex-shrink-0 z-30"
+        className="flex-shrink-0"
       />
 
-      {/* 2. KHUNG CAMERA VUÔNG 1:1 CĂN GIỮA TUYỆT ĐỐI THEO 2 CHIỀU (X & Y) */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none px-[18px] z-10">
-        <div className="pointer-events-auto w-full max-w-[390px] flex justify-center">
-          <CameraBox />
-        </div>
+      {/* 2. KHUNG CAMERA VUÔNG 1:1 CHUẨN RỘNG RETINA */}
+      <div className="w-full flex justify-center px-[18px] flex-shrink-0">
+        <CameraBox />
       </div>
 
-      {/* 3. PHẦN DƯỚI: THẺ BẠN BÈ VÀ CỤM ĐIỀU KHIỂN CHỤP */}
-      <div className="w-full flex flex-col items-center gap-3.5 pb-6 flex-shrink-0 z-20 mt-auto">
-        {/* Card bạn bè xếp chồng */}
+      {/* 3. CARD BẠN BÈ XẾP CHỒNG 3D */}
+      <div className="w-full flex justify-center items-center flex-shrink-0">
         <button
           type="button"
           onClick={navigateToHistory}
@@ -84,45 +87,46 @@ export default function HomePage() {
         >
           <StackedFriendCardsView />
         </button>
+      </div>
 
+      {/* 4. BOTTOM CONTROLS CHUẨN LOCKET & CHECKED IOS */}
+      <footer className="w-full flex flex-col items-center gap-3.5 px-[28px] flex-shrink-0">
         {/* Hàng 3 nút: Thư viện (52px) - Nút Chụp Matcha (86px) - Lật Cam (52px) */}
-        <footer className="w-full flex flex-col items-center gap-3.5 px-[28px]">
-          <div className="w-full flex items-center justify-between">
-            {/* Nút Thư viện ảnh (52x52px) */}
-            <button
-              type="button"
-              onClick={handlePhotoLibraryClick}
-              aria-label="Chọn từ thư viện"
-              className="w-[52px] h-[52px] rounded-full bg-white flex items-center justify-center flex-shrink-0 active:scale-90 transition-transform"
-            >
-              <ImageIcon size={22} className="text-[#141613]" strokeWidth={2.2} />
-            </button>
-
-            {/* NÚT CHỤP MATCHA GLOW 3 LỚP (86x86px) */}
-            <CaptureButton onCapture={handleCapture} />
-
-            {/* Nút lật camera (52x52px) */}
-            <button
-              type="button"
-              onClick={handleFlipCamera}
-              aria-label="Lật camera"
-              className="w-[52px] h-[52px] rounded-full bg-white flex items-center justify-center flex-shrink-0 active:scale-90 transition-transform"
-            >
-              <RotateCcw size={22} className="text-[#141613]" strokeWidth={2.2} />
-            </button>
-          </div>
-
-          {/* Nút text cuộn Lịch sử khoảnh khắc */}
+        <div className="w-full flex items-center justify-between">
+          {/* Nút Thư viện ảnh (52x52px) */}
           <button
             type="button"
-            onClick={navigateToHistory}
-            className="flex items-center gap-1.5 text-xs font-bold font-display text-[#63685F] hover:text-[#141613] active:scale-95 transition-all pt-0.5"
+            onClick={handlePhotoLibraryClick}
+            aria-label="Chọn từ thư viện"
+            className="w-[52px] h-[52px] rounded-full bg-white flex items-center justify-center flex-shrink-0 active:scale-90 transition-transform"
           >
-            <span>Lịch sử khoảnh khắc</span>
-            <ChevronDown size={14} className="text-[#63685F]" strokeWidth={2.5} />
+            <ImageIcon size={22} className="text-[#141613]" strokeWidth={2.2} />
           </button>
-        </footer>
-      </div>
+
+          {/* NÚT CHỤP MATCHA GLOW 3 LỚP (86x86px) */}
+          <CaptureButton onCapture={handleCapture} />
+
+          {/* Nút lật camera (52x52px) */}
+          <button
+            type="button"
+            onClick={handleFlipCamera}
+            aria-label="Lật camera"
+            className="w-[52px] h-[52px] rounded-full bg-white flex items-center justify-center flex-shrink-0 active:scale-90 transition-transform"
+          >
+            <RotateCcw size={22} className="text-[#141613]" strokeWidth={2.2} />
+          </button>
+        </div>
+
+        {/* Nút text cuộn Lịch sử khoảnh khắc */}
+        <button
+          type="button"
+          onClick={navigateToHistory}
+          className="flex items-center gap-1.5 text-xs font-bold font-display text-[#63685F] hover:text-[#141613] active:scale-95 transition-all pt-0.5"
+        >
+          <span>Lịch sử khoảnh khắc</span>
+          <ChevronDown size={14} className="text-[#63685F]" strokeWidth={2.5} />
+        </button>
+      </footer>
     </div>
   );
 }
