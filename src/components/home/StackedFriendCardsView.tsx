@@ -12,13 +12,41 @@ export interface StackedCardPhoto {
 
 export interface StackedFriendCardsViewProps {
   photos?: StackedCardPhoto[];
+  isLoading?: boolean;
   className?: string;
 }
 
 export const StackedFriendCardsView: React.FC<StackedFriendCardsViewProps> = ({
   photos = [],
+  isLoading = false,
   className,
 }) => {
+  if (isLoading) {
+    return (
+      <div
+        className={cn(
+          'relative w-[96px] h-[74px] flex items-center justify-center cursor-pointer select-none',
+          className
+        )}
+        aria-label="Đang tải ảnh bạn bè xếp chồng"
+      >
+        <div
+          className="absolute w-[60px] h-[60px] rounded-[14px] overflow-hidden -rotate-[16deg] -translate-x-[14px] translate-y-[3px] bg-[#DFDACD]/50 animate-pulse pointer-events-none"
+          style={{ zIndex: 1 }}
+        />
+        <div
+          className="absolute w-[60px] h-[60px] rounded-[14px] overflow-hidden rotate-[15deg] translate-x-[14px] -translate-y-[2px] bg-[#DFDACD]/70 animate-pulse pointer-events-none"
+          style={{ zIndex: 2 }}
+        />
+        <div
+          className="absolute w-[60px] h-[60px] rounded-[14px] overflow-hidden -rotate-[3deg] bg-white animate-pulse pointer-events-none flex items-center justify-center"
+          style={{ zIndex: 3 }}
+        >
+          <div className="w-5 h-5 rounded-full bg-[#DFDACD]" />
+        </div>
+      </div>
+    );
+  }
   return (
     <div
       className={cn(

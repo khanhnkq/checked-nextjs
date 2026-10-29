@@ -1,23 +1,88 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChevronDown, Image as ImageIcon, RotateCcw } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth-store';
 import {
+  useGetCurrentUser,
+  useGetMyFriends,
+  useGetFeedPhotos,
+} from '@/lib/api/generated/endpoints';
+import {
+  HomeSkeleton,
   HomeTopBar,
   CameraBox,
   StackedFriendCardsView,
   CaptureButton,
+  type FriendOption,
+  type StackedCardPhoto,
 } from '@/components/home';
 import { haptics } from '@/lib/utils/haptics';
 
 export default function HomePage() {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
+  const updateUser = useAuthStore((s) => s.updateUser);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedFriendId, setSelectedFriendId] = useState<string | null>(null);
+
+  // 1. API: Đồng bộ thông tin người dùng hiện tại từ Backend
+  const { data: userData, isLoading: isUserLoading } = useGetCurrentUser({
+    query: {
+      enabled: !!user,
+    },
+  });
+
+  useEffect(() => {
+    if (userData) {
+      updateUser(userData as any);
+    }
+  }, [userData, updateUser]);
+
+  // 2. API: Lấy danh sách bạn bè cho Dropdown Pill Filter
+  const { data: friendsData, isLoading: isFriendsLoading } = useGetMyFriends({
+    query: {
+      enabled: !!user,
+    },
+  });
+
+  const friends: FriendOption[] = useMemo(() => {
+    if (!friendsData || !Array.isArray(friendsData)) return [];
+    return friendsData.map((f) => ({
+      id: f.id || '',
+      name: f.displayName || f.username || 'Bạn bè',
+      avatarUrl: f.avatarUrl,
+    }));
+  }, [friendsData]);
+
+  // 3. API: Lấy Feed ảnh bạn bè theo bộ lọc đang chọn
+  const targetFriendId = useMemo(() => {
+    if (selectedFriendId === 'me') return user?.id;
+    return selectedFriendId || undefined;
+  }, [selectedFriendId, user?.id]);
+
+  const { data: feedData, isLoading: isFeedLoading } = useGetFeedPhotos(
+    {
+      friendId: targetFriendId,
+      pageable: { page: 0, size: 10 },
+    },
+    {
+      query: {
+        enabled: !!user,
+      },
+    }
+  );
+
+  const photos: StackedCardPhoto[] = useMemo(() => {
+    const list = feedData?.content || [];
+    return list.map((p) => ({
+      id: p.id || '',
+      imageUrl: p.thumbnailUrl || p.imageUrl,
+      senderName: p.senderDisplayName,
+    }));
+  }, [feedData?.content]);
 
   const handleCapture = () => {
     haptics.heavy();
@@ -44,6 +109,11 @@ export default function HomePage() {
     router.push('/history');
   };
 
+  // Nếu chưa có cache user và đang tải dữ liệu ban đầu -> Hiển thị Skeleton màn hình chính
+  if (!user && isUserLoading) {
+    return <HomeSkeleton />;
+  }
+
   return (
     <div
       className="relative w-full h-dvh max-w-[430px] mx-auto bg-[#EDE9DF] flex flex-col justify-between items-center select-none overflow-hidden"
@@ -61,15 +131,17 @@ export default function HomePage() {
         onChange={handleFileSelected}
       />
 
-      {/* 1. TOP BAR & DROPDOWN BẠN BÈ CHUẨN IOS */}
+      {/* 1. TOP BAR & DROPDOWN BẠN BÈ GẮN API THỰC TẾ */}
       <HomeTopBar
         currentUserAvatar={user?.avatarUrl}
         onAvatarClick={() => router.push('/profile')}
         onChatClick={() => router.push('/messages')}
         chatBadgeCount={0}
+        friends={friends}
         selectedFriendId={selectedFriendId}
         onSelectFriend={setSelectedFriendId}
         onAddFriendClick={() => router.push('/invite')}
+        isLoading={isFriendsLoading}
         className="flex-shrink-0"
       />
 
@@ -78,14 +150,14 @@ export default function HomePage() {
         <CameraBox />
       </div>
 
-      {/* 3. CARD BẠN BÈ XẾP CHỒNG 3D */}
+      {/* 3. CARD BẠN BÈ XẾP CHỒNG 3D GẮN API FEED ẢNH THỰC TẾ */}
       <div className="w-full flex justify-center items-center flex-shrink-0">
         <button
           type="button"
           onClick={navigateToHistory}
           className="outline-none active:scale-95 transition-transform flex items-center justify-center"
         >
-          <StackedFriendCardsView />
+          <StackedFriendCardsView photos={photos} isLoading={isFeedLoading} />
         </button>
       </div>
 

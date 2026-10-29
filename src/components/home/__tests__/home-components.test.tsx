@@ -5,6 +5,7 @@ import { HomeTopBar } from '../HomeTopBar';
 import { CameraBox } from '../CameraBox';
 import { StackedFriendCardsView } from '../StackedFriendCardsView';
 import { CaptureButton } from '../CaptureButton';
+import { HomeSkeleton } from '../HomeSkeleton';
 
 describe('Home Components (iOS Parity, Zero Border, Zero Blur, Zero Shadow)', () => {
   describe('HomeTopBar', () => {
@@ -97,8 +98,31 @@ describe('Home Components (iOS Parity, Zero Border, Zero Blur, Zero Shadow)', ()
       ).toBeInTheDocument();
     });
 
+    it('renders pulse skeleton state when isLoading is true', () => {
+      render(<StackedFriendCardsView isLoading />);
+      expect(
+        screen.getByRole('generic', { name: 'Đang tải ảnh bạn bè xếp chồng' })
+      ).toBeInTheDocument();
+    });
+
     it('strictly conforms to zero border, blur, shadow rule', () => {
       const { container } = render(<StackedFriendCardsView />);
+      expect(container.innerHTML).not.toMatch(/border/);
+      expect(container.innerHTML).not.toMatch(/shadow-/);
+      expect(container.innerHTML).not.toMatch(/blur-/);
+    });
+  });
+
+  describe('HomeSkeleton', () => {
+    it('renders full home skeleton layout and status role', () => {
+      render(<HomeSkeleton />);
+      expect(
+        screen.getByRole('status', { name: 'Đang tải giao diện chính' })
+      ).toBeInTheDocument();
+    });
+
+    it('strictly conforms to zero border, blur, shadow rule', () => {
+      const { container } = render(<HomeSkeleton />);
       expect(container.innerHTML).not.toMatch(/border/);
       expect(container.innerHTML).not.toMatch(/shadow-/);
       expect(container.innerHTML).not.toMatch(/blur-/);

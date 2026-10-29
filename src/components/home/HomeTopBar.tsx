@@ -20,6 +20,7 @@ export interface HomeTopBarProps {
   selectedFriendId?: string | null; // null = "Tất cả", "me" = "Bạn", string = friendId
   onSelectFriend?: (friendId: string | null) => void;
   onAddFriendClick?: () => void;
+  isLoading?: boolean;
   className?: string;
 }
 
@@ -32,6 +33,7 @@ export const HomeTopBar: React.FC<HomeTopBarProps> = ({
   selectedFriendId = null,
   onSelectFriend,
   onAddFriendClick,
+  isLoading = false,
   className,
 }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
