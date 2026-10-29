@@ -49,3 +49,61 @@ describe('buildTargetUrl deduplication', () => {
     expect(result.toString()).toBe('https://external.service.com/webhook');
   });
 });
+
+describe('params serialization and flattening', () => {
+  function serializeParamsToUrl(baseUrl: string, url: string, params?: any): URL {
+    const targetUrl = buildTargetUrl(baseUrl, url);
+    if (params) {
+      const appendParam = (key: string, value: any) => {
+        if (value === undefined || value === null) return;
+        if (Array.isArray(value)) {
+          value.forEach((v) => {
+            if (v !== undefined && v !== null) {
+              targetUrl.searchParams.append(key, String(v));
+            }
+          });
+        } else if (typeof value === 'object' && !(value instanceof Date)) {
+          Object.entries(value).forEach(([subKey, subVal]) => {
+            appendParam(subKey, subVal);
+          });
+        } else {
+          targetUrl.searchParams.append(key, String(value));
+        }
+      };
+
+      Object.entries(params).forEach(([key, value]) => {
+        appendParam(key, value);
+      });
+    }
+    return targetUrl;
+  }
+
+  it('flattens nested pageable object into page and size query parameters', () => {
+    const url = serializeParamsToUrl(
+      'https://heroku-7usd-5a73e86b5b14.herokuapp.com/api/v1',
+      '/photos/feed',
+      {
+        friendId: 'f-123',
+        pageable: { page: 0, size: 50 },
+      }
+    );
+    expect(url.searchParams.get('friendId')).toBe('f-123');
+    expect(url.searchParams.get('page')).toBe('0');
+    expect(url.searchParams.get('size')).toBe('50');
+    expect(url.searchParams.get('pageable')).toBeNull();
+  });
+
+  it('omits undefined or null parameters safely', () => {
+    const url = serializeParamsToUrl(
+      'https://heroku-7usd-5a73e86b5b14.herokuapp.com/api/v1',
+      '/photos/feed',
+      {
+        friendId: undefined,
+        pageable: { page: 1, size: 20 },
+      }
+    );
+    expect(url.searchParams.has('friendId')).toBe(false);
+    expect(url.searchParams.get('page')).toBe('1');
+    expect(url.searchParams.get('size')).toBe('20');
+  });
+});

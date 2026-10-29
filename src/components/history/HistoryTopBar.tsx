@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ArrowLeft, Calendar, ChevronDown, Plus, Users } from 'lucide-react';
+import { ArrowLeft, ChevronDown, MessageCircle, Plus, Users } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
 import { haptics } from '@/lib/utils/haptics';
 import type { FriendOption } from '@/components/home';
@@ -11,7 +11,9 @@ export interface HistoryTopBarProps {
   selectedFilterId?: string | null;
   onSelectFilter: (id: string | null) => void;
   onBackClick: () => void;
+  onChatClick?: () => void;
   onCalendarClick?: () => void;
+  chatBadgeCount?: number;
   onAddFriendClick?: () => void;
   currentUserAvatar?: string | null;
   className?: string;
@@ -19,14 +21,16 @@ export interface HistoryTopBarProps {
 
 /**
  * HistoryTopBar - Header của màn hình Lịch sử khoảnh khắc
- * 1:1 tương đương HomeTopBar nhưng có nút Back bên trái và Dropdown lọc người gửi
+ * 1:1 tương đương HomeTopBar nhưng có nút Back bên trái, Dropdown lọc người gửi, và nút Chat bên phải
  */
 export const HistoryTopBar: React.FC<HistoryTopBarProps> = ({
   friends = [],
   selectedFilterId = null,
   onSelectFilter,
   onBackClick,
+  onChatClick,
   onCalendarClick,
+  chatBadgeCount = 0,
   onAddFriendClick,
   currentUserAvatar,
   className,
@@ -230,15 +234,28 @@ export const HistoryTopBar: React.FC<HistoryTopBarProps> = ({
         )}
       </div>
 
-      {/* 3. Nút Calendar / Lịch khoảnh khắc */}
-      <button
-        type="button"
-        onClick={onCalendarClick}
-        aria-label="Xem theo lịch"
-        className="w-[42px] h-[42px] rounded-full bg-white flex items-center justify-center text-[#141613] active:scale-95 transition-transform"
-      >
-        <Calendar size={18} strokeWidth={2.2} />
-      </button>
+      {/* 3. Nút Chat / Tin nhắn bên phải thay thế Calendar icon */}
+      <div className="relative">
+        <button
+          type="button"
+          onClick={() => {
+            haptics.click();
+            if (onChatClick) {
+              onChatClick();
+            } else if (onCalendarClick) {
+              onCalendarClick();
+            }
+          }}
+          aria-label="Tin nhắn"
+          className="w-[42px] h-[42px] rounded-full bg-white flex items-center justify-center text-[#141613] active:scale-95 transition-transform"
+        >
+          <MessageCircle size={20} className="text-[#141613]" />
+        </button>
+
+        {chatBadgeCount > 0 && (
+          <div className="absolute top-0 right-0 w-3 h-3 rounded-full bg-[#FF6954] pointer-events-none" />
+        )}
+      </div>
     </header>
   );
 };

@@ -54,10 +54,26 @@ export async function customFetcher<T>({
   const targetUrl = buildTargetUrl(baseUrl, url);
 
   if (params) {
-    Object.entries(params).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
+    const appendParam = (key: string, value: any) => {
+      if (value === undefined || value === null) return;
+      if (Array.isArray(value)) {
+        value.forEach((v) => {
+          if (v !== undefined && v !== null) {
+            targetUrl.searchParams.append(key, String(v));
+          }
+        });
+      } else if (typeof value === 'object' && !(value instanceof Date)) {
+        // Tự động phân rã các object lồng nhau như pageable: { page: 0, size: 50 } thành ?page=0&size=50
+        Object.entries(value).forEach(([subKey, subVal]) => {
+          appendParam(subKey, subVal);
+        });
+      } else {
         targetUrl.searchParams.append(key, String(value));
       }
+    };
+
+    Object.entries(params).forEach(([key, value]) => {
+      appendParam(key, value);
     });
   }
 

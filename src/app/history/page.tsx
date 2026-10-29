@@ -23,6 +23,7 @@ export interface HistoryPhotoItem {
   id: string;
   imageUrl: string;
   thumbnailUrl?: string;
+  senderId?: string;
   senderName?: string;
   senderAvatarUrl?: string | null;
   createdAt?: string;
@@ -46,25 +47,39 @@ export default function HistoryPage() {
   });
   const currentUser = user || userData;
 
-  // 2. API: Lấy danh sách bạn bè cho bộ lọc
+  // Helper kiểm tra ảnh có thuộc về người dùng hiện tại hay không (Chuẩn parity iOS)
+  const isCurrentUser = (senderId?: string, senderName?: string): boolean => {
+    if (!senderId && !senderName) return false;
+    if (senderId === 'me' || senderName === 'Bạn') return true;
+    if (currentUser?.id && senderId === currentUser.id) return true;
+    if (
+      currentUser?.username &&
+      senderName &&
+      senderName.toLowerCase() === currentUser.username.toLowerCase()
+    ) {
+      return true;
+    }
+    if (
+      currentUser?.displayName &&
+      senderName &&
+      senderName.toLowerCase() === currentUser.displayName.toLowerCase()
+    ) {
+      return true;
+    }
+    return false;
+  };
+
+  // 2. API: Lấy danh sách bạn bè từ Backend
   const { data: friendsData } = useGetMyFriends({
     query: {
       enabled: !!currentUser,
     },
   });
 
-  const friends: FriendOption[] = useMemo(() => {
-    if (!friendsData || !Array.isArray(friendsData)) return [];
-    return friendsData.map((f) => ({
-      id: f.id || '',
-      name: f.displayName || f.username || 'Bạn bè',
-      avatarUrl: f.avatarUrl,
-    }));
-  }, [friendsData]);
-
-  // 3. API: Lấy danh sách ảnh feed chung hoặc theo bạn bè
+  // 3. API: Lấy feed ảnh bạn bè (hoặc theo friendId nếu đang chọn bạn cụ thể)
   const isMeFilter = selectedFilterId === 'me';
-  const targetFriendId = !isMeFilter ? selectedFilterId || undefined : undefined;
+  const targetFriendId =
+    selectedFilterId && selectedFilterId !== 'me' ? selectedFilterId : undefined;
 
   const { data: feedData, isLoading: isFeedLoading } = useGetFeedPhotos(
     {
@@ -73,43 +88,117 @@ export default function HistoryPage() {
     },
     {
       query: {
-        enabled: !isMeFilter,
+        enabled: !!currentUser,
       },
     }
   );
 
-  // 4. API: Lấy ảnh của chính mình nếu chọn bộ lọc "Bạn"
+  // 4. API: Lấy ảnh của chính mình
   const { data: myPhotosData, isLoading: isMyPhotosLoading } = useGetMyPhotos(
     {
       pageable: { page: 0, size: 50 },
     },
     {
       query: {
-        enabled: isMeFilter,
+        enabled: !!currentUser,
       },
     }
   );
 
-  const isLoading = isMeFilter ? isMyPhotosLoading : isFeedLoading;
+  // 5. Gộp và khử trùng lặp toàn bộ ảnh (feed bạn bè + ảnh của tôi) chuẩn xác theo createdAt desc
+  const allPhotosMap = useMemo(() => {
+    const map = new Map<string, HistoryPhotoItem>();
 
-  // Chuẩn hóa danh sách ảnh hiển thị trên lưới 3 cột
+    const addRaw = (p: any) => {
+      if (!p || !p.id) return;
+      map.set(p.id, {
+        id: p.id,
+        imageUrl: p.imageUrl || '',
+        thumbnailUrl: p.thumbnailUrl || p.imageUrl || '',
+        senderId: p.senderId ? String(p.senderId) : undefined,
+        senderName: p.senderDisplayName || p.senderUsername,
+        senderAvatarUrl: p.senderAvatarUrl,
+        createdAt: p.createdAt,
+        amount: p.amount,
+        calories: p.calories,
+        note: p.note,
+      });
+    };
+
+    (feedData?.content || []).forEach(addRaw);
+    (myPhotosData?.content || []).forEach(addRaw);
+
+    return Array.from(map.values()).sort((a, b) => {
+      const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return timeB - timeA;
+    });
+  }, [feedData?.content, myPhotosData?.content]);
+
+  // 6. Danh sách bạn bè duy nhất cho Dropdown (Friendship list + Sender từ ảnh)
+  const friends: FriendOption[] = useMemo(() => {
+    const seen = new Set<string>();
+    const result: FriendOption[] = [];
+
+    // Danh sách từ API bạn bè
+    (friendsData || []).forEach((f: any) => {
+      if (!f) return;
+      const friendId = f.id ? String(f.id) : '';
+      const friendName = f.displayName || f.username || 'Bạn bè';
+      if (isCurrentUser(friendId, friendName)) return;
+
+      const key = friendId || friendName;
+      if (!seen.has(key)) {
+        seen.add(key);
+        result.push({
+          id: friendId,
+          name: friendName,
+          avatarUrl: f.avatarUrl,
+        });
+      }
+    });
+
+    // Bổ sung người gửi từ feed ảnh nếu chưa có trong Friendship
+    allPhotosMap.forEach((p) => {
+      if (isCurrentUser(p.senderId, p.senderName)) return;
+      const key = p.senderId || p.senderName;
+      if (key && !seen.has(key)) {
+        seen.add(key);
+        result.push({
+          id: p.senderId || key,
+          name: p.senderName || 'Bạn bè',
+          avatarUrl: p.senderAvatarUrl,
+        });
+      }
+    });
+
+    return result.sort((a, b) => a.name.localeCompare(b.name));
+  }, [friendsData, allPhotosMap, currentUser]);
+
+  // 7. Lọc ảnh theo Filter Pill đang chọn:
+  // - "Tất cả" (null): Trả về toàn bộ ảnh gộp (feed bạn bè + ảnh của tôi)
+  // - "Bạn" ('me'): Chỉ ảnh do chính mình gửi
+  // - "Tên bạn" (friendId): Chỉ ảnh do người bạn đó gửi
   const photos: HistoryPhotoItem[] = useMemo(() => {
-    const rawList = isMeFilter
-      ? myPhotosData?.content || []
-      : feedData?.content || [];
+    if (selectedFilterId === null) {
+      return allPhotosMap;
+    }
 
-    return rawList.map((p: any) => ({
-      id: p.id || '',
-      imageUrl: p.imageUrl || '',
-      thumbnailUrl: p.thumbnailUrl || p.imageUrl || '',
-      senderName: p.senderDisplayName || p.senderUsername,
-      senderAvatarUrl: p.senderAvatarUrl,
-      createdAt: p.createdAt,
-      amount: p.amount,
-      calories: p.calories,
-      note: p.note,
-    }));
-  }, [isMeFilter, myPhotosData?.content, feedData?.content]);
+    if (selectedFilterId === 'me') {
+      return allPhotosMap.filter((p) => isCurrentUser(p.senderId, p.senderName));
+    }
+
+    const selectedFriend = friends.find((f) => f.id === selectedFilterId);
+    return allPhotosMap.filter((p) => {
+      if (p.senderId && p.senderId === selectedFilterId) return true;
+      if (selectedFriend && p.senderName) {
+        return p.senderName.toLowerCase() === selectedFriend.name.toLowerCase();
+      }
+      return false;
+    });
+  }, [allPhotosMap, selectedFilterId, friends, currentUser]);
+
+  const isLoading = isMeFilter ? isMyPhotosLoading : (isFeedLoading && isMyPhotosLoading);
 
   const handlePhotoClick = (photoId: string) => {
     haptics.light();
@@ -130,15 +219,15 @@ export default function HistoryPage() {
         paddingBottom: 'max(env(safe-area-inset-bottom), 24px)',
       }}
     >
-      {/* 1. TOP BAR: Back button + Dropdown Pill filter + Calendar button */}
+      {/* 1. TOP BAR: Back button + Dropdown Pill filter + Chat button */}
       <HistoryTopBar
         friends={friends}
         selectedFilterId={selectedFilterId}
         onSelectFilter={setSelectedFilterId}
         onBackClick={handleReturnToCamera}
-        onCalendarClick={() => {
+        onChatClick={() => {
           haptics.click();
-          // Điều hướng đến lịch chi tiêu / calo
+          router.push('/messages');
         }}
         onAddFriendClick={() => router.push('/invite')}
         currentUserAvatar={currentUser?.avatarUrl}
