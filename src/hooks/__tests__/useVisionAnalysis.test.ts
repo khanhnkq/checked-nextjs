@@ -94,4 +94,21 @@ describe('useVisionAnalysis Hook (iOS VisionServiceCoordinator Parity)', () => {
     expect(result.current.result).toBeNull();
     expect(result.current.error).toBeNull();
   });
+
+  it('maintains a stable analyzeImage function reference across re-renders to prevent infinite loops', () => {
+    let onSuccess1 = vi.fn();
+    const { result, rerender } = renderHook(
+      ({ onSuccess }) => useVisionAnalysis({ onSuccess }),
+      { initialProps: { onSuccess: onSuccess1 } }
+    );
+
+    const firstAnalyzeFn = result.current.analyzeImage;
+
+    let onSuccess2 = vi.fn();
+    rerender({ onSuccess: onSuccess2 });
+
+    const secondAnalyzeFn = result.current.analyzeImage;
+
+    expect(firstAnalyzeFn).toBe(secondAnalyzeFn);
+  });
 });

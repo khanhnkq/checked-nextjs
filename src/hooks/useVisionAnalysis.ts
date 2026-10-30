@@ -104,6 +104,14 @@ export function useVisionAnalysis(options: UseVisionAnalysisOptions = {}): UseVi
   const [error, setError] = useState<string | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
 
+  // Lưu callbacks và targetLanguage trong ref để giữ định danh analyzeImage ổn định tuyệt đối (chống vòng lặp vô hạn)
+  const onSuccessRef = useRef(onSuccess);
+  onSuccessRef.current = onSuccess;
+  const onErrorRef = useRef(onError);
+  onErrorRef.current = onError;
+  const targetLanguageRef = useRef(targetLanguage);
+  targetLanguageRef.current = targetLanguage;
+
   const reset = useCallback(() => {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
@@ -116,7 +124,11 @@ export function useVisionAnalysis(options: UseVisionAnalysisOptions = {}): UseVi
 
   const analyzeImage = useCallback(
     async (source: string | Blob): Promise<GeminiVisionAnalysisPayload | null> => {
-      reset();
+      // Hủy request đang chạy trước đó nếu có
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+
       setIsAnalyzing(true);
       setError(null);
 
@@ -136,7 +148,7 @@ export function useVisionAnalysis(options: UseVisionAnalysisOptions = {}): UseVi
           },
           body: JSON.stringify({
             imageBase64: base64DataUrl,
-            targetLanguage,
+            targetLanguage: targetLanguageRef.current,
           }),
           signal: controller.signal,
         });
@@ -146,12 +158,12 @@ export function useVisionAnalysis(options: UseVisionAnalysisOptions = {}): UseVi
         if (!data.success || !data.data) {
           const errMsg = data.error || 'Phân tích ảnh không thành công';
           setError(errMsg);
-          if (onError) onError(errMsg);
+          if (onErrorRef.current) onErrorRef.current(errMsg);
           return null;
         }
 
         setResult(data.data);
-        if (onSuccess) onSuccess(data.data);
+        if (onSuccessRef.current) onSuccessRef.current(data.data);
         return data.data;
       } catch (err: any) {
         if (err.name === 'AbortError') {
@@ -159,14 +171,14 @@ export function useVisionAnalysis(options: UseVisionAnalysisOptions = {}): UseVi
         }
         const errMsg = err?.message || 'Có lỗi xảy ra khi phân tích ảnh';
         setError(errMsg);
-        if (onError) onError(errMsg);
+        if (onErrorRef.current) onErrorRef.current(errMsg);
         return null;
       } finally {
         setIsAnalyzing(false);
         abortControllerRef.current = null;
       }
     },
-    [targetLanguage, onSuccess, onError, reset]
+    [] // Ổn định xuyên suốt các lần render, không bao giờ thay đổi tham chiếu
   );
 
   return {

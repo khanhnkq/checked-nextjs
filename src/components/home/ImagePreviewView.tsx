@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Download, Loader2, Send, Trash2, Users, X } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
 import { haptics } from '@/lib/utils/haptics';
@@ -132,6 +132,9 @@ export const ImagePreviewView: React.FC<ImagePreviewViewProps> = ({
     defaultLocationName: initialLocationName,
   });
 
+  // Ref lưu ảnh đã phân tích để chống gọi lại nhiều lần (chống vòng lặp vô hạn)
+  const lastAnalyzedPhotoRef = useRef<string | null>(null);
+
   // Hook Phân tích Thị giác AI Vision (Đồng bộ GeminiVisionProvider.swift)
   const { isAnalyzing, analyzeImage } = useVisionAnalysis({
     targetLanguage: 'vi',
@@ -174,9 +177,10 @@ export const ImagePreviewView: React.FC<ImagePreviewViewProps> = ({
     }
   }, [geo.locationName, isBillMode]);
 
-  // Tự động phân tích ảnh khi người dùng mở Preview
+  // Tự động phân tích ảnh khi người dùng mở Preview (Chỉ chạy 1 lần duy nhất cho mỗi dataUrl)
   useEffect(() => {
-    if (autoAnalyze && photo?.dataUrl) {
+    if (autoAnalyze && photo?.dataUrl && lastAnalyzedPhotoRef.current !== photo.dataUrl) {
+      lastAnalyzedPhotoRef.current = photo.dataUrl;
       analyzeImage(photo.dataUrl);
     }
   }, [autoAnalyze, photo?.dataUrl, analyzeImage]);
