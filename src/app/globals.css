@@ -62,3 +62,12 @@ html, body {
 .pb-safe {
   padding-bottom: max(env(safe-area-inset-bottom), 16px);
 }
+
+/* Ẩn scrollbar nhưng vẫn cho phép cuộn mượt mà */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

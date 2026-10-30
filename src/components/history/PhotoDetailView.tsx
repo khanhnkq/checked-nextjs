@@ -4,22 +4,19 @@ import React, { useEffect, useRef, useState } from 'react';
 import {
   ArrowLeft,
   ArrowUp,
-  ChevronDown,
   CreditCard,
   Flame,
   Heart,
   MapPin,
   MessageCircle,
-  Plus,
-  Users,
   Utensils,
 } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
 import { haptics } from '@/lib/utils/haptics';
 import { formatCurrency, formatTimeAgo } from '@/lib/utils/formatters';
 import { useUpsertMyReaction, useRemoveMyReaction } from '@/lib/api/generated/endpoints';
+import { PillFilterDropdown, type FriendOption } from '@/components/common/PillFilterDropdown';
 import type { HistoryPhotoItem } from '@/app/history/page';
-import type { FriendOption } from '@/components/home';
 
 export interface PhotoDetailViewProps {
   photos: HistoryPhotoItem[];
@@ -67,7 +64,6 @@ export const PhotoDetailView: React.FC<PhotoDetailViewProps> = ({
   const [activePhotoId, setActivePhotoId] = useState<string>(
     initialPhotoId || photos[0]?.id || ''
   );
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [commentText, setCommentText] = useState('');
   const [myReactions, setMyReactions] = useState<Record<string, string>>({});
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -159,8 +155,6 @@ export const PhotoDetailView: React.FC<PhotoDetailViewProps> = ({
   }
 
   const handleSelectFilter = (id: string | null) => {
-    haptics.click();
-    setIsDropdownOpen(false);
     onSelectFilter?.(id);
   };
 
@@ -235,154 +229,31 @@ export const PhotoDetailView: React.FC<PhotoDetailViewProps> = ({
     >
       {/* 1. TOP BAR NỔI TRÊN CÙNG ĐỒNG BỘ 100% VỚI IOS */}
       <header
-        className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] h-[52px] px-4 flex items-center justify-between z-40 select-none"
+        className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] h-14 px-5 flex items-center justify-between z-40 select-none"
         style={{ top: 'max(env(safe-area-inset-top), 14px)' }}
       >
-        {/* Nút Back quay về lưới ảnh */}
+        {/* Nút Back quay về lưới ảnh (44x44px) */}
         <button
           type="button"
           onClick={onDismiss}
           aria-label="Đóng chi tiết"
-          className="w-[42px] h-[42px] rounded-full bg-white flex items-center justify-center text-[#141613] active:scale-95 transition-transform"
+          className="w-[44px] h-[44px] rounded-full bg-white flex items-center justify-center text-[#141613] active:scale-95 transition-transform flex-shrink-0"
         >
           <ArrowLeft size={20} strokeWidth={2.2} />
         </button>
 
-        {/* Nút Dropdown Pill Filter căn giữa */}
-        <div className="relative">
-          <button
-            type="button"
-            onClick={() => {
-              haptics.click();
-              setIsDropdownOpen((prev) => !prev);
-            }}
-            aria-label="Lọc người gửi khoảnh khắc"
-            className="h-[38px] px-3.5 rounded-full bg-white flex items-center gap-2 active:scale-95 transition-transform"
-          >
-            {pillAvatar ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={pillAvatar}
-                alt=""
-                aria-hidden="true"
-                className="w-5 h-5 rounded-full object-cover flex-shrink-0"
-              />
-            ) : isAllMode && !isOwnActivePhoto && !activePhoto?.senderName ? (
-              <Users size={15} className="text-[#141613] flex-shrink-0" />
-            ) : (
-              <div
-                aria-hidden="true"
-                className="w-5 h-5 rounded-full bg-[#DFDACD] flex items-center justify-center text-[10px] font-bold text-[#141613]"
-              >
-                {pillTitle.charAt(0).toUpperCase()}
-              </div>
-            )}
+        {/* Nút Dropdown Pill Filter căn giữa (144x44px) */}
+        <PillFilterDropdown
+          friends={friends}
+          selectedFilterId={selectedFilterId}
+          onSelectFilter={handleSelectFilter}
+          currentUserAvatar={currentUser?.avatarUrl}
+          customTitle={pillTitle}
+          customAvatarUrl={pillAvatar}
+          ariaLabel="Lọc người gửi khoảnh khắc"
+        />
 
-            <span className="text-[13px] font-bold font-display text-[#141613] tracking-tight max-w-[120px] truncate">
-              {pillTitle}
-            </span>
-
-            <ChevronDown
-              size={14}
-              className={cn(
-                'text-[#63685F] transition-transform duration-200',
-                isDropdownOpen && 'rotate-180'
-              )}
-              strokeWidth={2.5}
-            />
-          </button>
-
-          {/* Menu Dropdown nổi */}
-          {isDropdownOpen && (
-            <>
-              <div
-                className="fixed inset-0 z-40"
-                onClick={() => setIsDropdownOpen(false)}
-              />
-              <div className="absolute top-[46px] left-1/2 -translate-x-1/2 w-[200px] rounded-2xl bg-white p-1.5 flex flex-col gap-1 z-50">
-                {/* Tùy chọn 1: Tất cả */}
-                <button
-                  type="button"
-                  onClick={() => handleSelectFilter(null)}
-                  className={cn(
-                    'w-full h-[40px] px-3 rounded-xl flex items-center gap-2.5 text-left text-[13px] font-semibold font-display active:bg-[#F2F2F4] transition-colors',
-                    selectedFilterId === null
-                      ? 'bg-[#EDE9DF] text-[#141613]'
-                      : 'text-[#63685F]'
-                  )}
-                >
-                  <Users size={16} />
-                  <span>Tất cả</span>
-                </button>
-
-                {/* Tùy chọn 2: Bạn */}
-                <button
-                  type="button"
-                  onClick={() => handleSelectFilter('me')}
-                  className={cn(
-                    'w-full h-[40px] px-3 rounded-xl flex items-center gap-2.5 text-left text-[13px] font-semibold font-display active:bg-[#F2F2F4] transition-colors',
-                    selectedFilterId === 'me'
-                      ? 'bg-[#EDE9DF] text-[#141613]'
-                      : 'text-[#63685F]'
-                  )}
-                >
-                  {currentUser?.avatarUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={currentUser.avatarUrl}
-                      alt=""
-                      aria-hidden="true"
-                      className="w-5 h-5 rounded-full object-cover"
-                    />
-                  ) : (
-                    <div
-                      aria-hidden="true"
-                      className="w-5 h-5 rounded-full bg-[#D4EB70] flex items-center justify-center text-[10px] font-bold text-[#141613]"
-                    >
-                      B
-                    </div>
-                  )}
-                  <span>Bạn</span>
-                </button>
-
-                {/* Tùy chọn 3: Danh sách bạn bè */}
-                {friends.map((friend) => (
-                  <button
-                    key={friend.id}
-                    type="button"
-                    onClick={() => handleSelectFilter(friend.id)}
-                    className={cn(
-                      'w-full h-[40px] px-3 rounded-xl flex items-center gap-2.5 text-left text-[13px] font-semibold font-display active:bg-[#F2F2F4] transition-colors',
-                      selectedFilterId === friend.id
-                        ? 'bg-[#EDE9DF] text-[#141613]'
-                        : 'text-[#63685F]'
-                    )}
-                  >
-                    {friend.avatarUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={friend.avatarUrl}
-                        alt=""
-                        aria-hidden="true"
-                        className="w-5 h-5 rounded-full object-cover"
-                      />
-                    ) : (
-                      <div
-                        aria-hidden="true"
-                        className="w-5 h-5 rounded-full bg-[#DFDACD] flex items-center justify-center text-[10px] font-bold text-[#141613]"
-                      >
-                        {friend.name.charAt(0).toUpperCase()}
-                      </div>
-                    )}
-                    <span className="truncate">{friend.name}</span>
-                  </button>
-                ))}
-              </div>
-            </>
-          )}
-        </div>
-
-        {/* Nút Chat bên phải */}
+        {/* Nút Chat bên phải (44x44px) */}
         <button
           type="button"
           onClick={() => {
@@ -391,7 +262,7 @@ export const PhotoDetailView: React.FC<PhotoDetailViewProps> = ({
             onChatClick?.();
           }}
           aria-label="Tin nhắn"
-          className="w-[42px] h-[42px] rounded-full bg-white flex items-center justify-center text-[#141613] active:scale-95 transition-transform"
+          className="w-[44px] h-[44px] rounded-full bg-white flex items-center justify-center text-[#141613] active:scale-95 transition-transform flex-shrink-0"
         >
           <MessageCircle size={20} className="text-[#141613]" />
         </button>
