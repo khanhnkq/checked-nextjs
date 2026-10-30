@@ -12,10 +12,10 @@
   - **Mô tả**: Lớp phủ màn trập `fixed inset-0 z-50 bg-white pointer-events-none transition-opacity duration-120 ease-out`. Nhận props `{ isFlashing: boolean }`. Khi bật flash chuyển từ `opacity-80` sang `opacity-0`. Tuân thủ 100% Zero Border, Zero Blur, Zero Shadow.
   - **Verifiable**: Export qua `src/components/home/index.ts`. (Đã hoàn thành, 4/4 tests pass).
 
-- [ ] **Task 2: Tách biệt `CameraBox.tsx` thành Viewfinder thuần túy**
+- [x] **Task 2: Tách biệt `CameraBox.tsx` thành Viewfinder thuần túy**
   - **File**: `src/components/home/CameraBox.tsx`
   - **Mô tả**: Xóa bỏ `previewImageUrl` và `onRetake` khỏi `CameraBoxProps` và JSX. `CameraBox` chỉ đảm nhiệm: stream WebRTC, lật camera, zoom 1x/0.5x, toggle flash, và hiển thị trạng thái xin quyền.
-  - **Verifiable**: `CameraBox` không còn logic ảnh tĩnh hay nút retake đè lên khung ngắm.
+  - **Verifiable**: `CameraBox` không còn logic ảnh tĩnh hay nút retake đè lên khung ngắm. (Đã hoàn thành, 16/16 tests pass).
 
 - [ ] **Task 3: Dựng Shell `ImagePreviewView.tsx` (Khung nền sẵn sàng cho Phase 2)**
   - **File**: `src/components/home/ImagePreviewView.tsx`

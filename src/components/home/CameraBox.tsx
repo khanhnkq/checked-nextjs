@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Camera, CameraOff, RotateCcw, X, Zap, ZapOff } from 'lucide-react';
+import { Camera, CameraOff, Zap, ZapOff } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
 import { haptics } from '@/lib/utils/haptics';
 import type { CameraStatus, CameraFacingMode, CameraZoomLevel } from '@/hooks/useWebRTCCamera';
@@ -16,11 +16,14 @@ export interface CameraBoxProps {
   zoomLevel?: CameraZoomLevel;
   onToggleZoom?: () => void;
   onRetryPermission?: () => void;
-  previewImageUrl?: string | null;
-  onRetake?: () => void;
   className?: string;
 }
 
+/**
+ * CameraBox (Viewfinder thuần túy)
+ * Khung ngắm camera 1:1 kết nối trực tiếp WebRTC Live Stream.
+ * Tuân thủ quy tắc Design System: Zero Border, Zero Blur, Zero Shadow.
+ */
 export const CameraBox: React.FC<CameraBoxProps> = ({
   videoRef,
   isLive = false,
@@ -31,8 +34,6 @@ export const CameraBox: React.FC<CameraBoxProps> = ({
   zoomLevel: controlledZoom,
   onToggleZoom,
   onRetryPermission,
-  previewImageUrl,
-  onRetake,
   className,
 }) => {
   // Fallback internal state nếu không truyền controlled props từ hook
@@ -70,28 +71,8 @@ export const CameraBox: React.FC<CameraBoxProps> = ({
         className
       )}
     >
-      {/* 1. HIỂN THỊ ẢNH VỪA CHỤP (NẾU CÓ) */}
-      {previewImageUrl ? (
-        <div className="relative w-full h-full">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={previewImageUrl}
-            alt="Khoảnh khắc vừa chụp"
-            className="w-full h-full object-cover"
-          />
-          {onRetake && (
-            <button
-              type="button"
-              onClick={onRetake}
-              aria-label="Chụp lại ảnh"
-              className="absolute top-4 right-4 w-[38px] h-[38px] rounded-full bg-black/60 flex items-center justify-center text-white active:scale-90 transition-transform z-20"
-            >
-              <RotateCcw size={16} />
-            </button>
-          )}
-        </div>
-      ) : isStreaming && videoRef ? (
-        /* 2. LUỒNG VIDEO CAMERA THẬT WEBRTC */
+      {/* 1. LUỒNG VIDEO CAMERA THẬT WEBRTC */}
+      {isStreaming && videoRef ? (
         <video
           ref={videoRef as any}
           autoPlay
@@ -103,7 +84,7 @@ export const CameraBox: React.FC<CameraBoxProps> = ({
           )}
         />
       ) : isDenied ? (
-        /* 3. TRẠNG THÁI TỪ CHỐI QUYỀN CAMERA */
+        /* 2. TRẠNG THÁI TỪ CHỐI QUYỀN CAMERA */
         <div className="flex flex-col items-center justify-center gap-3 px-6 text-center">
           <div className="w-[64px] h-[64px] rounded-full bg-white/10 flex items-center justify-center">
             <CameraOff size={28} className="text-[#FF5C5C]" strokeWidth={2} />
@@ -122,7 +103,7 @@ export const CameraBox: React.FC<CameraBoxProps> = ({
           )}
         </div>
       ) : (
-        /* 4. GIAO DIỆN ỐNG KÍNH CHECKED MẶC ĐỊNH */
+        /* 3. GIAO DIỆN ỐNG KÍNH CHECKED MẶC ĐỊNH */
         <div className="flex flex-col items-center justify-center gap-3">
           <div className="w-[72px] h-[72px] rounded-full bg-white/10 flex items-center justify-center">
             <Camera size={32} className="text-white/60" strokeWidth={1.8} />
@@ -133,8 +114,8 @@ export const CameraBox: React.FC<CameraBoxProps> = ({
         </div>
       )}
 
-      {/* Top Controls Overlay: Chỉ hiển thị khi đang stream hoặc ở ống kính mặc định */}
-      {!previewImageUrl && !isDenied && (
+      {/* Top Controls Overlay: Nút Flash và Zoom trên khung ngắm */}
+      {!isDenied && (
         <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-10 pointer-events-auto">
           {/* Nút Flash (Bật / Tắt) */}
           <button

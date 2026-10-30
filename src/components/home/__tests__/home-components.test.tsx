@@ -103,20 +103,25 @@ describe('Home Components (iOS Parity, Zero Border, Zero Blur, Zero Shadow)', ()
       expect(handleRetry).toHaveBeenCalled();
     });
 
-    it('renders preview image and handles retake', async () => {
-      const handleRetake = vi.fn();
+    it('toggles flash button state in uncontrolled mode', async () => {
       const user = userEvent.setup();
-      render(
-        <CameraBox
-          previewImageUrl="data:image/jpeg;base64,sample"
-          onRetake={handleRetake}
-        />
-      );
+      render(<CameraBox />);
 
-      expect(screen.getByAltText('Khoảnh khắc vừa chụp')).toBeInTheDocument();
-      const retakeBtn = screen.getByRole('button', { name: 'Chụp lại ảnh' });
-      await user.click(retakeBtn);
-      expect(handleRetake).toHaveBeenCalled();
+      const flashBtn = screen.getByRole('button', { name: 'Bật đèn flash' });
+      expect(flashBtn).toBeInTheDocument();
+
+      await user.click(flashBtn);
+      expect(screen.getByRole('button', { name: 'Tắt đèn flash' })).toBeInTheDocument();
+    });
+
+    it('invokes onToggleFlash callback in controlled mode', async () => {
+      const handleToggleFlash = vi.fn();
+      const user = userEvent.setup();
+      render(<CameraBox isFlashOn={false} onToggleFlash={handleToggleFlash} />);
+
+      const flashBtn = screen.getByRole('button', { name: 'Bật đèn flash' });
+      await user.click(flashBtn);
+      expect(handleToggleFlash).toHaveBeenCalledTimes(1);
     });
 
     it('strictly conforms to zero border, blur, shadow rule', () => {

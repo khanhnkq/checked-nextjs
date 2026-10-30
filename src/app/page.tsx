@@ -206,8 +206,6 @@ export default function HomePage() {
           zoomLevel={camera.zoomLevel}
           onToggleZoom={camera.toggleZoom}
           onRetryPermission={() => camera.startCamera()}
-          previewImageUrl={capturedPhotoUrl}
-          onRetake={handleRetake}
         />
       </div>
 
