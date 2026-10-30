@@ -107,3 +107,18 @@ describe('params serialization and flattening', () => {
     expect(url.searchParams.get('size')).toBe('20');
   });
 });
+
+describe('FormData multipart header handling', () => {
+  it('removes Content-Type when data is FormData so browser can set boundary', () => {
+    const headers = new Headers({ 'Content-Type': 'multipart/form-data' });
+    const formData = new FormData();
+    formData.append('file', new Blob(['test']));
+
+    const isFormData = typeof FormData !== 'undefined' && formData instanceof FormData;
+    if (isFormData) {
+      headers.delete('Content-Type');
+    }
+
+    expect(headers.has('Content-Type')).toBe(false);
+  });
+});

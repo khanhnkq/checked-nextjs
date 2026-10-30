@@ -111,9 +111,12 @@ export async function customFetcher<T>({
     headers.set('Authorization', `Bearer ${token}`);
   }
 
-  // Tự động set Content-Type nếu không phải FormData
+  // Tự động xử lý Content-Type:
+  // Nếu là FormData, PHẢI xóa Content-Type để trình duyệt tự động chèn boundary multipart
   const isFormData = typeof FormData !== 'undefined' && data instanceof FormData;
-  if (!isFormData && !headers.has('Content-Type') && data !== undefined) {
+  if (isFormData) {
+    headers.delete('Content-Type');
+  } else if (!headers.has('Content-Type') && data !== undefined) {
     headers.set('Content-Type', 'application/json');
   }
 
