@@ -88,8 +88,9 @@ export const ImagePreviewView: React.FC<ImagePreviewViewProps> = ({
   autoAnalyze = true,
   className,
 }) => {
-  // Trạng thái nhập Caption
+  // Trạng thái nhập Caption và gợi ý từ AI
   const [caption, setCaption] = useState('');
+  const [aiSuggestedCaption, setAiSuggestedCaption] = useState<string | null>(null);
 
   // Trạng thái Chế độ Hóa đơn (Bill Mode)
   const [isBillMode, setIsBillMode] = useState(isBill);
@@ -155,7 +156,10 @@ export const ImagePreviewView: React.FC<ImagePreviewViewProps> = ({
             }))
           );
         }
-        if (data.suggested_caption) setCaption(data.suggested_caption);
+        if (data.suggested_caption) {
+          setAiSuggestedCaption(data.suggested_caption);
+          setCaption(data.suggested_caption);
+        }
       } else if (data.is_food) {
         setDishName(data.dish_name);
         if (data.category) setFoodCategory(data.category);
@@ -163,8 +167,12 @@ export const ImagePreviewView: React.FC<ImagePreviewViewProps> = ({
           const calStr = `${data.calories} kcal`;
           setCalorieText(calStr);
         }
-        if (data.suggested_caption) setCaption(data.suggested_caption);
+        if (data.suggested_caption) {
+          setAiSuggestedCaption(data.suggested_caption);
+          setCaption(data.suggested_caption);
+        }
       } else if (data.suggested_caption) {
+        setAiSuggestedCaption(data.suggested_caption);
         setCaption(data.suggested_caption);
       }
     },
@@ -185,10 +193,12 @@ export const ImagePreviewView: React.FC<ImagePreviewViewProps> = ({
     }
   }, [autoAnalyze, photo?.dataUrl, analyzeImage]);
 
-  // Sinh caption tự động từ các tag đang có (tương tự generateAICaption trên iOS)
+  // Sinh caption tự động (Đồng bộ 100% với generateAICaption trong ImagePreviewView.swift trên iOS)
   const handleGenerateAICaption = () => {
     haptics.medium();
-    if (isBillMode && priceText) {
+    if (aiSuggestedCaption && aiSuggestedCaption.trim()) {
+      setCaption(aiSuggestedCaption.trim());
+    } else if (isBillMode && priceText) {
       setCaption(`🧾 ${locationName} · ${priceText}`);
     } else if (dishName) {
       setCaption(`🍲 ${dishName}${calorieText ? ` · ${calorieText}` : ''}`);

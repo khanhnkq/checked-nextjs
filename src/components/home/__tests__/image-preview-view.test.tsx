@@ -323,6 +323,7 @@ describe('ImagePreviewView Component (1:1 iOS Parity Integration)', () => {
   });
 
   it('triggers autoAnalyze on mount and updates metadata from Gemini Vision response', async () => {
+    const user = userEvent.setup();
     const mockAiResponse = {
       is_food: true,
       dish_name: 'Bún Bò Huế',
@@ -356,6 +357,13 @@ describe('ImagePreviewView Component (1:1 iOS Parity Integration)', () => {
       expect(screen.getByText('620 kcal')).toBeInTheDocument();
       expect(screen.getByDisplayValue('🍜 Bún Bò Huế đậm đà chuẩn vị')).toBeInTheDocument();
     });
+
+    // Clicking sparkles button preserves AI suggested caption and does NOT jump to fallback
+    const sparklesBtn = screen.getByRole('button', { name: 'Gợi ý caption' });
+    const input = screen.getByRole('textbox', { name: 'Nhập chú thích khoảnh khắc' });
+    await user.clear(input);
+    await user.click(sparklesBtn);
+    expect(input).toHaveValue('🍜 Bún Bò Huế đậm đà chuẩn vị');
   });
 
   it('strictly conforms to zero border, blur, shadow rule', () => {
