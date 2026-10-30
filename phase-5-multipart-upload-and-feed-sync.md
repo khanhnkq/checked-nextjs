@@ -29,7 +29,7 @@
   - **Mô tả**: Khi `data instanceof FormData`, tự động xóa `headers.delete('Content-Type')` nếu có để trình duyệt tự động chèn `multipart/form-data; boundary=----WebKitFormBoundary...`.
   - **Verifiable**: Unit test kiểm tra gửi `FormData` không bị gán cứng Content-Type thiếu boundary (Đã hoàn thành, 7/7 tests pass).
 
-- [ ] **Task 2: Xây dựng Hook `usePhotoUpload.ts` & Helper xác định bữa ăn**
+- [x] **Task 2: Xây dựng Hook `usePhotoUpload.ts` & Helper xác định bữa ăn**
   - **File**: `src/hooks/usePhotoUpload.ts`
   - **Mô tả**:
     - Nhận `file: Blob`, `caption`, `amount`, `locationName`, `dishName`, `calories`, `recipientIds`.
@@ -38,7 +38,7 @@
     - Gọi API `POST /api/v1/photos` qua `customFetcher`.
     - On success: rung `haptics.success()`, hiện toast `sonner`: `"Đã gửi khoảnh khắc ✨"`, làm mới cache query `['/api/v1/photos']`.
     - On error: rung `haptics.error()`, hiện toast lỗi.
-  - **Verifiable**: Unit test kiểm tra đóng gói FormData, gọi API và xử lý kết quả thành công/thất bại.
+  - **Verifiable**: Unit test kiểm tra đóng gói FormData, gọi API và xử lý kết quả thành công/thất bại (Đã hoàn thành, 7/7 tests pass).
 
 - [ ] **Task 3: Xây dựng `AudienceSelectSheet.tsx` (Chọn người nhận ảnh)**
   - **File**: `src/components/sheets/AudienceSelectSheet.tsx`
