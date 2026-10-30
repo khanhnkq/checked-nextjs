@@ -110,7 +110,17 @@ describe('usePhotoUpload hook', () => {
     expect(calledData.get('recipientScope')).toBe('ALL_FRIENDS');
 
     expect(toast.success).toHaveBeenCalledWith('Đã gửi khoảnh khắc ✨');
-    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['/api/v1/photos'] });
+    expect(invalidateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ predicate: expect.any(Function) })
+    );
+
+    // Verify predicate matches /api/v1/photos/feed and /api/v1/photos/my-photos
+    const filterArg = invalidateSpy.mock.calls[0][0] as any;
+    expect(filterArg.predicate({ queryKey: ['/api/v1/photos/feed'] })).toBe(true);
+    expect(filterArg.predicate({ queryKey: ['/api/v1/photos/my-photos'] })).toBe(true);
+    expect(filterArg.predicate({ queryKey: ['/api/v1/expenses/summary'] })).toBe(true);
+    expect(filterArg.predicate({ queryKey: ['/api/v1/users'] })).toBe(false);
+
     expect(onSuccess).toHaveBeenCalledWith(mockResponse);
   });
 

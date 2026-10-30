@@ -160,7 +160,7 @@ export const ImagePreviewView: React.FC<ImagePreviewViewProps> = ({
         setDishName(data.dish_name);
         if (data.category) setFoodCategory(data.category);
         if (data.calories) {
-          const calStr = `${data.calories} kcal${data.protein_g ? ` · ${data.protein_g}g Đạm` : ''}`;
+          const calStr = `${data.calories} kcal`;
           setCalorieText(calStr);
         }
         if (data.suggested_caption) setCaption(data.suggested_caption);

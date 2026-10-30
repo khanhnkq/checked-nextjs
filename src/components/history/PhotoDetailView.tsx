@@ -15,6 +15,7 @@ import { cn } from '@/lib/utils/cn';
 import { haptics } from '@/lib/utils/haptics';
 import { formatCurrency, formatTimeAgo } from '@/lib/utils/formatters';
 import { useUpsertMyReaction, useRemoveMyReaction } from '@/lib/api/generated/endpoints';
+import { useQueryClient } from '@tanstack/react-query';
 import { PillFilterDropdown, type FriendOption } from '@/components/common/PillFilterDropdown';
 import type { HistoryPhotoItem } from '@/app/history/page';
 
@@ -68,8 +69,31 @@ export const PhotoDetailView: React.FC<PhotoDetailViewProps> = ({
   const [myReactions, setMyReactions] = useState<Record<string, string>>({});
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  const upsertMutation = useUpsertMyReaction();
-  const removeMutation = useRemoveMyReaction();
+  const queryClient = useQueryClient();
+  const upsertMutation = useUpsertMyReaction({
+    mutation: {
+      onSuccess: () => {
+        queryClient.invalidateQueries({
+          predicate: (query) => {
+            const firstKey = query.queryKey[0];
+            return typeof firstKey === 'string' && firstKey.startsWith('/api/v1/photos');
+          },
+        });
+      },
+    },
+  });
+  const removeMutation = useRemoveMyReaction({
+    mutation: {
+      onSuccess: () => {
+        queryClient.invalidateQueries({
+          predicate: (query) => {
+            const firstKey = query.queryKey[0];
+            return typeof firstKey === 'string' && firstKey.startsWith('/api/v1/photos');
+          },
+        });
+      },
+    },
+  });
 
   // Kiểm tra ảnh có thuộc về người dùng hiện tại không
   const isUserPhoto = (senderId?: string, senderName?: string): boolean => {

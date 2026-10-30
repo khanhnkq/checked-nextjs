@@ -1,8 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import React from 'react';
 import { PhotoDetailView } from '../PhotoDetailView';
 import type { HistoryPhotoItem } from '@/app/history/page';
+
+// Helper render with QueryClientProvider
+const renderWithClient = (ui: React.ReactElement) => {
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  return render(<QueryClientProvider client={client}>{ui}</QueryClientProvider>);
+};
 
 // Mock Orval React Query mutation hooks
 const mockUpsertMutateAsync = vi.fn().mockResolvedValue({});
@@ -48,7 +58,7 @@ describe('PhotoDetailView (iOS Parity, Vertical Snap, Reactions, Zero Border/Blu
   });
 
   it('renders modal dialog with initial photo and sender information', () => {
-    render(
+    renderWithClient(
       <PhotoDetailView
         photos={mockPhotos}
         initialPhotoId="photo-1"
@@ -61,7 +71,7 @@ describe('PhotoDetailView (iOS Parity, Vertical Snap, Reactions, Zero Border/Blu
   });
 
   it('displays transaction badges: dish note, formatted price, and calories', () => {
-    render(
+    renderWithClient(
       <PhotoDetailView
         photos={mockPhotos}
         initialPhotoId="photo-1"
@@ -78,7 +88,7 @@ describe('PhotoDetailView (iOS Parity, Vertical Snap, Reactions, Zero Border/Blu
     const handleDismiss = vi.fn();
     const user = userEvent.setup();
 
-    render(
+    renderWithClient(
       <PhotoDetailView
         photos={mockPhotos}
         initialPhotoId="photo-1"
@@ -95,7 +105,7 @@ describe('PhotoDetailView (iOS Parity, Vertical Snap, Reactions, Zero Border/Blu
   it('renders all 6 reaction emojis and handles reaction click', async () => {
     const user = userEvent.setup();
 
-    render(
+    renderWithClient(
       <PhotoDetailView
         photos={mockPhotos}
         initialPhotoId="photo-1"
@@ -148,7 +158,7 @@ describe('PhotoDetailView (iOS Parity, Vertical Snap, Reactions, Zero Border/Blu
       },
     ];
 
-    render(
+    renderWithClient(
       <PhotoDetailView
         photos={ownPhotos}
         initialPhotoId="own-1"
@@ -167,7 +177,7 @@ describe('PhotoDetailView (iOS Parity, Vertical Snap, Reactions, Zero Border/Blu
   it('allows typing and sending a message in bottom action bar', async () => {
     const user = userEvent.setup();
 
-    render(
+    renderWithClient(
       <PhotoDetailView
         photos={mockPhotos}
         initialPhotoId="photo-1"
@@ -186,7 +196,7 @@ describe('PhotoDetailView (iOS Parity, Vertical Snap, Reactions, Zero Border/Blu
   });
 
   it('strictly conforms to zero border, blur, shadow rule', () => {
-    const { container } = render(
+    const { container } = renderWithClient(
       <PhotoDetailView
         photos={mockPhotos}
         initialPhotoId="photo-1"

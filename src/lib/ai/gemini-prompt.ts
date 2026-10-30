@@ -53,9 +53,6 @@ Rules:
    - \`emoji\`: single most relevant food emoji (e.g. "🍜", "🍗", "🧋", "☕️", "🍔")
    - \`confidence\`: confidence score between 0.0 and 1.0 (e.g. 0.95)
    - \`calories\`: estimate total calories in kcal (integer) for the visual portion shown in the image (e.g. 550)
-   - \`protein_g\`: estimate grams of protein (number, e.g. 28.0)
-   - \`carbs_g\`: estimate grams of carbohydrates (number, e.g. 65.0)
-   - \`fat_g\`: estimate grams of fat (number, e.g. 18.0)
    - \`serving_size\`: short concise serving description in ${languageName} (e.g. "1 tô vừa", "1 đĩa", "1 ly 500ml")
    - \`is_bill\`: false
 
@@ -90,9 +87,6 @@ Respond strictly with JSON schema without markdown backticks:
   "emoji": string,
   "confidence": number,
   "calories": number or null,
-  "protein_g": number or null,
-  "carbs_g": number or null,
-  "fat_g": number or null,
   "serving_size": string or null,
   "is_bill": boolean,
   "total_amount_str": string,

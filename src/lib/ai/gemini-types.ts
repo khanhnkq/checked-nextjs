@@ -21,11 +21,8 @@ export interface GeminiVisionAnalysisPayload {
   emoji: string;
   confidence: number;
 
-  // 2. Dinh dưỡng & Calo (khi is_food = true)
+  // 2. Dinh dưỡng & Calo (khi is_food = true, chỉ lưu calo theo chuẩn Backend)
   calories?: number | null;
-  protein_g?: number | null;
-  carbs_g?: number | null;
-  fat_g?: number | null;
   serving_size?: string | null;
 
   // 3. Hóa đơn & Biên lai (khi is_bill = true)

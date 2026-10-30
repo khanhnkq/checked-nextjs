@@ -330,9 +330,6 @@ describe('ImagePreviewView Component (1:1 iOS Parity Integration)', () => {
       emoji: '🍜',
       confidence: 0.98,
       calories: 620,
-      protein_g: 30,
-      carbs_g: 70,
-      fat_g: 20,
       is_bill: false,
       scene_label: 'Ẩm thực',
       suggested_caption: '🍜 Bún Bò Huế đậm đà chuẩn vị',
@@ -356,7 +353,7 @@ describe('ImagePreviewView Component (1:1 iOS Parity Integration)', () => {
     // After fetch resolves, tags are populated
     await waitFor(() => {
       expect(screen.getByText('Bún Bò Huế')).toBeInTheDocument();
-      expect(screen.getByText('620 kcal · 30g Đạm')).toBeInTheDocument();
+      expect(screen.getByText('620 kcal')).toBeInTheDocument();
       expect(screen.getByDisplayValue('🍜 Bún Bò Huế đậm đà chuẩn vị')).toBeInTheDocument();
     });
   });

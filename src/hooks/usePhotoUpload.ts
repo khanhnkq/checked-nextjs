@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useCallback } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { customFetcher } from '@/lib/api/custom-fetcher';
 import { haptics } from '@/lib/utils/haptics';
@@ -56,101 +56,116 @@ export function determineMealType(date: Date = new Date()): MealType {
 
 /**
  * usePhotoUpload Hook (Đăng tải ảnh khoảnh khắc kèm metadata tài chính & dinh dưỡng)
+ * - Sử dụng useMutation của TanStack Query chuẩn hóa
  * - Đóng gói FormData multipart chuẩn gửi lên POST /api/v1/photos
  * - Tự động xóa Content-Type để browser đính kèm boundary multipart
- * - Tự động đồng bộ MealType và TransactionType = "EXPENSE"
- * - Invalidate cache Feed ảnh và My Photos ngay khi thành công
+ * - TanStack Query Invalidation: Tự động invalidate và refetch lại toàn bộ dữ liệu ngay lập tức:
+ *   + Feed ảnh bạn bè (/api/v1/photos/feed)
+ *   + Ảnh cá nhân (/api/v1/photos/my-photos, /api/v1/photos/me)
+ *   + Chi tiêu tài chính (/api/v1/expenses, /api/v1/budget, /api/v1/savings)
  * - Cung cấp phản hồi rung haptic và toast Sonner chuẩn Checked
  */
 export function usePhotoUpload(options?: UsePhotoUploadOptions) {
-  const [isUploading, setIsUploading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
   const queryClient = useQueryClient();
+  const [error, setError] = useState<Error | null>(null);
 
-  const uploadPhoto = useCallback(
-    async (payload: UploadPhotoPayload): Promise<PhotoResponse | null> => {
-      setIsUploading(true);
-      setError(null);
+  const mutation = useMutation<PhotoResponse, Error, UploadPhotoPayload>({
+    mutationFn: async (payload: UploadPhotoPayload) => {
+      const formData = new FormData();
+      formData.append('file', payload.file, 'photo.jpg');
 
-      try {
-        const formData = new FormData();
-        formData.append('file', payload.file, 'photo.jpg');
-
-        if (payload.caption && payload.caption.trim()) {
-          formData.append('caption', payload.caption.trim());
-        }
-
-        if (payload.amount && payload.amount > 0) {
-          formData.append('amount', String(payload.amount));
-          formData.append('transactionType', 'EXPENSE');
-        }
-
-        if (payload.locationName && payload.locationName.trim()) {
-          formData.append('locationName', payload.locationName.trim());
-        }
-
-        if (typeof payload.latitude === 'number') {
-          formData.append('latitude', String(payload.latitude));
-        }
-
-        if (typeof payload.longitude === 'number') {
-          formData.append('longitude', String(payload.longitude));
-        }
-
-        if (payload.dishName && payload.dishName.trim()) {
-          formData.append('dishName', payload.dishName.trim());
-        }
-
-        if (payload.calories && payload.calories > 0) {
-          formData.append('calories', String(payload.calories));
-          formData.append('mealType', payload.mealType || determineMealType());
-        }
-
-        if (payload.recipientIds && payload.recipientIds.length > 0) {
-          formData.append('recipientScope', 'SELECTED_FRIENDS');
-          payload.recipientIds.forEach((id) => formData.append('recipientIds', id));
-        } else {
-          formData.append('recipientScope', payload.recipientScope || 'ALL_FRIENDS');
-        }
-
-        // Định dạng thời gian chụp chuẩn ISO LocalDateTime (yyyy-MM-dd'T'HH:mm:ss) khớp 100% với Spring Boot và iOS
-        const defaultTakenAt = new Date().toISOString().slice(0, 19);
-        formData.append(
-          'takenAt',
-          payload.takenAt ? payload.takenAt.replace('Z', '').split('.')[0] : defaultTakenAt
-        );
-
-        const response = await customFetcher<PhotoResponse>({
-          url: '/api/v1/photos',
-          method: 'POST',
-          data: formData,
-        });
-
-        haptics.success();
-        toast.success('Đã gửi khoảnh khắc ✨');
-
-        // Làm mới cache feed ảnh và ảnh cá nhân
-        queryClient.invalidateQueries({ queryKey: ['/api/v1/photos'] });
-
-        options?.onSuccess?.(response);
-        return response;
-      } catch (err) {
-        const errObj = err instanceof Error ? err : new Error('Không thể đăng ảnh');
-        setError(errObj);
-        haptics.error();
-        toast.error(errObj.message || 'Không thể đăng ảnh');
-        options?.onError?.(errObj);
-        return null;
-      } finally {
-        setIsUploading(false);
+      if (payload.caption && payload.caption.trim()) {
+        formData.append('caption', payload.caption.trim());
       }
+
+      if (payload.amount && payload.amount > 0) {
+        formData.append('amount', String(payload.amount));
+        formData.append('transactionType', 'EXPENSE');
+      }
+
+      if (payload.locationName && payload.locationName.trim()) {
+        formData.append('locationName', payload.locationName.trim());
+      }
+
+      if (typeof payload.latitude === 'number') {
+        formData.append('latitude', String(payload.latitude));
+      }
+
+      if (typeof payload.longitude === 'number') {
+        formData.append('longitude', String(payload.longitude));
+      }
+
+      if (payload.dishName && payload.dishName.trim()) {
+        formData.append('dishName', payload.dishName.trim());
+      }
+
+      if (payload.calories && payload.calories > 0) {
+        formData.append('calories', String(payload.calories));
+        formData.append('mealType', payload.mealType || determineMealType());
+      }
+
+      if (payload.recipientIds && payload.recipientIds.length > 0) {
+        formData.append('recipientScope', 'SELECTED_FRIENDS');
+        payload.recipientIds.forEach((id) => formData.append('recipientIds', id));
+      } else {
+        formData.append('recipientScope', payload.recipientScope || 'ALL_FRIENDS');
+      }
+
+      // Định dạng thời gian chụp chuẩn ISO LocalDateTime (yyyy-MM-dd'T'HH:mm:ss) khớp 100% với Spring Boot và iOS
+      const defaultTakenAt = new Date().toISOString().slice(0, 19);
+      formData.append(
+        'takenAt',
+        payload.takenAt ? payload.takenAt.replace('Z', '').split('.')[0] : defaultTakenAt
+      );
+
+      return customFetcher<PhotoResponse>({
+        url: '/api/v1/photos',
+        method: 'POST',
+        data: formData,
+      });
     },
-    [queryClient, options]
-  );
+    onSuccess: async (data, variables) => {
+      setError(null);
+      haptics.success();
+      toast.success('Đã gửi khoảnh khắc ✨');
+
+      // Dùng TanStack Query tự động invalidate và load lại dữ liệu Feed & Lịch sử
+      await queryClient.invalidateQueries({
+        predicate: (query) => {
+          const firstKey = query.queryKey[0];
+          if (typeof firstKey !== 'string') return false;
+          return (
+            firstKey.startsWith('/api/v1/photos') ||
+            (Boolean(variables?.amount) &&
+              (firstKey.startsWith('/api/v1/expenses') ||
+                firstKey.startsWith('/api/v1/budget') ||
+                firstKey.startsWith('/api/v1/savings')))
+          );
+        },
+      });
+
+      options?.onSuccess?.(data);
+    },
+    onError: (err) => {
+      setError(err);
+      haptics.error();
+      toast.error(err.message || 'Không thể đăng ảnh');
+      options?.onError?.(err);
+    },
+  });
 
   return {
-    isUploading,
-    uploadPhoto,
-    error,
+    isUploading: mutation.isPending,
+    uploadPhoto: async (payload: UploadPhotoPayload) => {
+      try {
+        setError(null);
+        return await mutation.mutateAsync(payload);
+      } catch (err: any) {
+        setError(err instanceof Error ? err : new Error(String(err)));
+        return null;
+      }
+    },
+    error: error || mutation.error,
+    mutation,
   };
 }
