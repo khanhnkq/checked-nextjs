@@ -28,7 +28,7 @@
   - **Mô tả**: Component kích thước chuẩn 144x44px `rounded-full bg-white flex items-center justify-center gap-1.5`. Nhận prop `isAnalyzing?: boolean`. Khi đang phân tích: icon Sparkles có hiệu ứng pulse nhịp điệu mượt mà (`animate-pulse scale-[1.08]`).
   - **Verifiable**: Export qua `src/components/home/index.ts`. (Đã hoàn thành, 3/3 tests pass).
 
-- [ ] **Task 2: Xây dựng Component `PreviewPinnedTags.tsx`**
+- [x] **Task 2: Xây dựng Component `PreviewPinnedTags.tsx`**
   - **File**: `src/components/home/PreviewPinnedTags.tsx`
   - **Mô tả**: Cụm thẻ ghim nổi góc trái trên ảnh (`top-3.5 left-3.5 flex flex-col gap-1.5`).
     - Thẻ Vị trí: `bg-white text-[#141613]` + icon `MapPin` (11px).
@@ -36,7 +36,7 @@
     - Thẻ Giá tiền / Hóa đơn: `bg-[#D4EB70] text-[#141613]` + icon `CreditCard` / `Receipt` (11px).
     - Thẻ Calo: `bg-white text-[#141613]` + icon `Flame` cam (11px).
     - Mỗi thẻ hỗ trợ callback `onClick` để sau này mở Bottom Sheet tương ứng.
-  - **Verifiable**: Unit test kiểm tra hiển thị và ẩn/hiện theo props.
+  - **Verifiable**: Unit test kiểm tra hiển thị và ẩn/hiện theo props. (Đã hoàn thành, 5/5 tests pass).
 
 - [ ] **Task 3: Xây dựng Component `PreviewCaptionBar.tsx`**
   - **File**: `src/components/home/PreviewCaptionBar.tsx`

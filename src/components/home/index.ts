@@ -6,3 +6,4 @@ export * from './HomeSkeleton';
 export * from './ShutterFlash';
 export * from './ImagePreviewView';
 export * from './GeminiBrandPill';
+export * from './PreviewPinnedTags';
