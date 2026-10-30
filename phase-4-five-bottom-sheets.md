@@ -30,10 +30,10 @@
   - **Mô tả**: Modal trượt lên từ đáy màn hình, backdrop đen mờ `bg-black/40`, grabber capsule `38x5px bg-black/20`, Header icon + tiêu đề + nút đóng `X`, nút hành động Matcha Glow 52px ở đáy.
   - **Verifiable**: Unit test kiểm tra mở/đóng, render content và nút hành động (Đã hoàn thành, 7/7 tests pass).
 
-- [ ] **Task 2: Xây dựng `PriceEditSheet.tsx`**
+- [x] **Task 2: Xây dựng `PriceEditSheet.tsx`**
   - **File**: `src/components/sheets/PriceEditSheet.tsx`
   - **Mô tả**: Nhập số tiền lớn với bàn phím số, dải chip chọn nhanh mức giá (20k - 200k), cập nhật callback `onConfirm(amount)`.
-  - **Verifiable**: Unit test kiểm tra gõ số tiền, chọn chip nhanh và xác nhận.
+  - **Verifiable**: Unit test kiểm tra gõ số tiền, chọn chip nhanh và xác nhận (Đã hoàn thành, 6/6 tests pass).
 
 - [ ] **Task 3: Xây dựng `LocationEditSheet.tsx`**
   - **File**: `src/components/sheets/LocationEditSheet.tsx`
