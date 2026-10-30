@@ -7,11 +7,11 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
-import { Camera, Mail, User as UserIcon, Lock } from 'lucide-react';
+import { Mail, User as UserIcon, Lock } from 'lucide-react';
 import { useRegister } from '@/lib/api/generated/endpoints';
 import { useAuthStore } from '@/stores/auth-store';
 import { isTokenExpired } from '@/lib/auth/jwt';
-import { CustomTextField, PrimaryButton } from '@/components/common';
+import { CustomTextField, PrimaryButton, AppLogo } from '@/components/common';
 
 const registerSchema = z.object({
   email: z
@@ -93,9 +93,7 @@ function RegisterFormContent() {
     <div className="flex flex-col items-center justify-between min-h-screen px-6 py-10 max-w-md mx-auto pt-safe pb-safe bg-[#FAF8F5]">
       {/* Top Branding */}
       <div className="flex flex-col items-center mt-6 gap-3">
-        <div className="w-20 h-20 rounded-3xl bg-[#D4EB70] flex items-center justify-center transition-transform active:scale-95">
-          <Camera size={36} className="text-[#141613]" strokeWidth={2.2} />
-        </div>
+        <AppLogo size={80} priority className="transition-transform active:scale-95" />
         <h1 className="text-3xl font-extrabold font-display text-[#141613] tracking-tight">
           Đăng ký
         </h1>
@@ -171,9 +169,7 @@ export default function RegisterPage() {
     <Suspense
       fallback={
         <div className="flex flex-col items-center justify-center min-h-screen bg-[#FAF8F5]">
-          <div className="w-16 h-16 rounded-3xl bg-[#D4EB70] flex items-center justify-center animate-pulse">
-            <Camera size={30} className="text-[#141613]" strokeWidth={2.2} />
-          </div>
+          <AppLogo size={64} className="animate-pulse" />
         </div>
       }
     >
