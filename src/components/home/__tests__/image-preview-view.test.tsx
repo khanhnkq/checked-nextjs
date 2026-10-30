@@ -135,7 +135,113 @@ describe('ImagePreviewView Component (1:1 iOS Parity Integration)', () => {
       dishName: 'Cơm Tấm',
       priceText: '65.000 đ',
       calorieText: '600 kcal',
+      isBill: false,
+      category: 'Món ăn',
+      billItems: undefined,
     });
+  });
+
+  it('opens LocationEditSheet when clicking location tag and updates location', async () => {
+    const user = userEvent.setup();
+    render(
+      <ImagePreviewView
+        photo={mockPhoto}
+        autoAnalyze={false}
+        onDismiss={vi.fn()}
+        initialLocationName="Hồ Gươm"
+      />
+    );
+
+    const locTag = screen.getByRole('button', { name: 'Địa điểm: Hồ Gươm' });
+    await user.click(locTag);
+
+    expect(screen.getByRole('dialog', { name: 'Vị trí & Địa điểm' })).toBeInTheDocument();
+    const input = screen.getByRole('textbox', { name: 'Tên quán hoặc địa điểm' });
+    await user.clear(input);
+    await user.type(input, 'Phở Bát Đàn');
+
+    const confirmBtn = screen.getByRole('button', { name: 'Xác nhận & Cập nhật' });
+    await user.click(confirmBtn);
+
+    expect(screen.getByText('Phở Bát Đàn')).toBeInTheDocument();
+  });
+
+  it('opens FoodEditSheet when clicking food tag and updates dish name', async () => {
+    const user = userEvent.setup();
+    render(
+      <ImagePreviewView
+        photo={mockPhoto}
+        autoAnalyze={false}
+        onDismiss={vi.fn()}
+        initialDishName="Bún Bò"
+      />
+    );
+
+    const foodTag = screen.getByRole('button', { name: 'Món ăn: Bún Bò' });
+    await user.click(foodTag);
+
+    expect(screen.getByRole('dialog', { name: 'Món ăn & Đồ uống' })).toBeInTheDocument();
+    const input = screen.getByRole('textbox', { name: 'Tên món ăn' });
+    await user.clear(input);
+    await user.type(input, 'Bún Riêu Cua');
+
+    const confirmBtn = screen.getByRole('button', { name: 'Xác nhận & Cập nhật' });
+    await user.click(confirmBtn);
+
+    expect(screen.getByText('Bún Riêu Cua')).toBeInTheDocument();
+  });
+
+  it('opens PriceEditSheet when clicking price tag and updates price', async () => {
+    const user = userEvent.setup();
+    render(
+      <ImagePreviewView
+        photo={mockPhoto}
+        autoAnalyze={false}
+        onDismiss={vi.fn()}
+        initialPriceText="50.000 đ"
+        isBill={false}
+      />
+    );
+
+    const priceTag = screen.getByRole('button', { name: 'Giá tiền: 50.000 đ' });
+    await user.click(priceTag);
+
+    expect(screen.getByRole('dialog', { name: 'Giá tiền & Chi phí' })).toBeInTheDocument();
+    const preset100k = screen.getByRole('button', { name: '100k' });
+    await user.click(preset100k);
+
+    const confirmBtn = screen.getByRole('button', { name: 'Xác nhận & Cập nhật' });
+    await user.click(confirmBtn);
+
+    expect(screen.getByText(/100\.000\s*đ/)).toBeInTheDocument();
+  });
+
+  it('opens BillDetailSheet when isBillMode is true and updates bill details', async () => {
+    const user = userEvent.setup();
+    render(
+      <ImagePreviewView
+        photo={mockPhoto}
+        autoAnalyze={false}
+        onDismiss={vi.fn()}
+        initialLocationName="The Coffee House"
+        initialPriceText="65.000 đ"
+        isBill={true}
+      />
+    );
+
+    // In bill mode, clicking the bill tag opens BillDetailSheet
+    const billTag = screen.getByRole('button', { name: 'Hóa đơn: 65.000 đ' });
+    await user.click(billTag);
+
+    expect(screen.getByRole('dialog', { name: 'Chi tiết Hóa đơn' })).toBeInTheDocument();
+    const amountInput = screen.getByRole('textbox', { name: 'Tổng tiền thanh toán' });
+    await user.clear(amountInput);
+    await user.type(amountInput, '120000');
+
+    const confirmBtn = screen.getByRole('button', { name: 'Xác nhận & Cập nhật' });
+    await user.click(confirmBtn);
+
+    expect(screen.getByText(/120\.000\s*đ/)).toBeInTheDocument();
   });
 
   it('triggers autoAnalyze on mount and updates metadata from Gemini Vision response', async () => {
@@ -187,8 +293,9 @@ describe('ImagePreviewView Component (1:1 iOS Parity Integration)', () => {
       />
     );
 
-    expect(container.innerHTML).not.toMatch(/border/);
-    expect(container.innerHTML).not.toMatch(/shadow-/);
-    expect(container.innerHTML).not.toMatch(/blur-/);
+    const html = container.innerHTML;
+    expect(html).not.toMatch(/\bborder\b/);
+    expect(html).not.toMatch(/\bblur\b/);
+    expect(html).not.toMatch(/\bshadow\b/);
   });
 });

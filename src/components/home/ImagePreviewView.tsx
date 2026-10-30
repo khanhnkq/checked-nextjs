@@ -10,6 +10,15 @@ import { GeminiBrandPill } from './GeminiBrandPill';
 import { PreviewPinnedTags } from './PreviewPinnedTags';
 import { PreviewCaptionBar } from './PreviewCaptionBar';
 import { PreviewActionPills } from './PreviewActionPills';
+import {
+  PriceEditSheet,
+  LocationEditSheet,
+  FoodEditSheet,
+  CalorieEditSheet,
+  BillDetailSheet,
+  parsePriceToNumber,
+  type BillItemData,
+} from '@/components/sheets';
 
 export interface CapturedPhotoData {
   blob: Blob;
@@ -24,6 +33,9 @@ export interface PreviewSubmitData {
   dishName?: string;
   priceText?: string;
   calorieText?: string;
+  isBill?: boolean;
+  category?: string;
+  billItems?: BillItemData[];
 }
 
 export interface ImagePreviewViewProps {
@@ -65,6 +77,18 @@ export const ImagePreviewView: React.FC<ImagePreviewViewProps> = ({
   // Trạng thái Chế độ Hóa đơn (Bill Mode)
   const [isBillMode, setIsBillMode] = useState(isBill);
 
+  // Trạng thái hiển thị 5 Bottom Sheets (Đồng bộ iOS ImagePreviewView.swift)
+  const [isShowingBillDetailSheet, setIsShowingBillDetailSheet] = useState(false);
+  const [isShowingLocationSheet, setIsShowingLocationSheet] = useState(false);
+  const [isShowingFoodSheet, setIsShowingFoodSheet] = useState(false);
+  const [isShowingCalorieSheet, setIsShowingCalorieSheet] = useState(false);
+  const [isShowingPriceSheet, setIsShowingPriceSheet] = useState(false);
+
+  // Dữ liệu chi tiết món ăn & hóa đơn
+  const [foodCategory, setFoodCategory] = useState<string>('Món ăn');
+  const [billCategory, setBillCategory] = useState<string>('Ăn uống');
+  const [billItems, setBillItems] = useState<BillItemData[]>([]);
+
   // Trạng thái Pinned Tags
   const [locationName, setLocationName] = useState(initialLocationName);
   const [isLocationPinned, setIsLocationPinned] = useState(true);
@@ -93,9 +117,21 @@ export const ImagePreviewView: React.FC<ImagePreviewViewProps> = ({
         setIsBillMode(true);
         if (data.merchant_name) setLocationName(data.merchant_name);
         if (data.total_amount_str) setPriceText(data.total_amount_str);
+        if (data.category) setBillCategory(data.category);
+        if (data.items) {
+          setBillItems(
+            data.items.map((it, idx) => ({
+              id: String(idx + 1),
+              name: it.name,
+              quantity: it.quantity,
+              price: it.price,
+            }))
+          );
+        }
         if (data.suggested_caption) setCaption(data.suggested_caption);
       } else if (data.is_food) {
         setDishName(data.dish_name);
+        if (data.category) setFoodCategory(data.category);
         if (data.calories) {
           const calStr = `${data.calories} kcal${data.protein_g ? ` · ${data.protein_g}g Đạm` : ''}`;
           setCalorieText(calStr);
@@ -158,6 +194,9 @@ export const ImagePreviewView: React.FC<ImagePreviewViewProps> = ({
         dishName: isFoodPinned && dishName ? dishName : undefined,
         priceText: isPricePinned && priceText ? priceText : undefined,
         calorieText: isCaloriePinned && calorieText ? calorieText : undefined,
+        isBill: isBillMode,
+        category: isBillMode ? billCategory : foodCategory,
+        billItems: isBillMode && billItems.length > 0 ? billItems : undefined,
       });
     }
   };
@@ -215,17 +254,23 @@ export const ImagePreviewView: React.FC<ImagePreviewViewProps> = ({
           <PreviewPinnedTags
             locationName={locationName}
             isLocationPinned={isLocationPinned}
-            onLocationClick={() => setIsLocationPinned((prev) => !prev)}
+            onLocationClick={() => setIsShowingLocationSheet(true)}
             dishName={dishName}
             isFoodPinned={isFoodPinned}
-            onFoodClick={() => setIsFoodPinned((prev) => !prev)}
+            onFoodClick={() => setIsShowingFoodSheet(true)}
             priceText={priceText}
             isPricePinned={isPricePinned}
             isBill={isBillMode}
-            onPriceClick={() => setIsPricePinned((prev) => !prev)}
+            onPriceClick={() => {
+              if (isBillMode) {
+                setIsShowingBillDetailSheet(true);
+              } else {
+                setIsShowingPriceSheet(true);
+              }
+            }}
             calorieText={calorieText}
             isCaloriePinned={isCaloriePinned}
-            onCalorieClick={() => setIsCaloriePinned((prev) => !prev)}
+            onCalorieClick={() => setIsShowingCalorieSheet(true)}
           />
 
           {/* Thanh nhập Caption Capsule ở đáy ảnh */}
@@ -243,33 +288,19 @@ export const ImagePreviewView: React.FC<ImagePreviewViewProps> = ({
         hasFood={Boolean(dishName)}
         isFoodPinned={isFoodPinned}
         onToggleFood={() => setIsFoodPinned((prev) => !prev)}
-        onEditFood={() => {
-          if (!dishName) {
-            setDishName('Món ngon');
-            setIsFoodPinned(true);
-          }
-        }}
+        onEditFood={() => setIsShowingFoodSheet(true)}
         isBill={isBillMode}
         isBillPinned={isPricePinned}
         onToggleBill={() => setIsPricePinned((prev) => !prev)}
+        onEditBill={() => setIsShowingBillDetailSheet(true)}
         hasCalories={Boolean(calorieText)}
         isCaloriePinned={isCaloriePinned}
         onToggleCalorie={() => setIsCaloriePinned((prev) => !prev)}
-        onEditCalorie={() => {
-          if (!calorieText) {
-            setCalorieText('500 kcal');
-            setIsCaloriePinned(true);
-          }
-        }}
+        onEditCalorie={() => setIsShowingCalorieSheet(true)}
         hasPrice={Boolean(priceText)}
         isPricePinned={isPricePinned}
         onTogglePrice={() => setIsPricePinned((prev) => !prev)}
-        onEditPrice={() => {
-          if (!priceText) {
-            setPriceText('50.000 đ');
-            setIsPricePinned(true);
-          }
-        }}
+        onEditPrice={() => setIsShowingPriceSheet(true)}
         isLocationPinned={isLocationPinned}
         onToggleLocation={() => setIsLocationPinned((prev) => !prev)}
       />
@@ -319,6 +350,73 @@ export const ImagePreviewView: React.FC<ImagePreviewViewProps> = ({
           Gửi cho bạn bè
         </span>
       </footer>
+
+      {/* 5. HỆ THỐNG 5 FLAT BOTTOM SHEETS (Chuẩn 1:1 iOS) */}
+      {/* Sheet 1: Giá tiền & Chi phí */}
+      <PriceEditSheet
+        isOpen={isShowingPriceSheet}
+        initialPriceText={priceText}
+        onConfirm={(_priceNum, formattedText) => {
+          setPriceText(formattedText);
+          setIsPricePinned(true);
+        }}
+        onDismiss={() => setIsShowingPriceSheet(false)}
+      />
+
+      {/* Sheet 2: Vị trí & Địa điểm */}
+      <LocationEditSheet
+        isOpen={isShowingLocationSheet}
+        initialLocationName={locationName}
+        currentGpsPlace={geo.locationName}
+        isLocating={geo.isLocating}
+        onRefreshGps={geo.refreshLocation}
+        onConfirm={(newLocation) => {
+          setLocationName(newLocation);
+          setIsLocationPinned(true);
+        }}
+        onDismiss={() => setIsShowingLocationSheet(false)}
+      />
+
+      {/* Sheet 3: Món ăn & Đồ uống */}
+      <FoodEditSheet
+        isOpen={isShowingFoodSheet}
+        initialDishName={dishName}
+        initialCategory={foodCategory}
+        onConfirm={(newDish, newCategory) => {
+          setDishName(newDish);
+          setFoodCategory(newCategory);
+          setIsFoodPinned(true);
+        }}
+        onDismiss={() => setIsShowingFoodSheet(false)}
+      />
+
+      {/* Sheet 4: Lượng Calo ước tính */}
+      <CalorieEditSheet
+        isOpen={isShowingCalorieSheet}
+        initialCalorieText={calorieText}
+        onConfirm={(_calNum, formattedText) => {
+          setCalorieText(formattedText);
+          setIsCaloriePinned(true);
+        }}
+        onDismiss={() => setIsShowingCalorieSheet(false)}
+      />
+
+      {/* Sheet 5: Chi tiết Hóa đơn & Bóc tách món */}
+      <BillDetailSheet
+        isOpen={isShowingBillDetailSheet}
+        initialMerchantName={locationName}
+        initialTotalAmount={parsePriceToNumber(priceText)}
+        initialCategory={billCategory}
+        initialItems={billItems}
+        onConfirm={(payload) => {
+          setLocationName(payload.merchantName);
+          setPriceText(payload.formattedAmount);
+          setBillCategory(payload.category);
+          setCaption(payload.suggestedCaption);
+          setIsPricePinned(true);
+        }}
+        onDismiss={() => setIsShowingBillDetailSheet(false)}
+      />
     </div>
   );
 };

@@ -52,10 +52,10 @@
   - **Mô tả**: Chỉnh sửa tổng tiền thanh toán, tên cửa hàng/quán, danh mục chi tiêu, và hiển thị danh sách các món đã bóc tách từ hóa đơn.
   - **Verifiable**: Unit test kiểm tra sửa bill, danh sách món và sinh caption tự động (Đã hoàn thành, 4/4 tests pass).
 
-- [ ] **Task 6: Ghép nối 5 Sheets vào `ImagePreviewView.tsx`**
+- [x] **Task 6: Ghép nối 5 Sheets vào `ImagePreviewView.tsx`**
   - **File**: `src/components/home/ImagePreviewView.tsx`
   - **Mô tả**: Khi người dùng nhấn vào các Pinned Tags trên ảnh hoặc các nút Action Pills, tự động mở Bottom Sheet tương ứng. Dữ liệu sau khi xác nhận được đồng bộ ngược lại vào Preview tags và caption.
-  - **Verifiable**: Test tương tác mở từng sheet từ Preview tags và pills.
+  - **Verifiable**: Test tương tác mở từng sheet từ Preview tags và pills (Đã hoàn thành, 10/10 tests pass).
 
 - [ ] **Task 7: Kiểm thử toàn diện & Verification**
   - **Lệnh**: `npm test` và `npm run build`.
