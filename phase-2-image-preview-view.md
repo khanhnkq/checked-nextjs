@@ -38,12 +38,12 @@
     - Mỗi thẻ hỗ trợ callback `onClick` để sau này mở Bottom Sheet tương ứng.
   - **Verifiable**: Unit test kiểm tra hiển thị và ẩn/hiện theo props. (Đã hoàn thành, 5/5 tests pass).
 
-- [ ] **Task 3: Xây dựng Component `PreviewCaptionBar.tsx`**
+- [x] **Task 3: Xây dựng Component `PreviewCaptionBar.tsx`**
   - **File**: `src/components/home/PreviewCaptionBar.tsx`
   - **Mô tả**: Thanh capsule nhập caption `h-[44px] min-w-[200px] max-w-[320px] rounded-full bg-black/60 px-4 flex items-center gap-2`.
     - Input text trắng `placeholder="Thêm tin nhắn..."` (`placeholder-white/70 text-sm font-semibold`).
     - Nút `Sparkles` sinh gợi ý Caption thông minh dựa trên tên quán / món ăn / giá tiền khi bấm.
-  - **Verifiable**: Unit test kiểm tra gõ tin nhắn và bấm nút Sparkles.
+  - **Verifiable**: Unit test kiểm tra gõ tin nhắn và bấm nút Sparkles. (Đã hoàn thành, 4/4 tests pass).
 
 - [ ] **Task 4: Xây dựng Component `PreviewActionPills.tsx`**
   - **File**: `src/components/home/PreviewActionPills.tsx`

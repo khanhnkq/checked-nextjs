@@ -7,3 +7,4 @@ export * from './ShutterFlash';
 export * from './ImagePreviewView';
 export * from './GeminiBrandPill';
 export * from './PreviewPinnedTags';
+export * from './PreviewCaptionBar';
