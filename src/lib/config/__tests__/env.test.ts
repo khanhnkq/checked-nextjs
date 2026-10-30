@@ -43,6 +43,20 @@ describe('Environment Validator (src/lib/config/env.ts)', () => {
     );
   });
 
+  it('env.geminiModel ném lỗi khi GEMINI_MODEL bị trống (không hardcode fallback)', () => {
+    delete process.env.GEMINI_MODEL;
+    expect(() => env.geminiModel).toThrowError(
+      '[Config Error] Biến môi trường bắt buộc "GEMINI_MODEL" đang bị trống hoặc chưa được cấu hình!'
+    );
+  });
+
+  it('env.geminiTemperature ném lỗi khi GEMINI_TEMPERATURE bị trống', () => {
+    delete process.env.GEMINI_TEMPERATURE;
+    expect(() => env.geminiTemperature).toThrowError(
+      '[Config Error] Biến môi trường bắt buộc "GEMINI_TEMPERATURE" đang bị trống hoặc chưa được cấu hình!'
+    );
+  });
+
   it('optionalEnv trả về default value khi key không tồn tại', () => {
     delete process.env.TEST_OPTIONAL;
     expect(optionalEnv('TEST_OPTIONAL', 'default-val')).toBe('default-val');

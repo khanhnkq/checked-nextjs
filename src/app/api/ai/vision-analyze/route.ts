@@ -32,7 +32,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // 2. Kiểm tra API Key từ biến môi trường
+    // 2. Kiểm tra các biến môi trường bắt buộc (Tuyệt đối không hardcode fallback cho trường hợp OR)
     const apiKey = process.env.GEMINI_API_KEY?.trim();
     if (!apiKey) {
       return NextResponse.json<VisionAnalyzeResponse>(
@@ -45,24 +45,60 @@ export async function POST(request: Request) {
       );
     }
 
+    const modelName = process.env.GEMINI_MODEL?.trim();
+    if (!modelName) {
+      return NextResponse.json<VisionAnalyzeResponse>(
+        {
+          success: false,
+          error: 'Chưa cấu hình GEMINI_MODEL trong môi trường server (.env.local)',
+          errorCode: 'MISSING_API_KEY',
+        },
+        { status: 200 }
+      );
+    }
+
+    const tempStr = process.env.GEMINI_TEMPERATURE?.trim();
+    if (!tempStr) {
+      return NextResponse.json<VisionAnalyzeResponse>(
+        {
+          success: false,
+          error: 'Chưa cấu hình GEMINI_TEMPERATURE trong môi trường server (.env.local)',
+          errorCode: 'MISSING_API_KEY',
+        },
+        { status: 200 }
+      );
+    }
+    const temperature = parseFloat(tempStr);
+
+    const language = targetLanguage?.trim() || process.env.AI_VISION_LANGUAGE?.trim();
+    if (!language) {
+      return NextResponse.json<VisionAnalyzeResponse>(
+        {
+          success: false,
+          error: 'Chưa cấu hình AI_VISION_LANGUAGE trong môi trường server (.env.local)',
+          errorCode: 'MISSING_API_KEY',
+        },
+        { status: 200 }
+      );
+    }
+
     // 3. Tách bỏ tiền tố Data URL nếu có (data:image/jpeg;base64,...)
     const cleanBase64 = imageBase64.includes(';base64,')
       ? imageBase64.split(';base64,')[1]
       : imageBase64;
 
     // 4. Khởi tạo Google Generative AI SDK
-    const modelName = process.env.GEMINI_MODEL || 'gemini-1.5-flash';
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({
       model: modelName,
       generationConfig: {
         responseMimeType: 'application/json',
-        temperature: 0.2,
+        temperature,
       },
     });
 
     // 5. Chuẩn bị prompt theo chuẩn GeminiPromptBuilder của Checked iOS
-    const promptText = buildGeminiVisionPrompt({ targetLanguage });
+    const promptText = buildGeminiVisionPrompt({ targetLanguage: language });
 
     const result = await model.generateContent([
       promptText,

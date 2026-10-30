@@ -41,6 +41,12 @@ export function requireEnv(key: string): string {
     case 'GEMINI_MODEL':
       val = process.env.GEMINI_MODEL;
       break;
+    case 'GEMINI_TEMPERATURE':
+      val = process.env.GEMINI_TEMPERATURE;
+      break;
+    case 'AI_VISION_LANGUAGE':
+      val = process.env.AI_VISION_LANGUAGE;
+      break;
     default:
       val = typeof process !== 'undefined' && process.env ? process.env[key] : undefined;
   }
@@ -69,6 +75,12 @@ export function optionalEnv(key: string, defaultValue = ''): string {
       break;
     case 'GEMINI_MODEL':
       val = process.env.GEMINI_MODEL;
+      break;
+    case 'GEMINI_TEMPERATURE':
+      val = process.env.GEMINI_TEMPERATURE;
+      break;
+    case 'AI_VISION_LANGUAGE':
+      val = process.env.AI_VISION_LANGUAGE;
       break;
     default:
       val = typeof process !== 'undefined' && process.env ? process.env[key] : undefined;
@@ -112,9 +124,25 @@ export const env = {
 
   /**
    * Model Google Gemini
+   * Bắt buộc có GEMINI_MODEL từ env, tuyệt đối không hardcode fallback
    */
   get geminiModel(): string {
-    return optionalEnv('GEMINI_MODEL', 'gemini-2.0-flash');
+    return requireEnv('GEMINI_MODEL');
+  },
+
+  /**
+   * Nhiệt độ Gemini
+   * Bắt buộc có GEMINI_TEMPERATURE từ env
+   */
+  get geminiTemperature(): number {
+    return parseFloat(requireEnv('GEMINI_TEMPERATURE'));
+  },
+
+  /**
+   * Ngôn ngữ thị giác AI
+   */
+  get aiVisionLanguage(): string {
+    return requireEnv('AI_VISION_LANGUAGE');
   },
 
   /**

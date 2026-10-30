@@ -18,7 +18,13 @@ describe('POST /api/ai/vision-analyze Route Handler', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    process.env = { ...originalEnv };
+    process.env = {
+      ...originalEnv,
+      GEMINI_API_KEY: 'test-gemini-key',
+      GEMINI_MODEL: 'gemini-3.5-flash-lite',
+      GEMINI_TEMPERATURE: '0.2',
+      AI_VISION_LANGUAGE: 'vi',
+    };
   });
 
   afterEach(() => {
@@ -54,6 +60,40 @@ describe('POST /api/ai/vision-analyze Route Handler', () => {
     expect(json.success).toBe(false);
     expect(json.errorCode).toBe('MISSING_API_KEY');
     expect(json.error).toContain('Chưa cấu hình GEMINI_API_KEY');
+  });
+
+  it('returns MISSING_API_KEY when GEMINI_MODEL is not defined', async () => {
+    delete process.env.GEMINI_MODEL;
+
+    const request = new Request('http://localhost:3000/api/ai/vision-analyze', {
+      method: 'POST',
+      body: JSON.stringify({ imageBase64: 'mockbase64string' }),
+    });
+
+    const response = await POST(request);
+    const json = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(json.success).toBe(false);
+    expect(json.errorCode).toBe('MISSING_API_KEY');
+    expect(json.error).toContain('Chưa cấu hình GEMINI_MODEL');
+  });
+
+  it('returns MISSING_API_KEY when GEMINI_TEMPERATURE is not defined', async () => {
+    delete process.env.GEMINI_TEMPERATURE;
+
+    const request = new Request('http://localhost:3000/api/ai/vision-analyze', {
+      method: 'POST',
+      body: JSON.stringify({ imageBase64: 'mockbase64string' }),
+    });
+
+    const response = await POST(request);
+    const json = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(json.success).toBe(false);
+    expect(json.errorCode).toBe('MISSING_API_KEY');
+    expect(json.error).toContain('Chưa cấu hình GEMINI_TEMPERATURE');
   });
 
   it('successfully analyzes food image and parses payload', async () => {
