@@ -17,10 +17,10 @@
   - **Mô tả**: Xóa bỏ `previewImageUrl` và `onRetake` khỏi `CameraBoxProps` và JSX. `CameraBox` chỉ đảm nhiệm: stream WebRTC, lật camera, zoom 1x/0.5x, toggle flash, và hiển thị trạng thái xin quyền.
   - **Verifiable**: `CameraBox` không còn logic ảnh tĩnh hay nút retake đè lên khung ngắm. (Đã hoàn thành, 16/16 tests pass).
 
-- [ ] **Task 3: Dựng Shell `ImagePreviewView.tsx` (Khung nền sẵn sàng cho Phase 2)**
+- [x] **Task 3: Dựng Shell `ImagePreviewView.tsx` (Khung nền sẵn sàng cho Phase 2)**
   - **File**: `src/components/home/ImagePreviewView.tsx`
   - **Mô tả**: Tạo component nhận props `{ photo: { blob: Blob; dataUrl: string }; onDismiss: () => void }`. Render khung ảnh vuông 1:1 bo góc `rounded-[32px]`, thanh header có nút Hủy `✕` (44x44px) và nút Chụp lại để quay về luồng camera live stream.
-  - **Verifiable**: Export qua `src/components/home/index.ts`.
+  - **Verifiable**: Export qua `src/components/home/index.ts`. (Đã hoàn thành, 5/5 tests pass).
 
 - [ ] **Task 4: Nâng cấp State & Điều phối Luồng tại `src/app/page.tsx`**
   - **File**: `src/app/page.tsx`

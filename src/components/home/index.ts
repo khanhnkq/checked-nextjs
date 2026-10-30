@@ -4,3 +4,4 @@ export * from './StackedFriendCardsView';
 export * from './CaptureButton';
 export * from './HomeSkeleton';
 export * from './ShutterFlash';
+export * from './ImagePreviewView';
