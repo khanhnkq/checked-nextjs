@@ -135,10 +135,88 @@ describe('ImagePreviewView Component (1:1 iOS Parity Integration)', () => {
       dishName: 'Cơm Tấm',
       priceText: '65.000 đ',
       calorieText: '600 kcal',
+      amount: 65000,
+      calories: 600,
+      latitude: undefined,
+      longitude: undefined,
+      recipientScope: 'ALL_FRIENDS',
+      recipientIds: undefined,
       isBill: false,
       category: 'Món ăn',
       billItems: undefined,
     });
+  });
+
+  it('opens AudienceSelectSheet when clicking users button, selects friends, and shows indicator dot', async () => {
+    const user = userEvent.setup();
+    const handleSend = vi.fn();
+    const mockFriends = [
+      { id: 'f1', name: 'Minh Trí' },
+      { id: 'f2', name: 'Lan Anh' },
+    ];
+
+    render(
+      <ImagePreviewView
+        photo={mockPhoto}
+        autoAnalyze={false}
+        friends={mockFriends}
+        onDismiss={vi.fn()}
+        onSend={handleSend}
+      />
+    );
+
+    // Initial microcopy
+    expect(screen.getByText('Gửi cho bạn bè')).toBeInTheDocument();
+    expect(screen.queryByTestId('selected-audience-dot')).not.toBeInTheDocument();
+
+    // Click audience button
+    const audienceBtn = screen.getByRole('button', { name: 'Chọn người nhận' });
+    await user.click(audienceBtn);
+
+    // AudienceSelectSheet opens
+    expect(screen.getByRole('dialog', { name: 'Người nhận ảnh' })).toBeInTheDocument();
+
+    // Select "Bạn cụ thể"
+    const specificScopeBtn = screen.getByRole('button', { name: /Bạn cụ thể/i });
+    await user.click(specificScopeBtn);
+
+    // Select Minh Trí
+    const triFriendBtn = screen.getByRole('button', { name: /Minh Trí/i });
+    await user.click(triFriendBtn);
+
+    // Confirm selection
+    const confirmBtn = screen.getByRole('button', { name: 'Xác nhận & Cập nhật' });
+    await user.click(confirmBtn);
+
+    // Indicator dot appears and microcopy updates
+    expect(screen.getByTestId('selected-audience-dot')).toBeInTheDocument();
+    expect(screen.getByText('1 người nhận')).toBeInTheDocument();
+
+    // Clicking send sends recipientScope and recipientIds
+    const sendBtn = screen.getByRole('button', { name: 'Gửi khoảnh khắc' });
+    await user.click(sendBtn);
+
+    expect(handleSend).toHaveBeenCalledWith(
+      expect.objectContaining({
+        recipientScope: 'SELECTED_FRIENDS',
+        recipientIds: ['f1'],
+      })
+    );
+  });
+
+  it('disables send button and displays loader when isSending is true', () => {
+    render(
+      <ImagePreviewView
+        photo={mockPhoto}
+        autoAnalyze={false}
+        isSending={true}
+        onDismiss={vi.fn()}
+      />
+    );
+
+    const sendBtn = screen.getByRole('button', { name: 'Gửi khoảnh khắc' });
+    expect(sendBtn).toBeDisabled();
+    expect(sendBtn.querySelector('.animate-spin')).toBeInTheDocument();
   });
 
   it('opens LocationEditSheet when clicking location tag and updates location', async () => {

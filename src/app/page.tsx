@@ -20,8 +20,10 @@ import {
   type FriendOption,
   type StackedCardPhoto,
   type CapturedPhotoData,
+  type PreviewSubmitData,
 } from '@/components/home';
 import { useWebRTCCamera } from '@/hooks/useWebRTCCamera';
+import { usePhotoUpload } from '@/hooks/usePhotoUpload';
 import { captureVideoFrame, cropImageFileToSquare } from '@/lib/media/canvas-capture';
 import { haptics } from '@/lib/utils/haptics';
 
@@ -94,6 +96,9 @@ export default function HomePage() {
       },
     }
   );
+
+  // Hook Đăng ảnh Multipart & Đồng bộ Feed (Phase 5)
+  const { isUploading, uploadPhoto } = usePhotoUpload();
 
   const photos: StackedCardPhoto[] = useMemo(() => {
     const list = feedData?.content || [];
@@ -196,6 +201,29 @@ export default function HomePage() {
     setCapturedPhoto(null);
   };
 
+  // Gửi ảnh multipart và đồng bộ feed (Phase 5)
+  const handleSendPhoto = async (data?: PreviewSubmitData) => {
+    if (!capturedPhoto || isUploading) return;
+
+    const result = await uploadPhoto({
+      file: capturedPhoto.blob,
+      caption: data?.caption,
+      amount: data?.amount,
+      dishName: data?.dishName,
+      calories: data?.calories,
+      locationName: data?.locationName,
+      latitude: data?.latitude,
+      longitude: data?.longitude,
+      recipientScope: data?.recipientScope,
+      recipientIds: data?.recipientIds,
+    });
+
+    if (result) {
+      handleDismissPreview();
+      refetchFeed();
+    }
+  };
+
   const navigateToHistory = () => {
     haptics.click();
     router.push('/history');
@@ -215,12 +243,10 @@ export default function HomePage() {
       {capturedPhoto ? (
         <ImagePreviewView
           photo={capturedPhoto}
+          friends={friends}
+          isSending={isUploading}
           onDismiss={handleDismissPreview}
-          onSend={() => {
-            // Placeholder: Ở Phase 5 sẽ gửi Multipart upload lên backend
-            handleDismissPreview();
-            refetchFeed();
-          }}
+          onSend={handleSendPhoto}
         />
       ) : (
         <div

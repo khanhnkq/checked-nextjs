@@ -9,7 +9,7 @@ import { BaseBottomSheet, BottomSheetCard } from './BaseBottomSheet';
 export interface AudienceFriendItem {
   id: string;
   name: string;
-  avatarUrl?: string;
+  avatarUrl?: string | null;
 }
 
 export interface AudienceSelectSheetProps {

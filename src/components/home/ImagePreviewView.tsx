@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Download, Send, Trash2, Users, X } from 'lucide-react';
+import { Download, Loader2, Send, Trash2, Users, X } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
 import { haptics } from '@/lib/utils/haptics';
 import { useVisionAnalysis } from '@/hooks/useVisionAnalysis';
@@ -16,8 +16,10 @@ import {
   FoodEditSheet,
   CalorieEditSheet,
   BillDetailSheet,
+  AudienceSelectSheet,
   parsePriceToNumber,
   type BillItemData,
+  type AudienceFriendItem,
 } from '@/components/sheets';
 
 export interface CapturedPhotoData {
@@ -36,6 +38,12 @@ export interface PreviewSubmitData {
   isBill?: boolean;
   category?: string;
   billItems?: BillItemData[];
+  recipientScope?: 'ALL_FRIENDS' | 'SELECTED_FRIENDS';
+  recipientIds?: string[];
+  amount?: number;
+  calories?: number;
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface ImagePreviewViewProps {
@@ -43,14 +51,20 @@ export interface ImagePreviewViewProps {
   onDismiss: () => void;
   onSend?: (data?: PreviewSubmitData) => void;
   isSending?: boolean;
+  friends?: AudienceFriendItem[];
   initialLocationName?: string;
   initialDishName?: string;
   initialPriceText?: string;
   initialCalorieText?: string;
+  initialRecipientScope?: 'ALL_FRIENDS' | 'SELECTED_FRIENDS';
+  initialRecipientIds?: string[];
   isBill?: boolean;
   autoAnalyze?: boolean;
   className?: string;
 }
+
+const EMPTY_FRIENDS: AudienceFriendItem[] = [];
+const EMPTY_RECIPIENTS: string[] = [];
 
 /**
  * ImagePreviewView (Màn hình xem trước ảnh chụp chuẩn 1:1 iOS)
@@ -63,10 +77,13 @@ export const ImagePreviewView: React.FC<ImagePreviewViewProps> = ({
   onDismiss,
   onSend,
   isSending = false,
+  friends = EMPTY_FRIENDS,
   initialLocationName = 'TP. Hồ Chí Minh',
   initialDishName,
   initialPriceText,
   initialCalorieText,
+  initialRecipientScope = 'ALL_FRIENDS',
+  initialRecipientIds = EMPTY_RECIPIENTS,
   isBill = false,
   autoAnalyze = true,
   className,
@@ -77,12 +94,19 @@ export const ImagePreviewView: React.FC<ImagePreviewViewProps> = ({
   // Trạng thái Chế độ Hóa đơn (Bill Mode)
   const [isBillMode, setIsBillMode] = useState(isBill);
 
-  // Trạng thái hiển thị 5 Bottom Sheets (Đồng bộ iOS ImagePreviewView.swift)
+  // Trạng thái hiển thị 6 Bottom Sheets (Đồng bộ iOS ImagePreviewView.swift)
   const [isShowingBillDetailSheet, setIsShowingBillDetailSheet] = useState(false);
   const [isShowingLocationSheet, setIsShowingLocationSheet] = useState(false);
   const [isShowingFoodSheet, setIsShowingFoodSheet] = useState(false);
   const [isShowingCalorieSheet, setIsShowingCalorieSheet] = useState(false);
   const [isShowingPriceSheet, setIsShowingPriceSheet] = useState(false);
+  const [isShowingAudienceSheet, setIsShowingAudienceSheet] = useState(false);
+
+  // Trạng thái chọn đối tượng bạn bè nhận ảnh
+  const [recipientScope, setRecipientScope] = useState<'ALL_FRIENDS' | 'SELECTED_FRIENDS'>(
+    initialRecipientScope
+  );
+  const [recipientIds, setRecipientIds] = useState<string[]>(initialRecipientIds);
 
   // Dữ liệu chi tiết món ăn & hóa đơn
   const [foodCategory, setFoodCategory] = useState<string>('Món ăn');
@@ -188,12 +212,26 @@ export const ImagePreviewView: React.FC<ImagePreviewViewProps> = ({
     if (isSending) return;
     haptics.heavy();
     if (onSend) {
+      const parsedAmount = isPricePinned && priceText ? parsePriceToNumber(priceText) : undefined;
+
+      let parsedCal: number | undefined = undefined;
+      if (isCaloriePinned && calorieText) {
+        const match = calorieText.match(/(\d+)/);
+        if (match) parsedCal = parseInt(match[1], 10);
+      }
+
       onSend({
         caption,
         locationName: isLocationPinned ? locationName : undefined,
         dishName: isFoodPinned && dishName ? dishName : undefined,
         priceText: isPricePinned && priceText ? priceText : undefined,
         calorieText: isCaloriePinned && calorieText ? calorieText : undefined,
+        amount: parsedAmount && parsedAmount > 0 ? parsedAmount : undefined,
+        calories: parsedCal && parsedCal > 0 ? parsedCal : undefined,
+        latitude: geo.coords?.latitude ?? undefined,
+        longitude: geo.coords?.longitude ?? undefined,
+        recipientScope,
+        recipientIds: recipientScope === 'SELECTED_FRIENDS' ? recipientIds : undefined,
         isBill: isBillMode,
         category: isBillMode ? billCategory : foodCategory,
         billItems: isBillMode && billItems.length > 0 ? billItems : undefined,
@@ -324,12 +362,16 @@ export const ImagePreviewView: React.FC<ImagePreviewViewProps> = ({
             onClick={handleSend}
             disabled={isSending}
             aria-label="Gửi khoảnh khắc"
-            className="relative inline-flex items-center justify-center select-none outline-none flex-shrink-0 cursor-pointer active:scale-95 transition-transform disabled:opacity-50"
+            className="relative inline-flex items-center justify-center select-none outline-none flex-shrink-0 cursor-pointer active:scale-95 transition-transform disabled:opacity-60"
           >
             <div className="w-[86px] h-[86px] rounded-full bg-white flex items-center justify-center">
               <div className="w-[78px] h-[78px] rounded-full bg-[#DFDACD]/60 flex items-center justify-center">
                 <div className="w-[66px] h-[66px] rounded-full bg-[#D4EB70] flex items-center justify-center">
-                  <Send size={24} className="text-[#141613] ml-0.5" strokeWidth={2.4} />
+                  {isSending ? (
+                    <Loader2 size={24} className="text-[#141613] animate-spin" />
+                  ) : (
+                    <Send size={24} className="text-[#141613] ml-0.5" strokeWidth={2.4} />
+                  )}
                 </div>
               </div>
             </div>
@@ -338,20 +380,29 @@ export const ImagePreviewView: React.FC<ImagePreviewViewProps> = ({
           {/* Nút Chọn Bạn bè (52x52px) */}
           <button
             type="button"
+            onClick={() => setIsShowingAudienceSheet(true)}
             aria-label="Chọn người nhận"
-            className="w-[52px] h-[52px] rounded-full bg-white flex items-center justify-center flex-shrink-0 active:scale-90 transition-transform cursor-pointer"
+            className="w-[52px] h-[52px] rounded-full bg-white flex items-center justify-center flex-shrink-0 active:scale-90 transition-transform cursor-pointer relative"
           >
             <Users size={22} className="text-[#141613]" strokeWidth={2.2} />
+            {recipientScope === 'SELECTED_FRIENDS' && recipientIds.length > 0 && (
+              <span
+                data-testid="selected-audience-dot"
+                className="absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-[#D4EB70]"
+              />
+            )}
           </button>
         </div>
 
         {/* Microcopy hướng dẫn dưới nút gửi */}
         <span className="text-[12px] font-semibold font-display text-[#63685F] text-center">
-          Gửi cho bạn bè
+          {recipientScope === 'SELECTED_FRIENDS' && recipientIds.length > 0
+            ? `${recipientIds.length} người nhận`
+            : 'Gửi cho bạn bè'}
         </span>
       </footer>
 
-      {/* 5. HỆ THỐNG 5 FLAT BOTTOM SHEETS (Chuẩn 1:1 iOS) */}
+      {/* 5. HỆ THỐNG FLAT BOTTOM SHEETS (Chuẩn 1:1 iOS) */}
       {/* Sheet 1: Giá tiền & Chi phí */}
       <PriceEditSheet
         isOpen={isShowingPriceSheet}
@@ -416,6 +467,20 @@ export const ImagePreviewView: React.FC<ImagePreviewViewProps> = ({
           setIsPricePinned(true);
         }}
         onDismiss={() => setIsShowingBillDetailSheet(false)}
+      />
+
+      {/* Sheet 6: Chọn người nhận / Bạn bè */}
+      <AudienceSelectSheet
+        isOpen={isShowingAudienceSheet}
+        friends={friends}
+        initialScope={recipientScope}
+        initialRecipientIds={recipientIds}
+        onConfirm={(newScope, newIds) => {
+          setRecipientScope(newScope);
+          setRecipientIds(newIds || []);
+          setIsShowingAudienceSheet(false);
+        }}
+        onDismiss={() => setIsShowingAudienceSheet(false)}
       />
     </div>
   );

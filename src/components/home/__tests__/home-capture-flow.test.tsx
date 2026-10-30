@@ -21,10 +21,21 @@ vi.mock('@/stores/auth-store', () => ({
 }));
 
 // Mock Orval React Query Hooks
+const mockRefetchFeed = vi.fn();
 vi.mock('@/lib/api/generated/endpoints', () => ({
   useGetCurrentUser: () => ({ data: null, isLoading: false }),
   useGetMyFriends: () => ({ data: [], isLoading: false }),
-  useGetFeedPhotos: () => ({ data: { content: [] }, isLoading: false, refetch: vi.fn() }),
+  useGetFeedPhotos: () => ({ data: { content: [] }, isLoading: false, refetch: mockRefetchFeed }),
+}));
+
+// Mock Photo Upload Hook (Phase 5)
+const mockUploadPhoto = vi.fn();
+vi.mock('@/hooks/usePhotoUpload', () => ({
+  usePhotoUpload: () => ({
+    isUploading: false,
+    uploadPhoto: mockUploadPhoto,
+    error: null,
+  }),
 }));
 
 // Mock WebRTC camera hook
@@ -129,5 +140,64 @@ describe('HomePage Camera Capture & Flow Transition (Phase 1)', () => {
         'data:image/jpeg;base64,albummockframe'
       );
     });
+  });
+
+  it('submits captured photo via uploadPhoto, dismisses preview, and refetches feed', async () => {
+    const user = userEvent.setup();
+    mockUploadPhoto.mockResolvedValueOnce({ id: 'p1', imageUrl: 'https://example.com/p1.jpg' });
+
+    render(<HomePage />);
+
+    // 1. Capture photo
+    const captureButton = screen.getByRole('button', { name: 'Chụp ảnh khoảnh khắc' });
+    await user.click(captureButton);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('image-preview-view')).toBeInTheDocument();
+    });
+
+    // 2. Click send button in preview
+    const sendButton = screen.getByRole('button', { name: 'Gửi khoảnh khắc' });
+    await user.click(sendButton);
+
+    // 3. Verify uploadPhoto was called
+    await waitFor(() => {
+      expect(mockUploadPhoto).toHaveBeenCalledTimes(1);
+    });
+
+    // 4. Verify preview is dismissed, feed is refetched, and camera returns
+    await waitFor(() => {
+      expect(screen.queryByTestId('image-preview-view')).not.toBeInTheDocument();
+      expect(mockRefetchFeed).toHaveBeenCalledTimes(1);
+      expect(screen.getByRole('button', { name: 'Chụp ảnh khoảnh khắc' })).toBeInTheDocument();
+    });
+  });
+
+  it('keeps preview open when uploadPhoto fails', async () => {
+    const user = userEvent.setup();
+    mockUploadPhoto.mockResolvedValueOnce(null);
+
+    render(<HomePage />);
+
+    // 1. Capture photo
+    const captureButton = screen.getByRole('button', { name: 'Chụp ảnh khoảnh khắc' });
+    await user.click(captureButton);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('image-preview-view')).toBeInTheDocument();
+    });
+
+    // 2. Click send button in preview
+    const sendButton = screen.getByRole('button', { name: 'Gửi khoảnh khắc' });
+    await user.click(sendButton);
+
+    // 3. Verify uploadPhoto was called
+    await waitFor(() => {
+      expect(mockUploadPhoto).toHaveBeenCalledTimes(1);
+    });
+
+    // 4. Preview remains open and feed is NOT refetched
+    expect(screen.getByTestId('image-preview-view')).toBeInTheDocument();
+    expect(mockRefetchFeed).not.toHaveBeenCalled();
   });
 });
