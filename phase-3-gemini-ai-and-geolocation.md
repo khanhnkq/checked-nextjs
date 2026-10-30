@@ -34,10 +34,10 @@
   - **Mô tả**: Nhận POST `{ imageBase64: string, mimeType?: string }`. Khởi tạo `GoogleGenerativeAI` với model `gemini-1.5-flash` (hoặc `gemini-2.0-flash`), cấu hình `responseMimeType: "application/json"`. Xử lý lỗi API key rỗng hoặc rate-limit gracefully mà không crash server.
   - **Verifiable**: Unit test kiểm tra Route Handler với mock Gemini SDK. (Đã hoàn thành, 5/5 tests pass).
 
-- [ ] **Task 3: Xây dựng Hook `useVisionAnalysis.ts`**
+- [x] **Task 3: Xây dựng Hook `useVisionAnalysis.ts`**
   - **File**: `src/hooks/useVisionAnalysis.ts`
   - **Mô tả**: Nhận ảnh Blob/dataUrl, tự động resize tâm vuông 800x800 JPEG (quality 0.82) qua Canvas, gửi request lên `/api/ai/vision-analyze`, trả về `{ isAnalyzing, result, analyzeImage, error }`.
-  - **Verifiable**: Unit test kiểm tra hook nén ảnh và parse kết quả.
+  - **Verifiable**: Unit test kiểm tra hook nén ảnh và parse kết quả. (Đã hoàn thành, 5/5 tests pass).
 
 - [ ] **Task 4: Xây dựng Hook `useGeolocation.ts`**
   - **File**: `src/hooks/useGeolocation.ts`
