@@ -133,10 +133,10 @@ export const PillFilterDropdown: React.FC<PillFilterDropdownProps> = ({
         />
       </button>
 
-      {/* 2. MENU DROPDOWN NỔI CÓ CUỘN (MAX-HEIGHT 280PX) */}
+      {/* 2. MENU DROPDOWN NỔI CÓ CUỘN (MAX-HEIGHT 340PX) */}
       {isOpen && (
         <div className="absolute top-[52px] left-1/2 -translate-x-1/2 w-[184px] rounded-3xl bg-white p-1.5 z-50 animate-in fade-in zoom-in-95 duration-150">
-          <div className="max-h-[280px] overflow-y-auto overscroll-contain flex flex-col gap-1 no-scrollbar pr-0.5">
+          <div className="max-h-[340px] overflow-y-auto overscroll-contain flex flex-col gap-1 no-scrollbar pr-0.5">
             {/* Tùy chọn 1: Tất cả */}
             <button
               type="button"

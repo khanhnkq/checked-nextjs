@@ -79,7 +79,7 @@ describe('PillFilterDropdown (iOS Parity, Bounded Scroll, Zero Border/Blur/Shado
     await user.click(pillButton);
 
     // Verify popover inner scroll container has max-height and overflow-y-auto
-    const scrollContainer = container.querySelector('.max-h-\\[280px\\]');
+    const scrollContainer = container.querySelector('.max-h-\\[340px\\]');
     expect(scrollContainer).toBeInTheDocument();
     expect(scrollContainer).toHaveClass('overflow-y-auto');
 

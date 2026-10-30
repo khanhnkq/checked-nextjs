@@ -229,7 +229,7 @@ export const PhotoDetailView: React.FC<PhotoDetailViewProps> = ({
     >
       {/* 1. TOP BAR NỔI TRÊN CÙNG ĐỒNG BỘ 100% VỚI IOS */}
       <header
-        className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] h-14 px-5 flex items-center justify-between z-40 select-none"
+        className="absolute top-0 inset-x-0 w-full max-w-[430px] mx-auto h-14 px-5 flex items-center justify-between z-40 select-none"
         style={{ top: 'max(env(safe-area-inset-top), 14px)' }}
       >
         {/* Nút Back quay về lưới ảnh (44x44px) */}
@@ -387,7 +387,7 @@ export const PhotoDetailView: React.FC<PhotoDetailViewProps> = ({
 
       {/* 3. THANH PHẢN HỒI & NHẬP TIN NHẮN CỐ ĐỊNH Ở ĐÁY (CHUẨN IOS) */}
       <div
-        className="absolute bottom-5 left-1/2 -translate-x-1/2 w-full max-w-[398px] px-4 z-30 pointer-events-auto flex flex-col items-center gap-2 select-none"
+        className="absolute bottom-5 inset-x-0 w-full max-w-[398px] mx-auto px-4 z-30 pointer-events-auto flex flex-col items-center gap-2 select-none"
         style={{ bottom: 'max(env(safe-area-inset-bottom), 16px)' }}
       >
         {/* Toast thông báo phản hồi / trạng thái */}
