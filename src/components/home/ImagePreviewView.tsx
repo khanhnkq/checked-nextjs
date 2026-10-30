@@ -1,9 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Download, Send, Trash2, Users, X } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
 import { haptics } from '@/lib/utils/haptics';
+import { useVisionAnalysis } from '@/hooks/useVisionAnalysis';
+import { useGeolocation } from '@/hooks/useGeolocation';
 import { GeminiBrandPill } from './GeminiBrandPill';
 import { PreviewPinnedTags } from './PreviewPinnedTags';
 import { PreviewCaptionBar } from './PreviewCaptionBar';
@@ -34,13 +36,14 @@ export interface ImagePreviewViewProps {
   initialPriceText?: string;
   initialCalorieText?: string;
   isBill?: boolean;
-  isAnalyzing?: boolean;
+  autoAnalyze?: boolean;
   className?: string;
 }
 
 /**
  * ImagePreviewView (Màn hình xem trước ảnh chụp chuẩn 1:1 iOS)
  * Ghép nối TopBar, Khung ảnh 1:1, Pinned Tags, Caption Bar, Action Pills và Bottom Controls.
+ * Tích hợp tự động nhận diện thị giác Google Gemini Flash & định vị GPS.
  * Tuân thủ quy tắc Design System: Zero Border, Zero Blur, Zero Shadow.
  */
 export const ImagePreviewView: React.FC<ImagePreviewViewProps> = ({
@@ -53,11 +56,14 @@ export const ImagePreviewView: React.FC<ImagePreviewViewProps> = ({
   initialPriceText,
   initialCalorieText,
   isBill = false,
-  isAnalyzing = false,
+  autoAnalyze = true,
   className,
 }) => {
   // Trạng thái nhập Caption
   const [caption, setCaption] = useState('');
+
+  // Trạng thái Chế độ Hóa đơn (Bill Mode)
+  const [isBillMode, setIsBillMode] = useState(isBill);
 
   // Trạng thái Pinned Tags
   const [locationName, setLocationName] = useState(initialLocationName);
@@ -72,10 +78,53 @@ export const ImagePreviewView: React.FC<ImagePreviewViewProps> = ({
   const [calorieText, setCalorieText] = useState<string | null>(initialCalorieText || null);
   const [isCaloriePinned, setIsCaloriePinned] = useState(true);
 
+  // Hook Định vị GPS Geolocation (Đồng bộ LocationService.swift)
+  const geo = useGeolocation({
+    autoFetch: true,
+    defaultLocationName: initialLocationName,
+  });
+
+  // Hook Phân tích Thị giác AI Vision (Đồng bộ GeminiVisionProvider.swift)
+  const { isAnalyzing, analyzeImage } = useVisionAnalysis({
+    targetLanguage: 'vi',
+    onSuccess: (data) => {
+      haptics.success();
+      if (data.is_bill) {
+        setIsBillMode(true);
+        if (data.merchant_name) setLocationName(data.merchant_name);
+        if (data.total_amount_str) setPriceText(data.total_amount_str);
+        if (data.suggested_caption) setCaption(data.suggested_caption);
+      } else if (data.is_food) {
+        setDishName(data.dish_name);
+        if (data.calories) {
+          const calStr = `${data.calories} kcal${data.protein_g ? ` · ${data.protein_g}g Đạm` : ''}`;
+          setCalorieText(calStr);
+        }
+        if (data.suggested_caption) setCaption(data.suggested_caption);
+      } else if (data.suggested_caption) {
+        setCaption(data.suggested_caption);
+      }
+    },
+  });
+
+  // Đồng bộ vị trí từ GPS nếu chưa có tên cửa hàng từ hóa đơn
+  useEffect(() => {
+    if (geo.locationName && !isBillMode) {
+      setLocationName(geo.locationName);
+    }
+  }, [geo.locationName, isBillMode]);
+
+  // Tự động phân tích ảnh khi người dùng mở Preview
+  useEffect(() => {
+    if (autoAnalyze && photo?.dataUrl) {
+      analyzeImage(photo.dataUrl);
+    }
+  }, [autoAnalyze, photo?.dataUrl, analyzeImage]);
+
   // Sinh caption tự động từ các tag đang có (tương tự generateAICaption trên iOS)
   const handleGenerateAICaption = () => {
     haptics.medium();
-    if (isBill && priceText) {
+    if (isBillMode && priceText) {
       setCaption(`🧾 ${locationName} · ${priceText}`);
     } else if (dishName) {
       setCaption(`🍲 ${dishName}${calorieText ? ` · ${calorieText}` : ''}`);
@@ -137,7 +186,7 @@ export const ImagePreviewView: React.FC<ImagePreviewViewProps> = ({
           <X size={20} className="text-[#141613]" strokeWidth={2.4} />
         </button>
 
-        {/* Gemini Brand Pill */}
+        {/* Gemini Brand Pill (Pulse nhịp điệu khi isAnalyzing) */}
         <GeminiBrandPill isAnalyzing={isAnalyzing} />
 
         {/* Nút Tải về */}
@@ -172,7 +221,7 @@ export const ImagePreviewView: React.FC<ImagePreviewViewProps> = ({
             onFoodClick={() => setIsFoodPinned((prev) => !prev)}
             priceText={priceText}
             isPricePinned={isPricePinned}
-            isBill={isBill}
+            isBill={isBillMode}
             onPriceClick={() => setIsPricePinned((prev) => !prev)}
             calorieText={calorieText}
             isCaloriePinned={isCaloriePinned}
@@ -195,13 +244,12 @@ export const ImagePreviewView: React.FC<ImagePreviewViewProps> = ({
         isFoodPinned={isFoodPinned}
         onToggleFood={() => setIsFoodPinned((prev) => !prev)}
         onEditFood={() => {
-          // Gán món ăn nhanh nếu chưa có
           if (!dishName) {
             setDishName('Món ngon');
             setIsFoodPinned(true);
           }
         }}
-        isBill={isBill}
+        isBill={isBillMode}
         isBillPinned={isPricePinned}
         onToggleBill={() => setIsPricePinned((prev) => !prev)}
         hasCalories={Boolean(calorieText)}

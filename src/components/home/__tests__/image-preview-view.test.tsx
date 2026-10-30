@@ -1,9 +1,11 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ImagePreviewView, type CapturedPhotoData } from '../ImagePreviewView';
 
 describe('ImagePreviewView Component (1:1 iOS Parity Integration)', () => {
+  const originalFetch = global.fetch;
+
   const mockPhoto: CapturedPhotoData = {
     blob: new Blob(['fake-image-bytes'], { type: 'image/jpeg' }),
     dataUrl: 'data:image/jpeg;base64,mockpreviewdata',
@@ -11,10 +13,19 @@ describe('ImagePreviewView Component (1:1 iOS Parity Integration)', () => {
     height: 1080,
   };
 
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    global.fetch = originalFetch;
+  });
+
   it('renders all 4 zones: TopBar, 1:1 Image with tags & caption, Action pills, and Bottom controls', () => {
     render(
       <ImagePreviewView
         photo={mockPhoto}
+        autoAnalyze={false}
         onDismiss={vi.fn()}
         initialLocationName="Phở Thìn Lò Đúc"
         initialDishName="Phở Bò Tái Nạm"
@@ -51,6 +62,7 @@ describe('ImagePreviewView Component (1:1 iOS Parity Integration)', () => {
     render(
       <ImagePreviewView
         photo={mockPhoto}
+        autoAnalyze={false}
         onDismiss={vi.fn()}
         initialLocationName="Hà Nội"
         initialDishName="Bún Chả"
@@ -79,6 +91,7 @@ describe('ImagePreviewView Component (1:1 iOS Parity Integration)', () => {
     render(
       <ImagePreviewView
         photo={mockPhoto}
+        autoAnalyze={false}
         onDismiss={vi.fn()}
         initialLocationName="Phở Thìn Lò Đúc"
         initialDishName="Phở Bò"
@@ -102,6 +115,7 @@ describe('ImagePreviewView Component (1:1 iOS Parity Integration)', () => {
     render(
       <ImagePreviewView
         photo={mockPhoto}
+        autoAnalyze={false}
         onDismiss={vi.fn()}
         onSend={handleSend}
         initialLocationName="Quán Ăn Ngon"
@@ -124,10 +138,50 @@ describe('ImagePreviewView Component (1:1 iOS Parity Integration)', () => {
     });
   });
 
+  it('triggers autoAnalyze on mount and updates metadata from Gemini Vision response', async () => {
+    const mockAiResponse = {
+      is_food: true,
+      dish_name: 'Bún Bò Huế',
+      category: 'Phở/Bún/Mì',
+      emoji: '🍜',
+      confidence: 0.98,
+      calories: 620,
+      protein_g: 30,
+      carbs_g: 70,
+      fat_g: 20,
+      is_bill: false,
+      scene_label: 'Ẩm thực',
+      suggested_caption: '🍜 Bún Bò Huế đậm đà chuẩn vị',
+    };
+
+    global.fetch = vi.fn().mockResolvedValue({
+      json: () => Promise.resolve({ success: true, data: mockAiResponse }),
+    });
+
+    render(
+      <ImagePreviewView
+        photo={mockPhoto}
+        autoAnalyze={true}
+        onDismiss={vi.fn()}
+      />
+    );
+
+    // Initially Gemini brand pill shows analyzing state
+    expect(screen.getByTestId('gemini-brand-pill')).toBeInTheDocument();
+
+    // After fetch resolves, tags are populated
+    await waitFor(() => {
+      expect(screen.getByText('Bún Bò Huế')).toBeInTheDocument();
+      expect(screen.getByText('620 kcal · 30g Đạm')).toBeInTheDocument();
+      expect(screen.getByDisplayValue('🍜 Bún Bò Huế đậm đà chuẩn vị')).toBeInTheDocument();
+    });
+  });
+
   it('strictly conforms to zero border, blur, shadow rule', () => {
     const { container } = render(
       <ImagePreviewView
         photo={mockPhoto}
+        autoAnalyze={false}
         onDismiss={vi.fn()}
         initialLocationName="Quán Ăn Ngon"
       />

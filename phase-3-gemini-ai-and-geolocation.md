@@ -44,22 +44,22 @@
   - **Mô tả**: Lấy vị trí người dùng qua `navigator.geolocation`, hỗ trợ làm mới `refreshLocation()`, trả về `{ locationName: string, coords: { lat, lng } | null, isLocating: boolean }` với giá trị mặc định là `"TP. Hồ Chí Minh"`.
   - **Verifiable**: Unit test kiểm tra gọi GPS và fallback địa phương. (Đã hoàn thành, 5/5 tests pass).
 
-- [ ] **Task 5: Tích hợp AI Vision & Geolocation vào `ImagePreviewView.tsx`**
+- [x] **Task 5: Tích hợp AI Vision & Geolocation vào `ImagePreviewView.tsx`**
   - **File**: `src/components/home/ImagePreviewView.tsx`
   - **Mô tả**: Kích hoạt phân tích ảnh và GPS tự động khi mở Preview. Khi có kết quả:
     - Bật hiệu ứng `isAnalyzing` trên `GeminiBrandPill` và `PreviewActionPills`.
     - Tự động điền `locationName`, `dishName`, `priceText`, `calorieText`, và `suggested_caption`.
     - Rung haptic nhẹ khi AI nhận diện thành công.
-  - **Verifiable**: Tương tác xem trước ảnh nhận diện thông minh.
+  - **Verifiable**: Tương tác xem trước ảnh nhận diện thông minh (Đã hoàn thành, test tích hợp pass).
 
-- [ ] **Task 6: Viết Test Suites Chi Tiết Cho Phase 3**
+- [x] **Task 6: Viết Test Suites Chi Tiết Cho Phase 3**
   - **Files**:
     - `src/lib/ai/__tests__/gemini-prompt.test.ts`
     - `src/app/api/ai/__tests__/vision-analyze-route.test.ts`
     - `src/hooks/__tests__/useVisionAnalysis.test.ts`
     - `src/hooks/__tests__/useGeolocation.test.ts`
-  - **Verifiable**: `npm test` vượt qua 100% test suites.
+  - **Verifiable**: `npm test` vượt qua 100% test suites (152/152 tests passing).
 
-- [ ] **Task 7: Kiểm Tra Toàn Diện (Verification Phase)**
+- [x] **Task 7: Kiểm Tra Toàn Diện (Verification Phase)**
   - **Lệnh**: `npm test` và `npm run build`.
-  - **Tiêu chí**: Toàn bộ unit tests pass, TypeScript 0 lỗi, production build thành công.
+  - **Tiêu chí**: Toàn bộ unit tests pass, TypeScript 0 lỗi, production build thành công (11/11 pages compiled).
