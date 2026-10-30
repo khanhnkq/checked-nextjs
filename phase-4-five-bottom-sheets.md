@@ -57,6 +57,6 @@
   - **Mô tả**: Khi người dùng nhấn vào các Pinned Tags trên ảnh hoặc các nút Action Pills, tự động mở Bottom Sheet tương ứng. Dữ liệu sau khi xác nhận được đồng bộ ngược lại vào Preview tags và caption.
   - **Verifiable**: Test tương tác mở từng sheet từ Preview tags và pills (Đã hoàn thành, 10/10 tests pass).
 
-- [ ] **Task 7: Kiểm thử toàn diện & Verification**
+- [x] **Task 7: Kiểm thử toàn diện & Verification**
   - **Lệnh**: `npm test` và `npm run build`.
-  - **Tiêu chí**: 100% test suites pass, không vi phạm Zero Border/Blur/Shadow, Next.js build thành công.
+  - **Tiêu chí**: 100% test suites pass, không vi phạm Zero Border/Blur/Shadow, Next.js build thành công (Đã hoàn thành, 190/190 tests pass, 11/11 pages build 0 lỗi).
