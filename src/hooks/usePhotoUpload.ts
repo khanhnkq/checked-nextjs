@@ -113,7 +113,12 @@ export function usePhotoUpload(options?: UsePhotoUploadOptions) {
           formData.append('recipientScope', payload.recipientScope || 'ALL_FRIENDS');
         }
 
-        formData.append('takenAt', payload.takenAt || new Date().toISOString());
+        // Định dạng thời gian chụp chuẩn ISO LocalDateTime (yyyy-MM-dd'T'HH:mm:ss) khớp 100% với Spring Boot và iOS
+        const defaultTakenAt = new Date().toISOString().slice(0, 19);
+        formData.append(
+          'takenAt',
+          payload.takenAt ? payload.takenAt.replace('Z', '').split('.')[0] : defaultTakenAt
+        );
 
         const response = await customFetcher<PhotoResponse>({
           url: '/api/v1/photos',
