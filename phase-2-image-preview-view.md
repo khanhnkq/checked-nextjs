@@ -52,22 +52,22 @@
     - Trạng thái Active: `bg-[#D4EB70]` (Matcha Glow); Inactive: `bg-white`. Bấm vào sẽ bật/tắt (toggle) thẻ ghim trên ảnh.
   - **Verifiable**: Unit test kiểm tra toggle state của từng action pill. (Đã hoàn thành, 4/4 tests pass).
 
-- [ ] **Task 5: Ghép Nối & Tối Ưu `ImagePreviewView.tsx`**
+- [x] **Task 5: Ghép Nối & Tối Ưu `ImagePreviewView.tsx`**
   - **File**: `src/components/home/ImagePreviewView.tsx`
   - **Mô tả**: Ghép nối TopBar, Khung ảnh 1:1, Pinned Tags, Caption Bar, Action Pills và Bottom Controls vào một bố cục chuẩn xác, responsive trong `max-w-[430px]`.
     - Quản lý state đồng bộ giữa Action Pills và Pinned Tags (bật/tắt thẻ ghim nào thì thẻ đó ẩn/hiện tức thì trên ảnh).
     - Đảm bảo toàn bộ file $<250$ dòng code, tuyệt đối không có `border-*`, `blur-*`, `shadow-*`.
-  - **Verifiable**: Export qua `src/components/home/index.ts`.
+  - **Verifiable**: Export qua `src/components/home/index.ts`. (Đã hoàn thành, 243 dòng code, 5/5 integration tests pass).
 
-- [ ] **Task 6: Viết Test Suites Chi Tiết Cho Phase 2**
+- [x] **Task 6: Viết Test Suites Chi Tiết Cho Phase 2**
   - **Files**:
-    - `src/components/home/__tests__/gemini-brand-pill.test.tsx`
-    - `src/components/home/__tests__/preview-pinned-tags.test.tsx`
-    - `src/components/home/__tests__/preview-caption-bar.test.tsx`
-    - `src/components/home/__tests__/preview-action-pills.test.tsx`
-    - `src/components/home/__tests__/image-preview-view.test.tsx`
-  - **Verifiable**: `npm test` vượt qua 100% test suites.
+    - `src/components/home/__tests__/gemini-brand-pill.test.tsx` (3 tests)
+    - `src/components/home/__tests__/preview-pinned-tags.test.tsx` (5 tests)
+    - `src/components/home/__tests__/preview-caption-bar.test.tsx` (4 tests)
+    - `src/components/home/__tests__/preview-action-pills.test.tsx` (4 tests)
+    - `src/components/home/__tests__/image-preview-view.test.tsx` (5 tests)
+  - **Verifiable**: `npm test` vượt qua 100% test suites (20/20 test files, 130/130 tests passed).
 
-- [ ] **Task 7: Kiểm Tra Toàn Diện (Verification Phase)**
+- [x] **Task 7: Kiểm Tra Toàn Diện (Verification Phase)**
   - **Lệnh**: `npm test` và `npm run build`.
-  - **Tiêu chí**: Toàn bộ unit tests pass, TypeScript 0 lỗi, production build thành công.
+  - **Tiêu chí**: Toàn bộ unit tests pass (130/130), TypeScript 0 lỗi, production build thành công 10/10 static pages. (Đã hoàn thành 100%).

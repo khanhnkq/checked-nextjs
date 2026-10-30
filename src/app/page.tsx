@@ -31,9 +31,19 @@ export default function HomePage() {
   const updateUser = useAuthStore((s) => s.updateUser);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const flashTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [selectedFriendId, setSelectedFriendId] = useState<string | null>(null);
   const [capturedPhoto, setCapturedPhoto] = useState<CapturedPhotoData | null>(null);
   const [isFlashing, setIsFlashing] = useState(false);
+
+  // Dọn dẹp timer màn trập khi component unmount
+  useEffect(() => {
+    return () => {
+      if (flashTimerRef.current) {
+        clearTimeout(flashTimerRef.current);
+      }
+    };
+  }, []);
 
   // Hook Camera WebRTC thực tế (tự động khởi động luồng camera)
   const camera = useWebRTCCamera({ autoStart: true });
@@ -97,8 +107,12 @@ export default function HomePage() {
   // Kích hoạt Shutter Flash trắng lóe 120ms chuẩn iOS
   const triggerShutterFlash = () => {
     setIsFlashing(true);
-    setTimeout(() => {
+    if (flashTimerRef.current) {
+      clearTimeout(flashTimerRef.current);
+    }
+    flashTimerRef.current = setTimeout(() => {
       setIsFlashing(false);
+      flashTimerRef.current = null;
     }, 120);
   };
 

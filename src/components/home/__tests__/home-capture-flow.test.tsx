@@ -82,8 +82,11 @@ describe('HomePage Camera Capture & Flow Transition (Phase 1)', () => {
       expect(screen.getByTestId('image-preview-view')).toBeInTheDocument();
     });
 
-    // Shutter flash exists in DOM
+    // Shutter flash exists in DOM and fades out after 120ms
     expect(screen.getByTestId('shutter-flash')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByTestId('shutter-flash')).toHaveClass('opacity-0');
+    });
   });
 
   it('returns to camera viewfinder when cancel button in preview is clicked', async () => {
@@ -96,6 +99,7 @@ describe('HomePage Camera Capture & Flow Transition (Phase 1)', () => {
 
     await waitFor(() => {
       expect(screen.getByTestId('image-preview-view')).toBeInTheDocument();
+      expect(screen.getByTestId('shutter-flash')).toHaveClass('opacity-0');
     });
 
     // 2. Click dismiss button
@@ -119,6 +123,7 @@ describe('HomePage Camera Capture & Flow Transition (Phase 1)', () => {
 
     await waitFor(() => {
       expect(screen.getByTestId('image-preview-view')).toBeInTheDocument();
+      expect(screen.getByTestId('shutter-flash')).toHaveClass('opacity-0');
       expect(screen.getByAltText('Khoảnh khắc vừa chụp')).toHaveAttribute(
         'src',
         'data:image/jpeg;base64,albummockframe'

@@ -1,9 +1,13 @@
 'use client';
 
-import React from 'react';
-import { Download, Send, Sparkles, Trash2, Users, X } from 'lucide-react';
+import React, { useState } from 'react';
+import { Download, Send, Trash2, Users, X } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
 import { haptics } from '@/lib/utils/haptics';
+import { GeminiBrandPill } from './GeminiBrandPill';
+import { PreviewPinnedTags } from './PreviewPinnedTags';
+import { PreviewCaptionBar } from './PreviewCaptionBar';
+import { PreviewActionPills } from './PreviewActionPills';
 
 export interface CapturedPhotoData {
   blob: Blob;
@@ -12,17 +16,31 @@ export interface CapturedPhotoData {
   height?: number;
 }
 
+export interface PreviewSubmitData {
+  caption: string;
+  locationName?: string;
+  dishName?: string;
+  priceText?: string;
+  calorieText?: string;
+}
+
 export interface ImagePreviewViewProps {
   photo: CapturedPhotoData;
   onDismiss: () => void;
-  onSend?: () => void;
+  onSend?: (data?: PreviewSubmitData) => void;
   isSending?: boolean;
+  initialLocationName?: string;
+  initialDishName?: string;
+  initialPriceText?: string;
+  initialCalorieText?: string;
+  isBill?: boolean;
+  isAnalyzing?: boolean;
   className?: string;
 }
 
 /**
- * ImagePreviewView (Màn hình xem trước ảnh chụp)
- * Khung nhìn xem trước 1:1, bóc tách thẻ thông minh AI và bảng điều khiển gửi ảnh.
+ * ImagePreviewView (Màn hình xem trước ảnh chụp chuẩn 1:1 iOS)
+ * Ghép nối TopBar, Khung ảnh 1:1, Pinned Tags, Caption Bar, Action Pills và Bottom Controls.
  * Tuân thủ quy tắc Design System: Zero Border, Zero Blur, Zero Shadow.
  */
 export const ImagePreviewView: React.FC<ImagePreviewViewProps> = ({
@@ -30,8 +48,44 @@ export const ImagePreviewView: React.FC<ImagePreviewViewProps> = ({
   onDismiss,
   onSend,
   isSending = false,
+  initialLocationName = 'TP. Hồ Chí Minh',
+  initialDishName,
+  initialPriceText,
+  initialCalorieText,
+  isBill = false,
+  isAnalyzing = false,
   className,
 }) => {
+  // Trạng thái nhập Caption
+  const [caption, setCaption] = useState('');
+
+  // Trạng thái Pinned Tags
+  const [locationName, setLocationName] = useState(initialLocationName);
+  const [isLocationPinned, setIsLocationPinned] = useState(true);
+
+  const [dishName, setDishName] = useState<string | null>(initialDishName || null);
+  const [isFoodPinned, setIsFoodPinned] = useState(true);
+
+  const [priceText, setPriceText] = useState<string | null>(initialPriceText || null);
+  const [isPricePinned, setIsPricePinned] = useState(true);
+
+  const [calorieText, setCalorieText] = useState<string | null>(initialCalorieText || null);
+  const [isCaloriePinned, setIsCaloriePinned] = useState(true);
+
+  // Sinh caption tự động từ các tag đang có (tương tự generateAICaption trên iOS)
+  const handleGenerateAICaption = () => {
+    haptics.medium();
+    if (isBill && priceText) {
+      setCaption(`🧾 ${locationName} · ${priceText}`);
+    } else if (dishName) {
+      setCaption(`🍲 ${dishName}${calorieText ? ` · ${calorieText}` : ''}`);
+    } else if (locationName) {
+      setCaption(`📍 ${locationName}`);
+    } else {
+      setCaption('✨ Khoảnh khắc Checked');
+    }
+  };
+
   const handleDismiss = () => {
     haptics.click();
     onDismiss();
@@ -49,7 +103,13 @@ export const ImagePreviewView: React.FC<ImagePreviewViewProps> = ({
     if (isSending) return;
     haptics.heavy();
     if (onSend) {
-      onSend();
+      onSend({
+        caption,
+        locationName: isLocationPinned ? locationName : undefined,
+        dishName: isFoodPinned && dishName ? dishName : undefined,
+        priceText: isPricePinned && priceText ? priceText : undefined,
+        calorieText: isCaloriePinned && calorieText ? calorieText : undefined,
+      });
     }
   };
 
@@ -72,28 +132,20 @@ export const ImagePreviewView: React.FC<ImagePreviewViewProps> = ({
           type="button"
           onClick={handleDismiss}
           aria-label="Hủy và chụp lại"
-          className="w-[44px] h-[44px] rounded-full bg-white flex items-center justify-center active:scale-90 transition-transform"
+          className="w-[44px] h-[44px] rounded-full bg-white flex items-center justify-center active:scale-90 transition-transform cursor-pointer"
         >
           <X size={20} className="text-[#141613]" strokeWidth={2.4} />
         </button>
 
         {/* Gemini Brand Pill */}
-        <div
-          data-testid="gemini-brand-pill"
-          className="w-[144px] h-[44px] rounded-full bg-white flex items-center justify-center gap-1.5"
-        >
-          <Sparkles size={16} className="text-[#141613]" />
-          <span className="text-[15px] font-bold font-display text-[#141613] tracking-tight">
-            Gemini
-          </span>
-        </div>
+        <GeminiBrandPill isAnalyzing={isAnalyzing} />
 
         {/* Nút Tải về */}
         <button
           type="button"
           onClick={handleDownload}
           aria-label="Tải ảnh về máy"
-          className="w-[44px] h-[44px] rounded-full bg-white flex items-center justify-center active:scale-90 transition-transform"
+          className="w-[44px] h-[44px] rounded-full bg-white flex items-center justify-center active:scale-90 transition-transform cursor-pointer"
         >
           <Download size={20} className="text-[#141613]" strokeWidth={2.4} />
         </button>
@@ -102,24 +154,77 @@ export const ImagePreviewView: React.FC<ImagePreviewViewProps> = ({
       {/* 2. KHUNG ẢNH VUÔNG 1:1 TRÙNG KHÍT VIEW FINDER (max 390px, bo góc 32px) */}
       <main className="w-full flex justify-center px-[18px] flex-shrink-0">
         <div className="w-full max-w-[390px] aspect-square rounded-[32px] bg-[#141613] relative overflow-hidden select-none flex items-center justify-center">
+          {/* Ảnh vừa chụp */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={photo.dataUrl}
             alt="Khoảnh khắc vừa chụp"
             className="w-full h-full object-cover"
           />
+
+          {/* Cụm Pinned Tags ghim góc trên trái ảnh */}
+          <PreviewPinnedTags
+            locationName={locationName}
+            isLocationPinned={isLocationPinned}
+            onLocationClick={() => setIsLocationPinned((prev) => !prev)}
+            dishName={dishName}
+            isFoodPinned={isFoodPinned}
+            onFoodClick={() => setIsFoodPinned((prev) => !prev)}
+            priceText={priceText}
+            isPricePinned={isPricePinned}
+            isBill={isBill}
+            onPriceClick={() => setIsPricePinned((prev) => !prev)}
+            calorieText={calorieText}
+            isCaloriePinned={isCaloriePinned}
+            onCalorieClick={() => setIsCaloriePinned((prev) => !prev)}
+          />
+
+          {/* Thanh nhập Caption Capsule ở đáy ảnh */}
+          <PreviewCaptionBar
+            caption={caption}
+            onCaptionChange={setCaption}
+            onGenerateAICaption={handleGenerateAICaption}
+          />
         </div>
       </main>
 
-      {/* 3. VÙNG ACTION PILLS (Placeholder tinh gọn sẵn sàng kết nối Phase 2 & 3) */}
-      <section
-        data-testid="preview-action-row"
-        className="w-full flex items-center justify-center px-5 flex-shrink-0"
-      >
-        <div className="px-4 py-2 rounded-full bg-[#DFDACD]/70 text-[#141613] text-xs font-bold font-display">
-          Chụp thành công
-        </div>
-      </section>
+      {/* 3. DẢI ACTION PILLS CUỘN NGANG (Tag món, Sửa bill, Tag calo, Tag giá, Tag vị trí) */}
+      <PreviewActionPills
+        isAnalyzing={isAnalyzing}
+        hasFood={Boolean(dishName)}
+        isFoodPinned={isFoodPinned}
+        onToggleFood={() => setIsFoodPinned((prev) => !prev)}
+        onEditFood={() => {
+          // Gán món ăn nhanh nếu chưa có
+          if (!dishName) {
+            setDishName('Món ngon');
+            setIsFoodPinned(true);
+          }
+        }}
+        isBill={isBill}
+        isBillPinned={isPricePinned}
+        onToggleBill={() => setIsPricePinned((prev) => !prev)}
+        hasCalories={Boolean(calorieText)}
+        isCaloriePinned={isCaloriePinned}
+        onToggleCalorie={() => setIsCaloriePinned((prev) => !prev)}
+        onEditCalorie={() => {
+          if (!calorieText) {
+            setCalorieText('500 kcal');
+            setIsCaloriePinned(true);
+          }
+        }}
+        hasPrice={Boolean(priceText)}
+        isPricePinned={isPricePinned}
+        onTogglePrice={() => setIsPricePinned((prev) => !prev)}
+        onEditPrice={() => {
+          if (!priceText) {
+            setPriceText('50.000 đ');
+            setIsPricePinned(true);
+          }
+        }}
+        isLocationPinned={isLocationPinned}
+        onToggleLocation={() => setIsLocationPinned((prev) => !prev)}
+      />
 
       {/* 4. BOTTOM CONTROLS (Thùng rác - Nút Gửi Matcha Glow 86px - Chọn Bạn bè) */}
       <footer className="w-full flex flex-col items-center gap-2 px-[28px] flex-shrink-0">
@@ -129,7 +234,7 @@ export const ImagePreviewView: React.FC<ImagePreviewViewProps> = ({
             type="button"
             onClick={handleDismiss}
             aria-label="Xóa ảnh và chụp lại"
-            className="w-[52px] h-[52px] rounded-full bg-white flex items-center justify-center flex-shrink-0 active:scale-90 transition-transform"
+            className="w-[52px] h-[52px] rounded-full bg-white flex items-center justify-center flex-shrink-0 active:scale-90 transition-transform cursor-pointer"
           >
             <Trash2 size={22} className="text-[#141613]" strokeWidth={2.2} />
           </button>
@@ -155,7 +260,7 @@ export const ImagePreviewView: React.FC<ImagePreviewViewProps> = ({
           <button
             type="button"
             aria-label="Chọn người nhận"
-            className="w-[52px] h-[52px] rounded-full bg-white flex items-center justify-center flex-shrink-0 active:scale-90 transition-transform"
+            className="w-[52px] h-[52px] rounded-full bg-white flex items-center justify-center flex-shrink-0 active:scale-90 transition-transform cursor-pointer"
           >
             <Users size={22} className="text-[#141613]" strokeWidth={2.2} />
           </button>
