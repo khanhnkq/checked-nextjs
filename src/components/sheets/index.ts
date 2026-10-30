@@ -15,3 +15,6 @@ export type { CalorieEditSheetProps } from './CalorieEditSheet';
 
 export { BillDetailSheet, BILL_CATEGORIES } from './BillDetailSheet';
 export type { BillDetailSheetProps, BillItemData, BillConfirmPayload } from './BillDetailSheet';
+
+export { AudienceSelectSheet } from './AudienceSelectSheet';
+export type { AudienceSelectSheetProps, AudienceFriendItem } from './AudienceSelectSheet';
