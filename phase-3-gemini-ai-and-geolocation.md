@@ -39,10 +39,10 @@
   - **Mô tả**: Nhận ảnh Blob/dataUrl, tự động resize tâm vuông 800x800 JPEG (quality 0.82) qua Canvas, gửi request lên `/api/ai/vision-analyze`, trả về `{ isAnalyzing, result, analyzeImage, error }`.
   - **Verifiable**: Unit test kiểm tra hook nén ảnh và parse kết quả. (Đã hoàn thành, 5/5 tests pass).
 
-- [ ] **Task 4: Xây dựng Hook `useGeolocation.ts`**
+- [x] **Task 4: Xây dựng Hook `useGeolocation.ts`**
   - **File**: `src/hooks/useGeolocation.ts`
   - **Mô tả**: Lấy vị trí người dùng qua `navigator.geolocation`, hỗ trợ làm mới `refreshLocation()`, trả về `{ locationName: string, coords: { lat, lng } | null, isLocating: boolean }` với giá trị mặc định là `"TP. Hồ Chí Minh"`.
-  - **Verifiable**: Unit test kiểm tra gọi GPS và fallback địa phương.
+  - **Verifiable**: Unit test kiểm tra gọi GPS và fallback địa phương. (Đã hoàn thành, 5/5 tests pass).
 
 - [ ] **Task 5: Tích hợp AI Vision & Geolocation vào `ImagePreviewView.tsx`**
   - **File**: `src/components/home/ImagePreviewView.tsx`
