@@ -29,10 +29,10 @@
   - **Mô tả**: Tái hiện 100% prompt từ `GeminiPromptBuilder.swift` yêu cầu Gemini Flash trả về JSON schema: `is_food`, `dish_name`, `category`, `calories`, `protein_g`, `carbs_g`, `fat_g`, `is_bill`, `total_amount_str`, `merchant_name`, `suggested_caption`.
   - **Verifiable**: Export qua `src/lib/ai/index.ts`. (Đã hoàn thành, 6/6 tests pass).
 
-- [ ] **Task 2: Xây dựng Next.js Route Handler `/api/ai/vision-analyze`**
+- [x] **Task 2: Xây dựng Next.js Route Handler `/api/ai/vision-analyze`**
   - **File**: `src/app/api/ai/vision-analyze/route.ts`
   - **Mô tả**: Nhận POST `{ imageBase64: string, mimeType?: string }`. Khởi tạo `GoogleGenerativeAI` với model `gemini-1.5-flash` (hoặc `gemini-2.0-flash`), cấu hình `responseMimeType: "application/json"`. Xử lý lỗi API key rỗng hoặc rate-limit gracefully mà không crash server.
-  - **Verifiable**: Unit test kiểm tra Route Handler với mock Gemini SDK.
+  - **Verifiable**: Unit test kiểm tra Route Handler với mock Gemini SDK. (Đã hoàn thành, 5/5 tests pass).
 
 - [ ] **Task 3: Xây dựng Hook `useVisionAnalysis.ts`**
   - **File**: `src/hooks/useVisionAnalysis.ts`
