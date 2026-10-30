@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Camera, CameraOff, Zap, ZapOff } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
 import { haptics } from '@/lib/utils/haptics';
@@ -8,6 +8,7 @@ import type { CameraStatus, CameraFacingMode, CameraZoomLevel } from '@/hooks/us
 
 export interface CameraBoxProps {
   videoRef?: React.RefObject<HTMLVideoElement | null>;
+  stream?: MediaStream | null;
   isLive?: boolean;
   status?: CameraStatus;
   facingMode?: CameraFacingMode;
@@ -26,6 +27,7 @@ export interface CameraBoxProps {
  */
 export const CameraBox: React.FC<CameraBoxProps> = ({
   videoRef,
+  stream,
   isLive = false,
   status = 'idle',
   facingMode = 'environment',
@@ -42,6 +44,43 @@ export const CameraBox: React.FC<CameraBoxProps> = ({
 
   const isFlashActive = controlledFlash !== undefined ? controlledFlash : internalFlash;
   const currentZoom = controlledZoom !== undefined ? controlledZoom : internalZoom;
+
+  // Gắn luồng MediaStream vào thẻ video ngay khi node được mount (chống lỗi màn hình đen khi quay lại Home)
+  const setVideoRef = useCallback(
+    (node: HTMLVideoElement | null) => {
+      if (videoRef) {
+        (videoRef as React.MutableRefObject<HTMLVideoElement | null>).current = node;
+      }
+      if (node && stream && node.srcObject !== stream) {
+        node.srcObject = stream;
+        try {
+          const p = node.play?.();
+          if (p && typeof p.catch === 'function') {
+            p.catch(() => {});
+          }
+        } catch {
+          // Ignore
+        }
+      }
+    },
+    [videoRef, stream]
+  );
+
+  // Đảm bảo đồng bộ khi stream thay đổi sau khi video đã mount
+  useEffect(() => {
+    const videoEl = videoRef?.current;
+    if (videoEl && stream && videoEl.srcObject !== stream) {
+      videoEl.srcObject = stream;
+      try {
+        const p = videoEl.play?.();
+        if (p && typeof p.catch === 'function') {
+          p.catch(() => {});
+        }
+      } catch {
+        // Ignore
+      }
+    }
+  }, [stream, isLive, status, videoRef]);
 
   const handleToggleFlash = () => {
     haptics.click();
@@ -74,7 +113,7 @@ export const CameraBox: React.FC<CameraBoxProps> = ({
       {/* 1. LUỒNG VIDEO CAMERA THẬT WEBRTC */}
       {isStreaming && videoRef ? (
         <video
-          ref={videoRef as any}
+          ref={setVideoRef}
           autoPlay
           playsInline
           muted

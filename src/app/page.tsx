@@ -199,7 +199,21 @@ export default function HomePage() {
   // Hủy ảnh và quay lại camera live
   const handleDismissPreview = () => {
     setCapturedPhoto(null);
+    const isLive = camera.stream?.getVideoTracks().some((t) => !t.readyState || t.readyState === 'live');
+    if (!isLive && camera.status !== 'starting' && camera.status !== 'denied') {
+      camera.startCamera();
+    }
   };
+
+  // Đảm bảo camera được khởi động lại khi quay về Home nếu luồng video bị gián đoạn
+  useEffect(() => {
+    if (!capturedPhoto) {
+      const isLive = camera.stream?.getVideoTracks().some((t) => !t.readyState || t.readyState === 'live');
+      if (!isLive && camera.status !== 'starting' && camera.status !== 'denied') {
+        camera.startCamera();
+      }
+    }
+  }, [capturedPhoto, camera.stream, camera.status, camera.startCamera]);
 
   // Gửi ảnh multipart và đồng bộ feed (Phase 5)
   const handleSendPhoto = async (data?: PreviewSubmitData) => {
@@ -284,6 +298,7 @@ export default function HomePage() {
           <div className="w-full flex justify-center px-[18px] flex-shrink-0">
             <CameraBox
               videoRef={camera.videoRef}
+              stream={camera.stream}
               isLive={camera.status === 'streaming'}
               status={camera.status}
               facingMode={camera.facingMode}

@@ -92,6 +92,18 @@ describe('Home Components (iOS Parity, Zero Border, Zero Blur, Zero Shadow)', ()
       expect(video).toHaveClass('-scale-x-100');
     });
 
+    it('binds stream to video element via callback ref and updates srcObject', () => {
+      const mockStream = { id: 'stream-1' } as any;
+      const mockRef = { current: null };
+      const { container } = render(
+        <CameraBox videoRef={mockRef} stream={mockStream} isLive={true} />
+      );
+      const video = container.querySelector('video') as HTMLVideoElement;
+      expect(video).toBeInTheDocument();
+      expect(video.srcObject).toBe(mockStream);
+      expect(mockRef.current).toBe(video);
+    });
+
     it('renders permission denied message and handles retry callback', async () => {
       const handleRetry = vi.fn();
       const user = userEvent.setup();

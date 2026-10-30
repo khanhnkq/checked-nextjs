@@ -20,6 +20,7 @@ describe('useWebRTCCamera Hook (iOS Parity, Hardware Control & Lifecycle)', () =
     mockTrack = {
       kind: 'video',
       enabled: true,
+      readyState: 'live',
       stop: vi.fn(),
       getCapabilities: vi.fn().mockReturnValue({ torch: true, zoom: { min: 0.5, max: 2.0 } }),
       applyConstraints: vi.fn().mockResolvedValue(undefined),
@@ -206,6 +207,26 @@ describe('useWebRTCCamera Hook (iOS Parity, Hardware Control & Lifecycle)', () =
     unmount();
 
     expect(mockTrack.stop).toHaveBeenCalled();
+  });
+
+  it('re-attaches stream to videoRef when returning to visible tab', async () => {
+    const { result } = renderHook(() => useWebRTCCamera({ autoStart: true }));
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    const mockVideo = document.createElement('video');
+    result.current.videoRef.current = mockVideo;
+    expect(mockVideo.srcObject).toBeFalsy();
+
+    // Trigger visibilitychange event
+    act(() => {
+      Object.defineProperty(document, 'visibilityState', { value: 'visible', configurable: true });
+      document.dispatchEvent(new Event('visibilitychange'));
+    });
+
+    expect(mockVideo.srcObject).toBe(mockStream);
   });
 
   it('marks status as unsupported if navigator.mediaDevices is absent', async () => {

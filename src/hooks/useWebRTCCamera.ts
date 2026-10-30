@@ -53,6 +53,9 @@ export function useWebRTCCamera(options: UseWebRTCCameraOptions = {}): UseWebRTC
   const [status, setStatus] = useState<CameraStatus>('idle');
   const [error, setError] = useState<Error | null>(null);
   const [facingMode, setFacingMode] = useState<CameraFacingMode>(initialFacingMode);
+  const facingModeRef = useRef<CameraFacingMode>(initialFacingMode);
+  facingModeRef.current = facingMode;
+
   const [isFlashOn, setIsFlashOn] = useState(false);
   const [isFlashSupported, setIsFlashSupported] = useState(false);
   const [zoomLevel, setZoomLevel] = useState<CameraZoomLevel>('1x');
@@ -121,7 +124,7 @@ export function useWebRTCCamera(options: UseWebRTCCameraOptions = {}): UseWebRTC
         return;
       }
 
-      const activeFacing = overrideFacingMode ?? facingMode;
+      const activeFacing = overrideFacingMode ?? facingModeRef.current;
 
       // 2. Dọn dẹp luồng cũ trước khi tạo luồng mới
       stopTracks();
@@ -161,6 +164,15 @@ export function useWebRTCCamera(options: UseWebRTCCameraOptions = {}): UseWebRTC
         const videoTrack = mediaStream.getVideoTracks()[0];
         if (videoTrack) {
           inspectCapabilities(videoTrack);
+
+          // Tự động xử lý khi track bị hệ thống / phần cứng ngắt
+          videoTrack.onended = () => {
+            if (autoStart && typeof document !== 'undefined' && document.visibilityState === 'visible') {
+              startCamera();
+            } else {
+              setStatus('idle');
+            }
+          };
         }
       } catch (err: any) {
         stopTracks();
@@ -182,7 +194,7 @@ export function useWebRTCCamera(options: UseWebRTCCameraOptions = {}): UseWebRTC
         }
       }
     },
-    [facingMode, stopTracks, targetResolution, inspectCapabilities]
+    [stopTracks, targetResolution, inspectCapabilities, autoStart]
   );
 
   // Đổi giữa camera trước và sau
@@ -258,7 +270,47 @@ export function useWebRTCCamera(options: UseWebRTCCameraOptions = {}): UseWebRTC
     return () => {
       stopTracks();
     };
-  }, [autoStart]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [autoStart, startCamera]);
+
+  // Lắng nghe sự kiện quay lại trang hoặc đổi tab (visibilitychange / pageshow / focus)
+  useEffect(() => {
+    if (!autoStart) return;
+
+    const handleVisibilityOrFocus = () => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        const isTrackLive = streamRef.current
+          ?.getVideoTracks()
+          .some((t) => !t.readyState || t.readyState === 'live');
+        if (!isTrackLive && status !== 'starting') {
+          startCamera();
+        } else if (
+          videoRef.current &&
+          streamRef.current &&
+          videoRef.current.srcObject !== streamRef.current
+        ) {
+          videoRef.current.srcObject = streamRef.current;
+          try {
+            const playPromise = videoRef.current.play?.();
+            if (playPromise && typeof playPromise.catch === 'function') {
+              playPromise.catch(() => {});
+            }
+          } catch {
+            // Ignore
+          }
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityOrFocus);
+    window.addEventListener('pageshow', handleVisibilityOrFocus);
+    window.addEventListener('focus', handleVisibilityOrFocus);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityOrFocus);
+      window.removeEventListener('pageshow', handleVisibilityOrFocus);
+      window.removeEventListener('focus', handleVisibilityOrFocus);
+    };
+  }, [autoStart, status, startCamera]);
 
   // Gắn lại srcObject nếu videoRef thay đổi hoặc render muộn
   useEffect(() => {
