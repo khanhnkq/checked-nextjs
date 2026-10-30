@@ -35,10 +35,10 @@
   - **Mô tả**: Nhập số tiền lớn với bàn phím số, dải chip chọn nhanh mức giá (20k - 200k), cập nhật callback `onConfirm(amount)`.
   - **Verifiable**: Unit test kiểm tra gõ số tiền, chọn chip nhanh và xác nhận (Đã hoàn thành, 6/6 tests pass).
 
-- [ ] **Task 3: Xây dựng `LocationEditSheet.tsx`**
+- [x] **Task 3: Xây dựng `LocationEditSheet.tsx`**
   - **File**: `src/components/sheets/LocationEditSheet.tsx`
   - **Mô tả**: Nhập tên địa điểm, gợi ý vị trí GPS với nút "Dùng" nhanh và nút "Cập nhật lại GPS".
-  - **Verifiable**: Unit test kiểm tra nhập địa điểm, áp dụng gợi ý GPS và refresh.
+  - **Verifiable**: Unit test kiểm tra nhập địa điểm, áp dụng gợi ý GPS và refresh (Đã hoàn thành, 6/6 tests pass).
 
 - [ ] **Task 4: Xây dựng `FoodEditSheet.tsx` & `CalorieEditSheet.tsx`**
   - **Files**: `src/components/sheets/FoodEditSheet.tsx`, `src/components/sheets/CalorieEditSheet.tsx`
