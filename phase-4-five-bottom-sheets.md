@@ -47,10 +47,10 @@
     - `CalorieEditSheet`: Nhập calo lớn và chọn nhanh 6 mức calo phổ biến.
   - **Verifiable**: Unit test kiểm tra nhập liệu và callback của 2 sheet (Đã hoàn thành, 11/11 tests pass).
 
-- [ ] **Task 5: Xây dựng `BillDetailSheet.tsx`**
+- [x] **Task 5: Xây dựng `BillDetailSheet.tsx`**
   - **File**: `src/components/sheets/BillDetailSheet.tsx`
   - **Mô tả**: Chỉnh sửa tổng tiền thanh toán, tên cửa hàng/quán, danh mục chi tiêu, và hiển thị danh sách các món đã bóc tách từ hóa đơn.
-  - **Verifiable**: Unit test kiểm tra sửa bill, danh sách món và sinh caption tự động.
+  - **Verifiable**: Unit test kiểm tra sửa bill, danh sách món và sinh caption tự động (Đã hoàn thành, 4/4 tests pass).
 
 - [ ] **Task 6: Ghép nối 5 Sheets vào `ImagePreviewView.tsx`**
   - **File**: `src/components/home/ImagePreviewView.tsx`

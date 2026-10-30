@@ -12,3 +12,6 @@ export type { FoodEditSheetProps } from './FoodEditSheet';
 
 export { CalorieEditSheet, parseCalorieToNumber, formatCalorieText } from './CalorieEditSheet';
 export type { CalorieEditSheetProps } from './CalorieEditSheet';
+
+export { BillDetailSheet, BILL_CATEGORIES } from './BillDetailSheet';
+export type { BillDetailSheetProps, BillItemData, BillConfirmPayload } from './BillDetailSheet';
