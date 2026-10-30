@@ -8,3 +8,4 @@ export * from './ImagePreviewView';
 export * from './GeminiBrandPill';
 export * from './PreviewPinnedTags';
 export * from './PreviewCaptionBar';
+export * from './PreviewActionPills';

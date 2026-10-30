@@ -45,12 +45,12 @@
     - Nút `Sparkles` sinh gợi ý Caption thông minh dựa trên tên quán / món ăn / giá tiền khi bấm.
   - **Verifiable**: Unit test kiểm tra gõ tin nhắn và bấm nút Sparkles. (Đã hoàn thành, 4/4 tests pass).
 
-- [ ] **Task 4: Xây dựng Component `PreviewActionPills.tsx`**
+- [x] **Task 4: Xây dựng Component `PreviewActionPills.tsx`**
   - **File**: `src/components/home/PreviewActionPills.tsx`
   - **Mô tả**: Dải nút con nhộng cuộn ngang height 44px (`no-scrollbar flex items-center gap-2 px-5`).
     - Các nút: `Tag món`, `Sửa bill` (nếu có bill), `Tag calo`, `Tag giá`, `Tag vị trí`.
     - Trạng thái Active: `bg-[#D4EB70]` (Matcha Glow); Inactive: `bg-white`. Bấm vào sẽ bật/tắt (toggle) thẻ ghim trên ảnh.
-  - **Verifiable**: Unit test kiểm tra toggle state của từng action pill.
+  - **Verifiable**: Unit test kiểm tra toggle state của từng action pill. (Đã hoàn thành, 4/4 tests pass).
 
 - [ ] **Task 5: Ghép Nối & Tối Ưu `ImagePreviewView.tsx`**
   - **File**: `src/components/home/ImagePreviewView.tsx`
