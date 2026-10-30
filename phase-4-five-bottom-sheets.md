@@ -40,12 +40,12 @@
   - **Mô tả**: Nhập tên địa điểm, gợi ý vị trí GPS với nút "Dùng" nhanh và nút "Cập nhật lại GPS".
   - **Verifiable**: Unit test kiểm tra nhập địa điểm, áp dụng gợi ý GPS và refresh (Đã hoàn thành, 6/6 tests pass).
 
-- [ ] **Task 4: Xây dựng `FoodEditSheet.tsx` & `CalorieEditSheet.tsx`**
+- [x] **Task 4: Xây dựng `FoodEditSheet.tsx` & `CalorieEditSheet.tsx`**
   - **Files**: `src/components/sheets/FoodEditSheet.tsx`, `src/components/sheets/CalorieEditSheet.tsx`
   - **Mô tả**: 
     - `FoodEditSheet`: Nhập tên món và chọn 6 danh mục ẩm thực.
     - `CalorieEditSheet`: Nhập calo lớn và chọn nhanh 6 mức calo phổ biến.
-  - **Verifiable**: Unit test kiểm tra nhập liệu và callback của 2 sheet.
+  - **Verifiable**: Unit test kiểm tra nhập liệu và callback của 2 sheet (Đã hoàn thành, 11/11 tests pass).
 
 - [ ] **Task 5: Xây dựng `BillDetailSheet.tsx`**
   - **File**: `src/components/sheets/BillDetailSheet.tsx`
