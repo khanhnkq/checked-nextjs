@@ -6,6 +6,7 @@ describe('useWebRTCCamera Hook (iOS Parity, Hardware Control & Lifecycle)', () =
   let mockTrack: {
     kind: string;
     enabled: boolean;
+    readyState?: string;
     stop: ReturnType<typeof vi.fn>;
     getCapabilities: ReturnType<typeof vi.fn>;
     applyConstraints: ReturnType<typeof vi.fn>;
