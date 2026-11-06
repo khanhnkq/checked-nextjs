@@ -47,6 +47,7 @@ export function triggerHaptic(type: 'light' | 'medium' | 'heavy' = 'light'): voi
 export const haptics = {
   click: () => triggerHaptic('light'),
   light: () => triggerHaptic('light'),
+  selection: () => triggerHaptic('light'),
   medium: () => triggerHaptic('medium'),
   heavy: () => triggerHaptic('heavy'),
   success: () => triggerHaptic('light'),
