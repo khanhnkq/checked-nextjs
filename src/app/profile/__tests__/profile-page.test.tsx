@@ -247,7 +247,7 @@ describe('ProfilePage Integration', () => {
     // Click nút Bạn bè
     const friendsBtn = screen.getByRole('button', { name: 'Bạn bè' });
     fireEvent.click(friendsBtn);
-    expect(mockPush).toHaveBeenCalledWith('/friends');
+    expect(mockPush).toHaveBeenCalledWith('/friends/requests');
 
     // Click nút Cài đặt
     const settingsBtn = screen.getByRole('button', {

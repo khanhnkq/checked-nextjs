@@ -9,6 +9,7 @@ export interface BaseBottomSheetProps {
   isOpen: boolean;
   onDismiss: () => void;
   title: string;
+  subtitle?: string;
   icon?: React.ReactNode;
   actionTitle?: string;
   onAction?: () => void;
@@ -30,6 +31,7 @@ export const BaseBottomSheet: React.FC<BaseBottomSheetProps> = ({
   isOpen,
   onDismiss,
   title,
+  subtitle,
   icon,
   actionTitle,
   onAction,
@@ -105,7 +107,7 @@ export const BaseBottomSheet: React.FC<BaseBottomSheetProps> = ({
           />
         </div>
 
-        {/* Header: Icon + Tiêu đề + Nút Đóng */}
+        {/* Header: Icon + Tiêu đề + Phụ đề + Nút Đóng */}
         <div className="flex items-center justify-between px-5 pb-3">
           <div className="flex items-center gap-2 text-[#141613]">
             {icon && (
@@ -113,9 +115,16 @@ export const BaseBottomSheet: React.FC<BaseBottomSheetProps> = ({
                 {icon}
               </span>
             )}
-            <h2 className="text-[17px] font-bold text-[#141613] tracking-tight">
-              {title}
-            </h2>
+            <div className="flex flex-col">
+              <h2 className="text-[17px] font-bold text-[#141613] tracking-tight">
+                {title}
+              </h2>
+              {subtitle && (
+                <span className="text-[13px] font-medium text-[#63685F]">
+                  {subtitle}
+                </span>
+              )}
+            </div>
           </div>
 
           <button

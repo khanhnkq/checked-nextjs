@@ -103,7 +103,7 @@ export default function ProfilePage() {
           {/* 1. ProfileTopBar (44px) */}
           <ProfileTopBar
             onCloseClick={() => router.push('/')}
-            onFriendsClick={() => router.push('/friends')}
+            onFriendsClick={() => router.push('/friends/requests')}
             onSettingsClick={() => router.push('/settings')}
           />
 
