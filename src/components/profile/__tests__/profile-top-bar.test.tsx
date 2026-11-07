@@ -15,23 +15,45 @@ describe('ProfileTopBar Component', () => {
     vi.clearAllMocks();
   });
 
-  it('hiển thị huy hiệu "Checked GOLD" mặc định', () => {
-    render(<ProfileTopBar />);
-    const badge = screen.getByTestId('checked-gold-badge');
-    expect(badge).toBeInTheDocument();
-    expect(badge).toHaveTextContent('Checked GOLD');
+  it('không hiển thị huy hiệu "Checked GOLD" mặc định hoặc khi truyền isGoldMember', () => {
+    const { rerender } = render(<ProfileTopBar />);
+    expect(screen.queryByText('Checked GOLD')).toBeNull();
+    expect(screen.queryByTestId('checked-gold-badge')).toBeNull();
+
+    rerender(<ProfileTopBar isGoldMember={true} />);
+    expect(screen.queryByText('Checked GOLD')).toBeNull();
+    expect(screen.queryByTestId('checked-gold-badge')).toBeNull();
+
+    rerender(<ProfileTopBar isGoldMember={false} />);
+    expect(screen.queryByText('Checked GOLD')).toBeNull();
+    expect(screen.queryByTestId('checked-gold-badge')).toBeNull();
   });
 
-  it('ẩn huy hiệu khi isGoldMember={false}', () => {
-    render(<ProfileTopBar isGoldMember={false} />);
-    expect(screen.queryByTestId('checked-gold-badge')).not.toBeInTheDocument();
+  it('render đầy đủ 3 nút hành động chuẩn: Quay lại (bên trái), Bạn bè và Cài đặt (bên phải)', () => {
+    render(<ProfileTopBar />);
+    const backBtn = screen.getByRole('button', { name: 'Quay lại' });
+    const friendsBtn = screen.getByRole('button', { name: 'Bạn bè' });
+    const settingsBtn = screen.getByRole('button', { name: 'Cài đặt' });
+
+    expect(backBtn).toBeInTheDocument();
+    expect(friendsBtn).toBeInTheDocument();
+    expect(settingsBtn).toBeInTheDocument();
+
+    // Kiểm tra class kích thước 44x44px (w-11 h-11), bg-surface và active:scale-95
+    expect(backBtn).toHaveClass('w-11', 'h-11', 'rounded-full', 'bg-surface', 'active:scale-95');
+    expect(friendsBtn).toHaveClass('w-11', 'h-11', 'rounded-full', 'bg-surface', 'active:scale-95');
+    expect(settingsBtn).toHaveClass('w-11', 'h-11', 'rounded-full', 'bg-surface', 'active:scale-95');
   });
 
-  it('render đầy đủ 3 nút hành động có aria-label tương ứng', () => {
-    render(<ProfileTopBar />);
-    expect(screen.getByRole('button', { name: 'Bạn bè' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Cài đặt' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Thoát về Camera' })).toBeInTheDocument();
+  it('gọi callback onCloseClick và kích hoạt rung haptic khi bấm nút Quay lại', () => {
+    const onCloseClick = vi.fn();
+    render(<ProfileTopBar onCloseClick={onCloseClick} />);
+
+    const backBtn = screen.getByRole('button', { name: 'Quay lại' });
+    fireEvent.click(backBtn);
+
+    expect(onCloseClick).toHaveBeenCalledTimes(1);
+    expect(haptics.click).toHaveBeenCalledTimes(1);
   });
 
   it('gọi callback onFriendsClick và kích hoạt rung haptic khi bấm nút Bạn bè', () => {
@@ -53,17 +75,6 @@ describe('ProfileTopBar Component', () => {
     fireEvent.click(settingsBtn);
 
     expect(onSettingsClick).toHaveBeenCalledTimes(1);
-    expect(haptics.click).toHaveBeenCalledTimes(1);
-  });
-
-  it('gọi callback onCloseClick và kích hoạt rung haptic khi bấm nút Thoát', () => {
-    const onCloseClick = vi.fn();
-    render(<ProfileTopBar onCloseClick={onCloseClick} />);
-
-    const closeBtn = screen.getByRole('button', { name: 'Thoát về Camera' });
-    fireEvent.click(closeBtn);
-
-    expect(onCloseClick).toHaveBeenCalledTimes(1);
     expect(haptics.click).toHaveBeenCalledTimes(1);
   });
 });
