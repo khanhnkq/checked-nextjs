@@ -155,6 +155,7 @@ export const ChatInputBar: React.FC<ChatInputBarProps> = ({
             type="button"
             onClick={handleCancelReply}
             aria-label="Hủy trả lời"
+            data-testid="cancel-reply-button"
             className="w-7 h-7 rounded-full bg-surface text-text-secondary flex items-center justify-center shrink-0 active:scale-95 transition-transform"
           >
             <X size={15} />
@@ -184,6 +185,7 @@ export const ChatInputBar: React.FC<ChatInputBarProps> = ({
           onClick={handleSend}
           disabled={!canSend}
           aria-label="Gửi"
+          data-testid="send-message-button"
           className={cn(
             'w-11 h-11 rounded-full flex items-center justify-center shrink-0 transition-all duration-150 select-none',
             canSend

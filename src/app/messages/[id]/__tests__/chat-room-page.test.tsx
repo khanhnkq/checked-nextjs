@@ -1,0 +1,381 @@
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import ChatRoomPage from '../page';
+import * as useChatHook from '@/hooks/useChat';
+import { useAuthStore } from '@/stores/auth-store';
+
+const mockBack = vi.fn();
+const mockPush = vi.fn();
+
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ back: mockBack, push: mockPush }),
+  useParams: () => ({ id: 'f-bob' }),
+}));
+
+vi.mock('@/hooks/useChat');
+
+describe('ChatRoomPage (/messages/[id])', () => {
+  const mockSendMessage = vi.fn();
+  const mockLoadMoreMessages = vi.fn();
+  const mockDeleteMessage = vi.fn();
+  const mockSetReplyingToMessage = vi.fn();
+  const mockSendTyping = vi.fn();
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    useAuthStore.setState({
+      user: {
+        id: 'u-me',
+        username: 'me',
+        displayName: 'My Name',
+        email: 'me@example.com',
+        avatarUrl: null,
+      } as any,
+    });
+  });
+
+  it('renders chat skeleton while loading initial messages', () => {
+    vi.mocked(useChatHook.useChat).mockReturnValue({
+      conversation: null,
+      messages: [],
+      isLoadingInitial: true,
+      isLoadingMore: false,
+      hasMore: false,
+      isPartnerTyping: false,
+      sendMessage: mockSendMessage,
+      loadMoreMessages: mockLoadMoreMessages,
+      deleteMessage: mockDeleteMessage,
+      replyingToMessage: null,
+      setReplyingToMessage: mockSetReplyingToMessage,
+      sendTyping: mockSendTyping,
+    } as any);
+
+    render(<ChatRoomPage />);
+    expect(screen.getByTestId('chat-messages-skeleton')).toBeInTheDocument();
+  });
+
+  it('renders conversation messages and handles message send', async () => {
+    vi.mocked(useChatHook.useChat).mockReturnValue({
+      conversation: {
+        id: 'c1',
+        partner: { id: 'f-bob', displayName: 'Bob', username: 'bob', avatarUrl: null, isOnline: true },
+      },
+      messages: [
+        { id: 'm1', content: 'Hey Bob!', senderId: 'u-me', sentAt: new Date().toISOString(), type: 'TEXT' },
+      ],
+      isLoadingInitial: false,
+      isLoadingMore: false,
+      hasMore: false,
+      isPartnerTyping: false,
+      sendMessage: mockSendMessage,
+      loadMoreMessages: mockLoadMoreMessages,
+      deleteMessage: mockDeleteMessage,
+      replyingToMessage: null,
+      setReplyingToMessage: mockSetReplyingToMessage,
+      sendTyping: mockSendTyping,
+    } as any);
+
+    render(<ChatRoomPage />);
+    expect(screen.getByText('Bob')).toBeInTheDocument();
+    expect(screen.getByText('Hey Bob!')).toBeInTheDocument();
+
+    const input = screen.getByPlaceholderText('Nhập tin nhắn...');
+    fireEvent.change(input, { target: { value: 'How are you?' } });
+    fireEvent.click(screen.getByTestId('send-message-button'));
+
+    expect(mockSendMessage).toHaveBeenCalledWith('How are you?');
+  });
+
+  it('sends message with quote reply and resets reply state', async () => {
+    const replyingMessage = {
+      id: 'm1',
+      content: 'Hello friend',
+      senderId: 'f-bob',
+      sentAt: new Date().toISOString(),
+      type: 'TEXT',
+    };
+
+    vi.mocked(useChatHook.useChat).mockReturnValue({
+      conversation: {
+        id: 'c1',
+        partner: { id: 'f-bob', displayName: 'Bob', username: 'bob' },
+      },
+      messages: [replyingMessage],
+      isLoadingInitial: false,
+      isLoadingMore: false,
+      hasMore: false,
+      isPartnerTyping: false,
+      sendMessage: mockSendMessage,
+      loadMoreMessages: mockLoadMoreMessages,
+      deleteMessage: mockDeleteMessage,
+      replyingToMessage: replyingMessage,
+      setReplyingToMessage: mockSetReplyingToMessage,
+      sendTyping: mockSendTyping,
+    } as any);
+
+    render(<ChatRoomPage />);
+    expect(screen.getByText(/Đang trả lời/i)).toBeInTheDocument();
+    expect(screen.getAllByText('Hello friend').length).toBeGreaterThanOrEqual(2);
+
+    const input = screen.getByPlaceholderText('Nhập tin nhắn...');
+    fireEvent.change(input, { target: { value: 'I am doing great!' } });
+    fireEvent.click(screen.getByTestId('send-message-button'));
+
+    expect(mockSendMessage).toHaveBeenCalledWith('I am doing great!', { replyToMessageId: 'm1' });
+    await waitFor(() => {
+      expect(mockSetReplyingToMessage).toHaveBeenCalledWith(null);
+    });
+  });
+
+  it('handles cancel quote reply', () => {
+    const replyingMessage = {
+      id: 'm1',
+      content: 'Hello friend',
+      senderId: 'f-bob',
+      sentAt: new Date().toISOString(),
+      type: 'TEXT',
+    };
+
+    vi.mocked(useChatHook.useChat).mockReturnValue({
+      conversation: {
+        id: 'c1',
+        partner: { id: 'f-bob', displayName: 'Bob', username: 'bob' },
+      },
+      messages: [replyingMessage],
+      isLoadingInitial: false,
+      isLoadingMore: false,
+      hasMore: false,
+      isPartnerTyping: false,
+      sendMessage: mockSendMessage,
+      loadMoreMessages: mockLoadMoreMessages,
+      deleteMessage: mockDeleteMessage,
+      replyingToMessage: replyingMessage,
+      setReplyingToMessage: mockSetReplyingToMessage,
+      sendTyping: mockSendTyping,
+    } as any);
+
+    render(<ChatRoomPage />);
+    const cancelReplyBtn = screen.getByTestId('cancel-reply-button');
+    fireEvent.click(cancelReplyBtn);
+
+    expect(mockSetReplyingToMessage).toHaveBeenCalledWith(null);
+  });
+
+  it('triggers auto-scroll to bottom anchor on message arrival', () => {
+    const scrollIntoViewMock = vi.fn();
+    window.HTMLElement.prototype.scrollIntoView = scrollIntoViewMock;
+
+    vi.mocked(useChatHook.useChat).mockReturnValue({
+      conversation: {
+        id: 'c1',
+        partner: { id: 'f-bob', displayName: 'Bob', username: 'bob' },
+      },
+      messages: [
+        { id: 'm1', content: 'Message 1', senderId: 'u-me', sentAt: new Date().toISOString(), type: 'TEXT' },
+      ],
+      isLoadingInitial: false,
+      isLoadingMore: false,
+      hasMore: false,
+      isPartnerTyping: false,
+      sendMessage: mockSendMessage,
+      loadMoreMessages: mockLoadMoreMessages,
+      deleteMessage: mockDeleteMessage,
+      replyingToMessage: null,
+      setReplyingToMessage: mockSetReplyingToMessage,
+      sendTyping: mockSendTyping,
+    } as any);
+
+    render(<ChatRoomPage />);
+    expect(scrollIntoViewMock).toHaveBeenCalled();
+  });
+
+  it('handles back button navigation', () => {
+    vi.mocked(useChatHook.useChat).mockReturnValue({
+      conversation: {
+        id: 'c1',
+        partner: { id: 'f-bob', displayName: 'Bob', username: 'bob' },
+      },
+      messages: [],
+      isLoadingInitial: false,
+      isLoadingMore: false,
+      hasMore: false,
+      isPartnerTyping: false,
+      sendMessage: mockSendMessage,
+      loadMoreMessages: mockLoadMoreMessages,
+      deleteMessage: mockDeleteMessage,
+      replyingToMessage: null,
+      setReplyingToMessage: mockSetReplyingToMessage,
+      sendTyping: mockSendTyping,
+    } as any);
+
+    render(<ChatRoomPage />);
+    const backBtn = screen.getByRole('button', { name: 'Quay lại' });
+    fireEvent.click(backBtn);
+
+    expect(mockBack.mock.calls.length + mockPush.mock.calls.length).toBeGreaterThan(0);
+  });
+
+  it('handles partner profile navigation on partner header click', () => {
+    vi.mocked(useChatHook.useChat).mockReturnValue({
+      conversation: {
+        id: 'c1',
+        partner: { id: 'f-bob', displayName: 'Bob', username: 'bob' },
+      },
+      messages: [],
+      isLoadingInitial: false,
+      isLoadingMore: false,
+      hasMore: false,
+      isPartnerTyping: false,
+      sendMessage: mockSendMessage,
+      loadMoreMessages: mockLoadMoreMessages,
+      deleteMessage: mockDeleteMessage,
+      replyingToMessage: null,
+      setReplyingToMessage: mockSetReplyingToMessage,
+      sendTyping: mockSendTyping,
+    } as any);
+
+    render(<ChatRoomPage />);
+    const partnerBtn = screen.getByRole('button', { name: 'Xem thông tin Bob' });
+    fireEvent.click(partnerBtn);
+
+    expect(mockPush).toHaveBeenCalledWith('/u/bob');
+  });
+
+  it('renders partner typing indicator in top bar and message list', () => {
+    vi.mocked(useChatHook.useChat).mockReturnValue({
+      conversation: {
+        id: 'c1',
+        partner: { id: 'f-bob', displayName: 'Bob', username: 'bob' },
+      },
+      messages: [
+        { id: 'm1', content: 'Hey', senderId: 'u-me', sentAt: new Date().toISOString(), type: 'TEXT' },
+      ],
+      isLoadingInitial: false,
+      isLoadingMore: false,
+      hasMore: false,
+      isPartnerTyping: true,
+      sendMessage: mockSendMessage,
+      loadMoreMessages: mockLoadMoreMessages,
+      deleteMessage: mockDeleteMessage,
+      replyingToMessage: null,
+      setReplyingToMessage: mockSetReplyingToMessage,
+      sendTyping: mockSendTyping,
+    } as any);
+
+    render(<ChatRoomPage />);
+    expect(screen.getByText('đang soạn tin...')).toBeInTheDocument();
+    expect(screen.getByTestId('partner-typing-bubble')).toBeInTheDocument();
+  });
+
+  it('renders load more button when hasMore is true and handles loadMoreMessages', () => {
+    vi.mocked(useChatHook.useChat).mockReturnValue({
+      conversation: {
+        id: 'c1',
+        partner: { id: 'f-bob', displayName: 'Bob', username: 'bob' },
+      },
+      messages: [
+        { id: 'm1', content: 'Hey', senderId: 'u-me', sentAt: new Date().toISOString(), type: 'TEXT' },
+      ],
+      isLoadingInitial: false,
+      isLoadingMore: false,
+      hasMore: true,
+      isPartnerTyping: false,
+      sendMessage: mockSendMessage,
+      loadMoreMessages: mockLoadMoreMessages,
+      deleteMessage: mockDeleteMessage,
+      replyingToMessage: null,
+      setReplyingToMessage: mockSetReplyingToMessage,
+      sendTyping: mockSendTyping,
+    } as any);
+
+    render(<ChatRoomPage />);
+    const loadMoreBtn = screen.getByText('Tải thêm tin nhắn cũ');
+    expect(loadMoreBtn).toBeInTheDocument();
+
+    fireEvent.click(loadMoreBtn);
+    expect(mockLoadMoreMessages).toHaveBeenCalled();
+  });
+
+  it('handles revoke message action for everyone', () => {
+    const recentSentAt = new Date().toISOString();
+    vi.mocked(useChatHook.useChat).mockReturnValue({
+      conversation: {
+        id: 'c1',
+        partner: { id: 'f-bob', displayName: 'Bob', username: 'bob' },
+      },
+      messages: [
+        { id: 'm-mine', content: 'My recent message', senderId: 'u-me', sentAt: recentSentAt, type: 'TEXT' },
+      ],
+      isLoadingInitial: false,
+      isLoadingMore: false,
+      hasMore: false,
+      isPartnerTyping: false,
+      sendMessage: mockSendMessage,
+      loadMoreMessages: mockLoadMoreMessages,
+      deleteMessage: mockDeleteMessage,
+      replyingToMessage: null,
+      setReplyingToMessage: mockSetReplyingToMessage,
+      sendTyping: mockSendTyping,
+    } as any);
+
+    render(<ChatRoomPage />);
+    const revokeBtn = screen.getByRole('button', { name: 'Thu hồi' });
+    fireEvent.click(revokeBtn);
+
+    expect(mockDeleteMessage).toHaveBeenCalledWith('m-mine', 'FOR_EVERYONE');
+  });
+
+  it('handles delete for me action', () => {
+    vi.mocked(useChatHook.useChat).mockReturnValue({
+      conversation: {
+        id: 'c1',
+        partner: { id: 'f-bob', displayName: 'Bob', username: 'bob' },
+      },
+      messages: [
+        { id: 'm-bob', content: 'Message from bob', senderId: 'f-bob', sentAt: new Date().toISOString(), type: 'TEXT' },
+      ],
+      isLoadingInitial: false,
+      isLoadingMore: false,
+      hasMore: false,
+      isPartnerTyping: false,
+      sendMessage: mockSendMessage,
+      loadMoreMessages: mockLoadMoreMessages,
+      deleteMessage: mockDeleteMessage,
+      replyingToMessage: null,
+      setReplyingToMessage: mockSetReplyingToMessage,
+      sendTyping: mockSendTyping,
+    } as any);
+
+    render(<ChatRoomPage />);
+    const deleteForMeBtn = screen.getByRole('button', { name: 'Xóa ở phía tôi' });
+    fireEvent.click(deleteForMeBtn);
+
+    expect(mockDeleteMessage).toHaveBeenCalledWith('m-bob', 'FOR_ME');
+  });
+
+  it('propagates typing indicator state to sendTyping', () => {
+    vi.mocked(useChatHook.useChat).mockReturnValue({
+      conversation: {
+        id: 'c1',
+        partner: { id: 'f-bob', displayName: 'Bob', username: 'bob' },
+      },
+      messages: [],
+      isLoadingInitial: false,
+      isLoadingMore: false,
+      hasMore: false,
+      isPartnerTyping: false,
+      sendMessage: mockSendMessage,
+      loadMoreMessages: mockLoadMoreMessages,
+      deleteMessage: mockDeleteMessage,
+      replyingToMessage: null,
+      setReplyingToMessage: mockSetReplyingToMessage,
+      sendTyping: mockSendTyping,
+    } as any);
+
+    render(<ChatRoomPage />);
+    const input = screen.getByPlaceholderText('Nhập tin nhắn...');
+    fireEvent.change(input, { target: { value: 'Typing something...' } });
+
+    expect(mockSendTyping).toHaveBeenCalledWith(true);
+  });
+});
