@@ -72,6 +72,31 @@ export interface SendMessagePayload {
   photoContext?: PhotoContext | null;
 }
 
+export interface SendChatMessagePayload {
+  conversationId: string;
+  content: string;
+  type?: MessageType;
+  replyToMessageId?: string | null;
+  photoContext?: PhotoContext | null;
+}
+
+export interface TypingIndicatorPayload {
+  conversationId: string;
+  isTyping: boolean;
+}
+
+export interface MarkChatReadPayload {
+  conversationId: string;
+}
+
+export interface ErrorResponse {
+  status: number;
+  message: string;
+  timestamp?: string;
+  path?: string;
+  errors?: Record<string, string>;
+}
+
 export interface MarkReadResponse {
   conversationId: string;
   readAt: string;
