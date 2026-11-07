@@ -53,6 +53,9 @@ export default function ChatRoomPage() {
   } = useChat({ targetId });
 
   const bottomAnchorRef = useRef<HTMLDivElement | null>(null);
+  const lastMessageIdRef = useRef<string | null>(null);
+  const initialScrollDoneRef = useRef(false);
+  const prevIsPartnerTypingRef = useRef(false);
 
   // Cuộn tự động mượt mà tới cuối danh sách tin nhắn
   const scrollToBottom = useCallback((behavior: ScrollBehavior = 'smooth') => {
@@ -61,12 +64,48 @@ export default function ChatRoomPage() {
     }
   }, []);
 
-  // Kích hoạt cuộn khi hoàn tất tải tin ban đầu, khi có tin nhắn mới, hoặc khi đối phương typing
+  // Đặt lại các cờ cuộn khi đổi phòng chat
   useEffect(() => {
-    if (!isLoadingInitial) {
-      scrollToBottom();
+    initialScrollDoneRef.current = false;
+    lastMessageIdRef.current = null;
+    prevIsPartnerTypingRef.current = false;
+  }, [targetId]);
+
+  // Cuộn đáy khi tải xong lần đầu, khi có tin mới ở đáy, hoặc khi đối tác bắt đầu soạn tin
+  useEffect(() => {
+    if (isLoadingInitial) {
+      return;
     }
-  }, [messages.length, isPartnerTyping, isLoadingInitial, scrollToBottom]);
+
+    const currentLastMessage = messages[messages.length - 1];
+    const currentLastMessageId = currentLastMessage?.id ?? null;
+
+    // 1. Lần đầu tải xong danh sách tin nhắn
+    if (!initialScrollDoneRef.current) {
+      initialScrollDoneRef.current = true;
+      lastMessageIdRef.current = currentLastMessageId;
+      prevIsPartnerTypingRef.current = isPartnerTyping;
+      scrollToBottom('auto');
+      return;
+    }
+
+    // 2. Có tin nhắn mới được thêm vào đáy danh sách
+    if (currentLastMessageId && currentLastMessageId !== lastMessageIdRef.current) {
+      lastMessageIdRef.current = currentLastMessageId;
+      prevIsPartnerTypingRef.current = isPartnerTyping;
+      scrollToBottom('smooth');
+      return;
+    }
+
+    // Cập nhật ref nếu mảng tin rỗng hoặc tin nhắn cũ được thêm vào đầu (loadMoreMessages)
+    lastMessageIdRef.current = currentLastMessageId;
+
+    // 3. Đối phương bắt đầu soạn tin
+    if (isPartnerTyping && !prevIsPartnerTypingRef.current) {
+      scrollToBottom('smooth');
+    }
+    prevIsPartnerTypingRef.current = isPartnerTyping;
+  }, [messages, isPartnerTyping, isLoadingInitial, scrollToBottom]);
 
   // Xử lý nút quay lại
   const handleBack = useCallback(() => {
@@ -96,8 +135,9 @@ export default function ChatRoomPage() {
       } else {
         await sendMessage(text);
       }
+      scrollToBottom('smooth');
     },
-    [sendMessage, replyingToMessage, setReplyingToMessage]
+    [sendMessage, replyingToMessage, setReplyingToMessage, scrollToBottom]
   );
 
   // Bản đồ tìm kiếm nhanh tin nhắn được trích dẫn trả lời

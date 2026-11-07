@@ -75,7 +75,7 @@ export default function MessagesPage() {
       <div className="min-h-screen bg-[#EDE9DF] text-text-primary select-none flex flex-col items-center">
         <main
           data-testid="messages-hub-page"
-          className="w-full max-w-md mx-auto flex flex-col min-h-screen relative p-4"
+          className="w-full max-w-md mx-auto flex flex-col min-h-screen relative"
         >
           <FriendshipListSkeleton />
         </main>

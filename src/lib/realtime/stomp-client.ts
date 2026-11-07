@@ -283,48 +283,84 @@ export class ChatRealtimeClient {
     // 1. /user/queue/messages -> MessageResponse
     this.subscriptions.push(
       this.client.subscribe('/user/queue/messages', (message) => {
+        let payload: MessageResponse;
         try {
-          const payload: MessageResponse = JSON.parse(message.body);
-          this.messageListeners.forEach((listener) => listener(payload));
+          payload = JSON.parse(message.body);
         } catch (err) {
           console.error('[ChatRealtimeClient] Failed to parse message body:', err);
+          return;
         }
+
+        this.messageListeners.forEach((listener) => {
+          try {
+            listener(payload);
+          } catch (err) {
+            console.error('[ChatRealtimeClient] Error in message listener callback:', err);
+          }
+        });
       })
     );
 
     // 2. /user/queue/read-receipts -> ReadReceiptEvent
     this.subscriptions.push(
       this.client.subscribe('/user/queue/read-receipts', (message) => {
+        let payload: ReadReceiptEvent;
         try {
-          const payload: ReadReceiptEvent = JSON.parse(message.body);
-          this.readReceiptListeners.forEach((listener) => listener(payload));
+          payload = JSON.parse(message.body);
         } catch (err) {
           console.error('[ChatRealtimeClient] Failed to parse read receipt body:', err);
+          return;
         }
+
+        this.readReceiptListeners.forEach((listener) => {
+          try {
+            listener(payload);
+          } catch (err) {
+            console.error('[ChatRealtimeClient] Error in read receipt listener callback:', err);
+          }
+        });
       })
     );
 
     // 3. /user/queue/typing -> TypingIndicatorEvent
     this.subscriptions.push(
       this.client.subscribe('/user/queue/typing', (message) => {
+        let payload: TypingIndicatorEvent;
         try {
-          const payload: TypingIndicatorEvent = JSON.parse(message.body);
-          this.typingListeners.forEach((listener) => listener(payload));
+          payload = JSON.parse(message.body);
         } catch (err) {
           console.error('[ChatRealtimeClient] Failed to parse typing body:', err);
+          return;
         }
+
+        this.typingListeners.forEach((listener) => {
+          try {
+            listener(payload);
+          } catch (err) {
+            console.error('[ChatRealtimeClient] Error in typing listener callback:', err);
+          }
+        });
       })
     );
 
     // 4. /user/queue/errors -> ErrorResponse
     this.subscriptions.push(
       this.client.subscribe('/user/queue/errors', (message) => {
+        let payload: ErrorResponse;
         try {
-          const payload: ErrorResponse = JSON.parse(message.body);
-          this.errorListeners.forEach((listener) => listener(payload));
+          payload = JSON.parse(message.body);
         } catch (err) {
           console.error('[ChatRealtimeClient] Failed to parse error body:', err);
+          return;
         }
+
+        this.errorListeners.forEach((listener) => {
+          try {
+            listener(payload);
+          } catch (err) {
+            console.error('[ChatRealtimeClient] Error in error listener callback:', err);
+          }
+        });
       })
     );
   }

@@ -46,6 +46,7 @@ describe('MessagesPage (/messages)', () => {
 
     render(<MessagesPage />);
     expect(screen.getByTestId('friendship-list-skeleton')).toBeInTheDocument();
+    expect(screen.getByTestId('messages-hub-page').className).not.toContain('p-4');
   });
 
   it('renders empty state when items are empty and not loading', () => {

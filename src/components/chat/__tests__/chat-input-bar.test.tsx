@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, act } from '@testing-library/react';
+import { render, screen, act, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ChatInputBar } from '../ChatInputBar';
 import type { MessageResponse } from '@/types/chat';
@@ -60,6 +60,25 @@ describe('ChatInputBar Component', () => {
     await user.keyboard('{Enter}');
     expect(handleSend).toHaveBeenCalledWith('Tin nhắn test');
     expect(input).toHaveValue('');
+  });
+
+  it('does not send message on Enter keypress while IME is composing', async () => {
+    const handleSend = vi.fn();
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+
+    render(<ChatInputBar onSend={handleSend} />);
+
+    const input = screen.getByPlaceholderText('Nhập tin nhắn...');
+    await user.type(input, 'Tiếng Việt');
+
+    fireEvent.keyDown(input, {
+      key: 'Enter',
+      shiftKey: false,
+      isComposing: true,
+    });
+
+    expect(handleSend).not.toHaveBeenCalled();
+    expect(input).toHaveValue('Tiếng Việt');
   });
 
   it('renders reply preview banner when replyingTo is provided and cancels reply', async () => {

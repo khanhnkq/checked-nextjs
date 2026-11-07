@@ -189,6 +189,62 @@ describe('ChatRoomPage (/messages/[id])', () => {
     expect(scrollIntoViewMock).toHaveBeenCalled();
   });
 
+  it('does not re-scroll to bottom when older messages are prepended', () => {
+    const scrollIntoViewMock = vi.fn();
+    window.HTMLElement.prototype.scrollIntoView = scrollIntoViewMock;
+
+    const baseChatState = {
+      conversation: {
+        id: 'c1',
+        partner: { id: 'f-bob', displayName: 'Bob', username: 'bob' },
+      },
+      messages: [
+        { id: 'm2', content: 'Message 2', senderId: 'u-me', sentAt: new Date().toISOString(), type: 'TEXT' },
+      ],
+      isLoadingInitial: false,
+      isLoadingMore: false,
+      hasMore: true,
+      isPartnerTyping: false,
+      sendMessage: mockSendMessage,
+      loadMoreMessages: mockLoadMoreMessages,
+      deleteMessage: mockDeleteMessage,
+      replyingToMessage: null,
+      setReplyingToMessage: mockSetReplyingToMessage,
+      sendTyping: mockSendTyping,
+    };
+
+    vi.mocked(useChatHook.useChat).mockReturnValue(baseChatState as any);
+    const { rerender } = render(<ChatRoomPage />);
+
+    expect(scrollIntoViewMock).toHaveBeenCalledTimes(1);
+    scrollIntoViewMock.mockClear();
+
+    // Simulate prepending older message m1 at the beginning
+    vi.mocked(useChatHook.useChat).mockReturnValue({
+      ...baseChatState,
+      messages: [
+        { id: 'm1', content: 'Message 1 (older)', senderId: 'f-bob', sentAt: new Date().toISOString(), type: 'TEXT' },
+        { id: 'm2', content: 'Message 2', senderId: 'u-me', sentAt: new Date().toISOString(), type: 'TEXT' },
+      ],
+    } as any);
+
+    rerender(<ChatRoomPage />);
+    expect(scrollIntoViewMock).not.toHaveBeenCalled();
+
+    // Now simulate a new message m3 arriving at the bottom
+    vi.mocked(useChatHook.useChat).mockReturnValue({
+      ...baseChatState,
+      messages: [
+        { id: 'm1', content: 'Message 1 (older)', senderId: 'f-bob', sentAt: new Date().toISOString(), type: 'TEXT' },
+        { id: 'm2', content: 'Message 2', senderId: 'u-me', sentAt: new Date().toISOString(), type: 'TEXT' },
+        { id: 'm3', content: 'Message 3 (new)', senderId: 'f-bob', sentAt: new Date().toISOString(), type: 'TEXT' },
+      ],
+    } as any);
+
+    rerender(<ChatRoomPage />);
+    expect(scrollIntoViewMock).toHaveBeenCalledWith({ behavior: 'smooth' });
+  });
+
   it('handles back button navigation', () => {
     vi.mocked(useChatHook.useChat).mockReturnValue({
       conversation: {

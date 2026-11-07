@@ -293,6 +293,39 @@ describe('ChatRealtimeClient', () => {
     expect(messageListener).not.toHaveBeenCalled();
   });
 
+  it('isolates listener errors so failing listener callback does not stop subsequent listeners', () => {
+    const subscriptionMap = new Map<string, (msg: any) => void>();
+    mockSubscribe.mockImplementation((dest: string, callback: any) => {
+      subscriptionMap.set(dest, callback);
+      return { unsubscribe: vi.fn() };
+    });
+
+    const throwingListener = vi.fn().mockImplementation(() => {
+      throw new Error('Listener failed unexpectedly');
+    });
+    const succeedingListener = vi.fn();
+
+    client.onMessage(throwingListener);
+    client.onMessage(succeedingListener);
+
+    client.connect();
+    capturedClientConfig.onConnect();
+
+    const sampleMsg: MessageResponse = {
+      id: 'm-isolation',
+      conversationId: 'c1',
+      senderId: 'u-1',
+      type: 'TEXT',
+      content: 'Isolated callback test',
+      sentAt: '2026-11-07T12:00:00Z',
+    };
+
+    subscriptionMap.get('/user/queue/messages')?.({ body: JSON.stringify(sampleMsg) });
+
+    expect(throwingListener).toHaveBeenCalledWith(sampleMsg);
+    expect(succeedingListener).toHaveBeenCalledWith(sampleMsg);
+  });
+
   it('is SSR-safe and does not activate when window is undefined', () => {
     const originalWindow = globalThis.window;
     try {
