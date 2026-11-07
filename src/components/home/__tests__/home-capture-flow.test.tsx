@@ -38,6 +38,19 @@ vi.mock('@/hooks/usePhotoUpload', () => ({
   }),
 }));
 
+// Mock Conversations hook
+vi.mock('@/hooks/useConversations', () => ({
+  useConversations: () => ({
+    unreadTotal: 0,
+    items: [],
+    conversations: [],
+    isLoading: false,
+    isError: false,
+    friends: [],
+    refetch: vi.fn(),
+  }),
+}));
+
 // Mock WebRTC camera hook
 vi.mock('@/hooks/useWebRTCCamera', () => ({
   useWebRTCCamera: () => ({

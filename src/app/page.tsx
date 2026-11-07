@@ -24,6 +24,7 @@ import {
 } from '@/components/home';
 import { useWebRTCCamera } from '@/hooks/useWebRTCCamera';
 import { usePhotoUpload } from '@/hooks/usePhotoUpload';
+import { useConversations } from '@/hooks/useConversations';
 import { captureVideoFrame, cropImageFileToSquare } from '@/lib/media/canvas-capture';
 import { haptics } from '@/lib/utils/haptics';
 
@@ -99,6 +100,9 @@ export default function HomePage() {
 
   // Hook Đăng ảnh Multipart & Đồng bộ Feed (Phase 5)
   const { isUploading, uploadPhoto } = usePhotoUpload();
+
+  // Đồng bộ số lượng tin nhắn chưa đọc realtime cho HomeTopBar
+  const { unreadTotal } = useConversations({ enabled: !!user });
 
   const photos: StackedCardPhoto[] = useMemo(() => {
     const list = feedData?.content || [];
@@ -285,7 +289,7 @@ export default function HomePage() {
             currentUserAvatar={user?.avatarUrl}
             onAvatarClick={() => router.push('/profile')}
             onChatClick={() => router.push('/messages')}
-            chatBadgeCount={0}
+            chatBadgeCount={unreadTotal}
             friends={friends}
             selectedFriendId={selectedFriendId}
             onSelectFriend={setSelectedFriendId}
