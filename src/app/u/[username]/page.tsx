@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   ChevronLeft,
-  Crown,
   Check,
   UserX,
   Loader2,
@@ -67,9 +66,6 @@ function UserProfileSkeleton({
         >
           <ChevronLeft size={22} strokeWidth={2.5} />
         </button>
-        <span className="text-[17px] font-bold font-display text-text-primary truncate">
-          {username ? `@${username}` : ''}
-        </span>
         <div className="w-11 h-11" aria-hidden="true" />
       </header>
 
@@ -124,9 +120,6 @@ function UserProfileNotFound({
         >
           <ChevronLeft size={22} strokeWidth={2.5} />
         </button>
-        <span className="text-[17px] font-bold font-display text-text-primary truncate">
-          @{username}
-        </span>
         <div className="w-11 h-11" aria-hidden="true" />
       </header>
 
@@ -324,7 +317,7 @@ function UserProfileContent({ username }: { username: string }) {
         className="w-full max-w-md mx-auto flex flex-col min-h-screen px-4 pt-3 pb-8 select-none justify-between relative"
       >
       <div>
-        {/* 1. Header Bar: Nút Back tròn 44px + Tiêu đề @username */}
+        {/* 1. Header Bar: Nút Back tròn 44px */}
         <header className="h-11 flex items-center justify-between shrink-0 mb-6">
           <button
             type="button"
@@ -335,13 +328,10 @@ function UserProfileContent({ username }: { username: string }) {
           >
             <ChevronLeft size={22} strokeWidth={2.5} />
           </button>
-          <h1 className="text-[17px] font-bold font-display text-text-primary truncate">
-            @{cleanUsername}
-          </h1>
           <div className="w-11 h-11" aria-hidden="true" />
         </header>
 
-        {/* 2. Profile Card: Avatar 96x96, Fallback initials, Crown Gold, Tên, Username */}
+        {/* 2. Profile Card: Avatar 96x96, Fallback initials, Tên, Username */}
         <section aria-label="Thông tin người dùng" className="flex flex-col items-center text-center mt-2">
           {/* Avatar 96x96px */}
           <div className="relative w-24 h-24 mb-3">
@@ -362,17 +352,6 @@ function UserProfileContent({ username }: { username: string }) {
                 </span>
               )}
             </div>
-
-            {/* Vương miện vàng nếu là Gold Member */}
-            {profile.isGoldMember && (
-              <div
-                data-testid="gold-crown-badge"
-                title="Checked GOLD Member"
-                className="absolute -top-1 -right-1 w-7 h-7 rounded-full bg-[#E5A919] flex items-center justify-center text-[#141613]"
-              >
-                <Crown size={15} strokeWidth={2.4} className="fill-[#141613]" />
-              </div>
-            )}
           </div>
 
           {/* Họ tên hiển thị (24px font-bold font-display text-text-primary) */}

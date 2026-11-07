@@ -206,7 +206,7 @@ describe('UserProfilePage Integration (/u/[username])', () => {
   });
 
   describe('Profile Information Display', () => {
-    it('hiển thị đầy đủ thông tin: họ tên, username, avatar ảnh, và vương miện Gold', async () => {
+    it('hiển thị đầy đủ thông tin: họ tên, username, avatar ảnh', async () => {
       await renderWithClient(<UserProfilePage params={Promise.resolve({ username: 'vietnam_travel' })} />);
 
       await waitFor(() => {
@@ -214,7 +214,7 @@ describe('UserProfilePage Integration (/u/[username])', () => {
       });
 
       expect(screen.getAllByText('@vietnam_travel').length).toBeGreaterThanOrEqual(1);
-      expect(screen.getByTestId('gold-crown-badge')).toBeInTheDocument();
+      expect(screen.queryByTestId('gold-crown-badge')).not.toBeInTheDocument();
 
       const avatarImg = screen.getByRole('img', { name: /du lịch việt/i });
       expect(avatarImg).toHaveAttribute('src', sampleProfile.avatarUrl);
