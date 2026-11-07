@@ -63,12 +63,11 @@ export default function ProfilePage() {
       >
         <div className="space-y-6 pt-2">
           {/* TopBar Skeleton */}
-          <div className="flex justify-between items-center h-11">
-            <SkeletonBone width={40} height={40} className="rounded-full" />
-            <SkeletonBone width={130} height={32} className="rounded-full" />
+          <div className="flex justify-between items-center h-14">
+            <SkeletonBone width={44} height={44} className="rounded-full" />
             <div className="flex gap-2">
-              <SkeletonBone width={40} height={40} className="rounded-full" />
-              <SkeletonBone width={40} height={40} className="rounded-full" />
+              <SkeletonBone width={44} height={44} className="rounded-full" />
+              <SkeletonBone width={44} height={44} className="rounded-full" />
             </div>
           </div>
 

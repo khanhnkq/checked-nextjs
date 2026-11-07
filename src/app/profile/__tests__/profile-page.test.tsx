@@ -136,7 +136,16 @@ describe('ProfilePage Integration', () => {
     expect(screen.getByTestId('profile-page-main')).toBeInTheDocument();
 
     // TopBar
-    expect(screen.getByText('Checked GOLD')).toBeInTheDocument();
+    expect(screen.queryByText('Checked GOLD')).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Quay lại' })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Bạn bè' })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Cài đặt' })
+    ).toBeInTheDocument();
 
     // Header
     expect(screen.getByText('Quốc Khánh')).toBeInTheDocument();
@@ -239,7 +248,7 @@ describe('ProfilePage Integration', () => {
 
     // Click nút Đóng (quay lại trang chủ)
     const closeBtn = screen.getByRole('button', {
-      name: 'Thoát về Camera',
+      name: 'Quay lại',
     });
     fireEvent.click(closeBtn);
     expect(mockPush).toHaveBeenCalledWith('/');
