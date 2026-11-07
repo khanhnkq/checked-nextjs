@@ -32,25 +32,69 @@ function buildTargetUrl(rawBaseUrl: string, url: string): URL {
   return new URL(base + cleanUrl);
 }
 
-/**
- * Custom Fetcher chuẩn hóa cho Orval và mọi API request
- * Sử dụng env.apiBaseUrl nghiêm ngặt. Nếu NEXT_PUBLIC_API_BASE_URL bị trống sẽ ném lỗi ngay lập tức.
- */
-export async function customFetcher<T>({
-  url,
-  method,
-  params,
-  data,
-  headers: customHeaders,
-  signal,
-}: {
+export interface CustomFetcherOptions {
   url: string;
   method: string;
   params?: any;
   data?: any;
   headers?: any;
   signal?: AbortSignal;
-}): Promise<T> {
+}
+
+export interface CustomFetcherInit {
+  method?: string;
+  params?: any;
+  data?: any;
+  body?: any;
+  headers?: any;
+  signal?: AbortSignal;
+}
+
+/**
+ * Custom Fetcher chuẩn hóa cho Orval và mọi API request
+ * Sử dụng env.apiBaseUrl nghiêm ngặt. Nếu NEXT_PUBLIC_API_BASE_URL bị trống sẽ ném lỗi ngay lập tức.
+ */
+export async function customFetcher<T>(url: string, init?: CustomFetcherInit): Promise<T>;
+export async function customFetcher<T>(options: CustomFetcherOptions): Promise<T>;
+export async function customFetcher<T>(
+  urlOrOptions: string | CustomFetcherOptions,
+  init?: CustomFetcherInit
+): Promise<T> {
+  let url: string;
+  let method: string = 'GET';
+  let params: any;
+  let data: any;
+  let customHeaders: any;
+  let signal: AbortSignal | undefined;
+
+  if (typeof urlOrOptions === 'string') {
+    url = urlOrOptions;
+    method = init?.method || 'GET';
+    params = init?.params;
+    customHeaders = init?.headers;
+    signal = init?.signal;
+    if (init?.body !== undefined) {
+      if (typeof init.body === 'string') {
+        try {
+          data = JSON.parse(init.body);
+        } catch {
+          data = init.body;
+        }
+      } else {
+        data = init.body;
+      }
+    } else if (init?.data !== undefined) {
+      data = init.data;
+    }
+  } else {
+    url = urlOrOptions.url;
+    method = urlOrOptions.method || 'GET';
+    params = urlOrOptions.params;
+    data = urlOrOptions.data;
+    customHeaders = urlOrOptions.headers;
+    signal = urlOrOptions.signal;
+  }
+
   const baseUrl = env.apiBaseUrl;
   const targetUrl = buildTargetUrl(baseUrl, url);
 
@@ -120,7 +164,13 @@ export async function customFetcher<T>({
     headers.set('Content-Type', 'application/json');
   }
 
-  const body = isFormData ? data : data !== undefined ? JSON.stringify(data) : undefined;
+  const body = isFormData
+    ? data
+    : typeof data === 'string'
+    ? data
+    : data !== undefined
+    ? JSON.stringify(data)
+    : undefined;
 
   let response: Response;
   try {
