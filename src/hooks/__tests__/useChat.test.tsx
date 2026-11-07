@@ -574,4 +574,120 @@ describe('useChat', () => {
       isTyping: false,
     });
   });
+
+  it('terminates loadMoreMessages when nextCursor is null even if hasMore is true', async () => {
+    vi.mocked(chatApi.getConversationMessages).mockResolvedValueOnce({
+      messages: [
+        {
+          id: 'm1',
+          content: 'Boundary msg',
+          sentAt: '2026-11-07T12:00:00Z',
+          type: 'TEXT',
+          senderId: 'u-other',
+          conversationId: 'conv-999',
+        },
+      ],
+      nextCursor: null,
+      hasMore: true,
+    });
+
+    const { result } = renderHook(() => useChat({ targetId: mockFriendId }), {
+      wrapper: createWrapper(),
+    });
+    await waitFor(() => expect(result.current.isLoadingInitial).toBe(false));
+
+    expect(chatApi.getConversationMessages).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      await result.current.loadMoreMessages();
+    });
+
+    // Should no-op because nextCursor === null
+    expect(chatApi.getConversationMessages).toHaveBeenCalledTimes(1);
+  });
+
+  it('resets messages, pagination, and typing state when targetId changes', async () => {
+    const friendA = 'f-123';
+    const friendB = 'f-456';
+    const convA = { id: 'conv-111', partner: { id: friendA, displayName: 'Alice' } };
+    const convB = { id: 'conv-222', partner: { id: friendB, displayName: 'Bob' } };
+
+    vi.mocked(chatApi.getOrCreateConversation).mockImplementation(async (id) => {
+      if (id === friendA) return convA as any;
+      if (id === friendB) return convB as any;
+      throw new Error('Unknown friend');
+    });
+
+    vi.mocked(chatApi.getConversationMessages).mockImplementation(async (convId) => {
+      if (convId === 'conv-111') {
+        return {
+          messages: [
+            {
+              id: 'm-a',
+              content: 'Alice msg',
+              sentAt: '2026-11-07T10:00:00Z',
+              type: 'TEXT',
+              senderId: friendA,
+              conversationId: 'conv-111',
+            },
+          ],
+          nextCursor: 'cursor-a',
+          hasMore: true,
+        };
+      }
+      return {
+        messages: [
+          {
+            id: 'm-b',
+            content: 'Bob msg',
+            sentAt: '2026-11-07T11:00:00Z',
+            type: 'TEXT',
+            senderId: friendB,
+            conversationId: 'conv-222',
+          },
+        ],
+        nextCursor: null,
+        hasMore: false,
+      };
+    });
+
+    const { result, rerender } = renderHook(
+      ({ targetId }) => useChat({ targetId }),
+      {
+        wrapper: createWrapper(),
+        initialProps: { targetId: friendA },
+      }
+    );
+
+    await waitFor(() => expect(result.current.isLoadingInitial).toBe(false));
+    expect(result.current.conversation?.id).toBe('conv-111');
+    expect(result.current.messages[0].id).toBe('m-a');
+    expect(result.current.hasMore).toBe(true);
+
+    // Set replyingToMessage in room A
+    act(() => {
+      result.current.setReplyingToMessage(result.current.messages[0]);
+    });
+    expect(result.current.replyingToMessage?.id).toBe('m-a');
+
+    // Partner A typing
+    act(() => {
+      mockTypingListeners.forEach((listener) =>
+        listener({ conversationId: 'conv-111', userId: friendA, isTyping: true })
+      );
+    });
+    expect(result.current.isPartnerTyping).toBe(true);
+
+    // Navigate to Room B
+    rerender({ targetId: friendB });
+
+    // State should reset immediately
+    expect(result.current.replyingToMessage).toBeNull();
+    expect(result.current.isPartnerTyping).toBe(false);
+
+    await waitFor(() => expect(result.current.conversation?.id).toBe('conv-222'));
+    await waitFor(() => expect(result.current.messages[0]?.id).toBe('m-b'));
+    expect(result.current.messages.find((m) => m.id === 'm-a')).toBeUndefined();
+    expect(result.current.hasMore).toBe(false);
+  });
 });

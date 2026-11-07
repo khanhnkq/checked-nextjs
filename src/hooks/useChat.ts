@@ -183,17 +183,72 @@ export function useChat(options: UseChatOptions): UseChatReturn {
   const lastTypingSentRef = useRef<number>(0);
   const typingDebounceRef = useRef<NodeJS.Timeout | null>(null);
   const markedAsReadConvIdRef = useRef<string | null>(null);
+  const lastLoadedInitialConvIdRef = useRef<string | null>(null);
 
-  // Sync initial query messages to local state
+  // Reset room state when switching between targetIds
+  useEffect(() => {
+    setMessages([]);
+    setHasMore(false);
+    setNextCursor(null);
+    setReplyingToMessage(null);
+    setIsPartnerTyping(false);
+    markedAsReadConvIdRef.current = null;
+    lastLoadedInitialConvIdRef.current = null;
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+      typingTimeoutRef.current = null;
+    }
+    if (typingDebounceRef.current) {
+      clearTimeout(typingDebounceRef.current);
+      typingDebounceRef.current = null;
+    }
+  }, [targetId]);
+
+  // Clean up timers on unmount
+  useEffect(() => {
+    return () => {
+      if (typingDebounceRef.current) {
+        clearTimeout(typingDebounceRef.current);
+        typingDebounceRef.current = null;
+      }
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+        typingTimeoutRef.current = null;
+      }
+    };
+  }, []);
+
+  // Sync initial query messages to local state, preserving any older loaded messages
   useEffect(() => {
     if (initialMessagesQuery.data && conversationId) {
       const incoming = initialMessagesQuery.data.messages || [];
-      const sorted = [...incoming].sort(
-        (a, b) => new Date(a.sentAt).getTime() - new Date(b.sentAt).getTime()
-      );
-      setMessages(sorted);
-      setHasMore(Boolean(initialMessagesQuery.data.hasMore));
-      setNextCursor(initialMessagesQuery.data.nextCursor ?? null);
+      const isFirstLoadForRoom = lastLoadedInitialConvIdRef.current !== conversationId;
+
+      setMessages((prev) => {
+        if (
+          isFirstLoadForRoom ||
+          prev.length === 0 ||
+          prev.some((m) => m.conversationId !== conversationId)
+        ) {
+          return [...incoming].sort(
+            (a, b) => new Date(a.sentAt).getTime() - new Date(b.sentAt).getTime()
+          );
+        }
+
+        // Subsequent refetch: merge incoming initial messages with existing older messages
+        const incomingIds = new Set(incoming.map((m) => m.id));
+        const olderPreserved = prev.filter((m) => !incomingIds.has(m.id));
+        const merged = [...olderPreserved, ...incoming];
+        return merged.sort(
+          (a, b) => new Date(a.sentAt).getTime() - new Date(b.sentAt).getTime()
+        );
+      });
+
+      if (isFirstLoadForRoom) {
+        setHasMore(Boolean(initialMessagesQuery.data.hasMore));
+        setNextCursor(initialMessagesQuery.data.nextCursor ?? null);
+        lastLoadedInitialConvIdRef.current = conversationId;
+      }
     }
   }, [initialMessagesQuery.data, conversationId]);
 
@@ -333,7 +388,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
 
   // 6. Reverse cursor pagination: load older messages
   const loadMoreMessages = useCallback(async () => {
-    if (!conversationId || isLoadingMore || !hasMore) {
+    if (!conversationId || isLoadingMore || !hasMore || nextCursor === null) {
       return;
     }
 
