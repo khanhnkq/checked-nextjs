@@ -39,26 +39,26 @@
 - Create: `src/stores/permission-store.ts`
 - Create: `src/stores/__tests__/permission-store.test.ts`
 
-- [ ] **Step 1: Viết test cho `permission-store`**
+- [x] **Step 1: Viết test cho `permission-store`**
   Tạo `src/stores/__tests__/permission-store.test.ts` kiểm tra:
   - Khởi tạo giá trị mặc định từ `localStorage` (`camera: 'prompt'`, `location: 'prompt'`).
   - Hàm `setPermission('camera', 'granted')` lưu vào store và đồng bộ `localStorage`.
   - Hàm `setPermission('location', 'granted')` lưu vào store và đồng bộ `localStorage`.
   - Cờ `hasAskedCamera` và `hasAskedLocation` được lưu bền vững sau lần hỏi đầu tiên.
   - Hàm `checkSystemPermissions()` kiểm tra qua `navigator.permissions.query` cho cả `'camera'` và `'geolocation'`.
-- [ ] **Step 2: Chạy test xác nhận fail (Red)**
+- [x] **Step 2: Chạy test xác nhận fail (Red)**
   ```bash
   npx vitest run src/stores/__tests__/permission-store.test.ts
   ```
-- [ ] **Step 3: Hiện thực `permission-store.ts`**
+- [x] **Step 3: Hiện thực `permission-store.ts`**
   - Quản trị state: `permissions: { camera, location }`, `hasAsked: { camera, location }`, `cachedLocation`.
   - Đồng bộ `localStorage` với key `checked_permissions_v1` và `checked_last_location`.
   - Safe check cho SSR / môi trường không có `window`.
-- [ ] **Step 4: Chạy test xác nhận pass (Green)**
+- [x] **Step 4: Chạy test xác nhận pass (Green)**
   ```bash
   npx vitest run src/stores/__tests__/permission-store.test.ts
   ```
-- [ ] **Step 5: Commit thay đổi Task 1**
+- [x] **Step 5: Commit thay đổi Task 1**
   ```bash
   git add src/stores/permission-store.ts src/stores/__tests__/permission-store.test.ts
   git commit -m "feat(permissions): implement unified permission store for camera and location"
