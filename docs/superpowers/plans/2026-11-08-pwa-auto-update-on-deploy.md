@@ -36,26 +36,26 @@
 - Modify: `package.json`
 - Test: `scripts/__tests__/generate-sw.test.mjs`
 
-- [ ] **Step 1: Viết test kiểm tra logic sinh version và file SW**
+- [x] **Step 1: Viết test kiểm tra logic sinh version và file SW**
   Tạo `scripts/__tests__/generate-sw.test.mjs` kiểm tra:
   - Script tạo ra `public/version.json` chứa `version`, `builtAt`, `gitCommit`.
   - Script tạo ra `public/sw.js` chứa chuỗi `CACHE_NAME` duy nhất với version tương ứng, có `skipWaiting()` và `clients.claim()`.
-- [ ] **Step 2: Chạy test để xác nhận test thất bại (Red)**
+- [x] **Step 2: Chạy test để xác nhận test thất bại (Red)**
   ```bash
   node --test scripts/__tests__/generate-sw.test.mjs
   ```
-- [ ] **Step 3: Hiện thực `scripts/generate-sw.mjs`**
+- [x] **Step 3: Hiện thực `scripts/generate-sw.mjs`**
   - Lấy hash từ `process.env.VERCEL_GIT_COMMIT_SHA` hoặc sinh timestamp `build-${Date.now()}`.
   - Ghi file `public/version.json`.
   - Template hóa `public/sw.js` tối ưu hóa cho iOS WebKit & Android (dọn dẹp cache cũ, cache tài nguyên tĩnh, bỏ qua cache redirect lỗi trên iOS).
-- [ ] **Step 4: Cập nhật `package.json`**
+- [x] **Step 4: Cập nhật `package.json`**
   Thêm `prebuild: "node scripts/generate-sw.mjs"` vào `scripts` của `package.json` để tự động chạy trước mọi lệnh `npm run build`.
-- [ ] **Step 5: Chạy test và xác nhận pass (Green)**
+- [x] **Step 5: Chạy test và xác nhận pass (Green)**
   ```bash
   node scripts/generate-sw.mjs
   node --test scripts/__tests__/generate-sw.test.mjs
   ```
-- [ ] **Step 6: Commit thay đổi Task 1**
+- [x] **Step 6: Commit thay đổi Task 1**
   ```bash
   git add scripts/ package.json public/
   git commit -m "feat(pwa): add dynamic service worker and version generation at build time"
