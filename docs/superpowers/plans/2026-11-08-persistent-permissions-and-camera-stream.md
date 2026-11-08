@@ -176,24 +176,24 @@
 - Modify: `src/app/settings/page.tsx`
 - Test: `src/app/settings/__tests__/settings-permissions-management.test.tsx`
 
-- [ ] **Step 1: Viết test cho mục Quản lý Quyền trong Settings**
+- [x] **Step 1: Viết test cho mục Quản lý Quyền trong Settings**
   Tạo `src/app/settings/__tests__/settings-permissions-management.test.tsx` kiểm tra:
   - Hiển thị mục "Quyền ứng dụng & Thiết bị".
   - Hiển thị trạng thái Camera: [Đã cấp quyền ✓] hoặc [Chưa cấp / Bật].
   - Hiển thị trạng thái Vị trí: [Đã cấp quyền ✓] hoặc [Chưa cấp / Bật].
   - Hiển thị khối hướng dẫn lưu quyền vĩnh viễn trên iPhone (Safari > aA > Website Settings).
-- [ ] **Step 2: Chạy test xác nhận fail (Red)**
+- [x] **Step 2: Chạy test xác nhận fail (Red)**
   ```bash
   npx vitest run src/app/settings/__tests__/settings-permissions-management.test.tsx
   ```
-- [ ] **Step 3: Cập nhật `src/app/settings/page.tsx`**
+- [x] **Step 3: Cập nhật `src/app/settings/page.tsx`**
   - Thêm thẻ quản trị quyền sử dụng dữ liệu từ `usePermissionStore`.
   - Thiết kế tinh tế chuẩn Checked (Zero Border, Zero Shadow, `#FAF8F5`).
-- [ ] **Step 4: Chạy test xác nhận pass (Green)**
+- [x] **Step 4: Chạy test xác nhận pass (Green)**
   ```bash
   npx vitest run src/app/settings/__tests__/settings-permissions-management.test.tsx
   ```
-- [ ] **Step 5: Commit thay đổi Task 5**
+- [x] **Step 5: Commit thay đổi Task 5**
   ```bash
   git add src/app/settings/page.tsx src/app/settings/__tests__/settings-permissions-management.test.tsx
   git commit -m "feat(settings): add permissions management card and iOS Safari permanent permission guide"
