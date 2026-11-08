@@ -14,9 +14,14 @@ import {
   Volume2,
   Download,
   RefreshCw,
+  Camera,
+  MapPin,
+  Smartphone,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth-store';
 import { usePreferencesStore } from '@/stores/preferences-store';
+import { usePermissionStore } from '@/stores/permission-store';
+import { useCameraContext } from '@/contexts/CameraContext';
 import { useSettingsActions } from '@/hooks/useSettingsActions';
 import {
   SettingsTopBar,
@@ -57,6 +62,49 @@ export default function SettingsPage() {
     toggleSound,
     toggleAutoSavePhotos,
   } = usePreferencesStore();
+
+  const { permissions, setPermission, setCachedLocation } = usePermissionStore();
+  const { startCamera } = useCameraContext();
+
+  // Yêu cầu quyền Camera
+  const handleRequestCamera = useCallback(async () => {
+    haptics.light();
+    try {
+      await startCamera();
+      haptics.success();
+    } catch {
+      haptics.error();
+    }
+  }, [startCamera]);
+
+  // Yêu cầu quyền Vị trí
+  const handleRequestLocation = useCallback(() => {
+    haptics.light();
+    if (typeof navigator !== 'undefined' && 'geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setPermission('location', 'granted');
+          setCachedLocation({
+            coords: {
+              latitude: pos.coords.latitude,
+              longitude: pos.coords.longitude,
+              accuracy: pos.coords.accuracy,
+            },
+            locationName: 'Vị trí hiện tại',
+            timestamp: Date.now(),
+          });
+          haptics.success();
+        },
+        (err) => {
+          if (err.code === err.PERMISSION_DENIED) {
+            setPermission('location', 'denied');
+          }
+          haptics.error();
+        },
+        { timeout: 10000, enableHighAccuracy: true }
+      );
+    }
+  }, [setPermission, setCachedLocation]);
 
   // Local states quản lý mở/đóng các bottom sheets và confirm dialog
   const [isNameSheetOpen, setIsNameSheetOpen] = useState(false);
@@ -253,6 +301,132 @@ export default function SettingsPage() {
               switchChecked={autoSavePhotos}
               onSwitchChange={toggleAutoSavePhotos}
             />
+          </SettingsSection>
+
+          {/* Section: QUYỀN ỨNG DỤNG & THIẾT BỊ */}
+          <SettingsSection title="Quyền ứng dụng & Thiết bị">
+            <div className="bg-[#FAF8F5] text-[#2C2825] p-4 flex flex-col gap-4">
+              {/* Item 1: Camera */}
+              <div
+                data-testid="permission-camera-item"
+                className="flex items-center justify-between"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-black/5 flex items-center justify-center shrink-0 text-text-primary">
+                    <Camera size={18} strokeWidth={2.2} />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[15px] font-medium leading-snug">
+                      Quyền Camera
+                    </span>
+                    <span className="text-[12px] text-text-secondary leading-tight">
+                      Dùng để chụp ảnh locket gửi bạn bè
+                    </span>
+                  </div>
+                </div>
+
+                <div className="shrink-0 flex items-center">
+                  {permissions.camera === 'granted' ? (
+                    <span
+                      data-testid="permission-status-badge"
+                      className="text-[12px] font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full flex items-center gap-1"
+                    >
+                      Đã cho phép ✓
+                    </span>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <span className="text-[12px] text-text-secondary">Chưa cấp quyền</span>
+                      <button
+                        type="button"
+                        onClick={handleRequestCamera}
+                        className="bg-[#D9E872] text-[#2C2825] text-[12px] font-semibold px-3 py-1.5 rounded-full active:scale-95 transition-transform cursor-pointer"
+                        aria-label="Cấp quyền Camera"
+                      >
+                        Bật Camera
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Inset separator (pure tonal, zero border) */}
+              <div className="pl-[44px] w-full">
+                <div className="h-[1px] bg-black/5 w-full" />
+              </div>
+
+              {/* Item 2: Vị trí */}
+              <div
+                data-testid="permission-location-item"
+                className="flex items-center justify-between"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-black/5 flex items-center justify-center shrink-0 text-text-primary">
+                    <MapPin size={18} strokeWidth={2.2} />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[15px] font-medium leading-snug">
+                      Quyền Vị trí
+                    </span>
+                    <span className="text-[12px] text-text-secondary leading-tight">
+                      Gắn thẻ địa điểm vào ảnh chụp
+                    </span>
+                  </div>
+                </div>
+
+                <div className="shrink-0 flex items-center">
+                  {permissions.location === 'granted' ? (
+                    <span
+                      data-testid="permission-status-badge"
+                      className="text-[12px] font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full flex items-center gap-1"
+                    >
+                      Đã cho phép ✓
+                    </span>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <span className="text-[12px] text-text-secondary">Chưa cấp quyền</span>
+                      <button
+                        type="button"
+                        onClick={handleRequestLocation}
+                        className="bg-[#D9E872] text-[#2C2825] text-[12px] font-semibold px-3 py-1.5 rounded-full active:scale-95 transition-transform cursor-pointer"
+                        aria-label="Cấp quyền Vị trí"
+                      >
+                        Bật Vị trí
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* iOS Safari Permanent Permission Guide Card */}
+              <div
+                data-testid="ios-permission-guide"
+                className="bg-[#FAF8F5] p-3.5 rounded-[18px] bg-black/[0.03] flex flex-col gap-2 mt-1"
+              >
+                <div className="flex items-center gap-2">
+                  <Smartphone size={16} strokeWidth={2.2} className="text-[#2C2825]" />
+                  <span className="text-[13px] font-bold text-[#2C2825]">
+                    Hướng dẫn cấp quyền vĩnh viễn trên iPhone
+                  </span>
+                </div>
+                <p className="text-[12px] text-text-secondary leading-relaxed">
+                  Để Safari không hỏi lại quyền mỗi lần truy cập:
+                </p>
+                <div className="text-[12px] text-[#2C2825] bg-black/5 p-2.5 rounded-[12px] flex flex-col gap-1 font-mono">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="font-semibold text-text-primary">Safari</span>
+                    <span className="text-black/40">&gt;</span>
+                    <span className="font-semibold text-text-primary">aA</span>
+                    <span className="text-black/40">&gt;</span>
+                    <span className="font-semibold text-text-primary">Cài đặt trang web</span>
+                    <span className="text-black/40">&gt;</span>
+                    <span className="font-semibold text-emerald-700">Camera: Cho phép</span>
+                  </div>
+                </div>
+                <p className="text-[11px] text-text-secondary/80">
+                  Áp dụng tương tự cho mục Vị trí: chọn &ldquo;Cho phép&rdquo; để không bị hỏi lại.
+                </p>
+              </div>
+            </div>
           </SettingsSection>
 
           {/* Section 4: PHIÊN BẢN & CẬP NHẬT */}
