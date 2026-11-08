@@ -2,17 +2,24 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { isTokenExpired } from '@/lib/auth/jwt';
 
-const PUBLIC_PATHS = ['/login', '/register', '/verify-otp'];
+const PUBLIC_PATHS = [
+  '/login',
+  '/register',
+  '/verify-otp',
+  '/complete-profile',
+  '/offline',
+];
 
 export function middleware(request: NextRequest) {
   const { pathname, searchParams } = request.nextUrl;
 
-  // 1. Bỏ qua các file static, nội bộ Next.js và public API
+  // 1. Bỏ qua các file static, nội bộ Next.js, public API và semi-public paths
   if (
     pathname.startsWith('/_next') ||
     pathname.startsWith('/api/') ||
     pathname.includes('.') ||
-    pathname.startsWith('/invite')
+    pathname.startsWith('/invite') ||
+    pathname.startsWith('/u/')
   ) {
     return NextResponse.next();
   }
