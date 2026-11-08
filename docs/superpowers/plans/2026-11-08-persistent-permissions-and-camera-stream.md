@@ -74,29 +74,29 @@
 - Modify: `src/app/layout.tsx`
 - Modify: `src/app/page.tsx`
 
-- [ ] **Step 1: Viết test cho `CameraContext`**
+- [x] **Step 1: Viết test cho `CameraContext`**
   Tạo `src/contexts/__tests__/CameraContext.test.tsx` kiểm tra:
   - Giữ luồng `MediaStream` hoạt động xuyên suốt khi component con mount/unmount.
   - Khi chuyển trang (unmount), luồng video KHÔNG bị hủy (tracks không bị stop).
   - Cung cấp đầy đủ interface của `useWebRTCCamera`: `stream`, `videoRef`, `status`, `startCamera`, `stopCamera`, `toggleFacingMode`, `toggleFlash`, `toggleZoom`.
   - Tự động cập nhật `usePermissionStore` khi camera được cấp quyền (`'granted'`) hoặc bị từ chối (`'denied'`).
-- [ ] **Step 2: Chạy test xác nhận fail (Red)**
+- [x] **Step 2: Chạy test xác nhận fail (Red)**
   ```bash
   npx vitest run src/contexts/__tests__/CameraContext.test.tsx
   ```
-- [ ] **Step 3: Hiện thực `CameraContext.tsx`**
+- [x] **Step 3: Hiện thực `CameraContext.tsx`**
   - Chuyển logic từ `useWebRTCCamera` vào Provider cấp cao.
   - Cung cấp hook `useCameraContext()`.
   - Tích hợp với `usePermissionStore`: nếu `camera === 'granted'`, tự động khôi phục stream.
-- [ ] **Step 4: Tích hợp `CameraProvider` vào `src/app/layout.tsx`**
+- [x] **Step 4: Tích hợp `CameraProvider` vào `src/app/layout.tsx`**
   Bao bọc `children` bên trong `<CameraProvider>`.
-- [ ] **Step 5: Cập nhật `src/app/page.tsx` sử dụng `useCameraContext()`**
+- [x] **Step 5: Cập nhật `src/app/page.tsx` sử dụng `useCameraContext()`**
   Thay thế hook `useWebRTCCamera({ autoStart: true })` cục bộ bằng `useCameraContext()`.
-- [ ] **Step 6: Chạy test xác nhận pass (Green)**
+- [x] **Step 6: Chạy test xác nhận pass (Green)**
   ```bash
   npx vitest run src/contexts/__tests__/CameraContext.test.tsx
   ```
-- [ ] **Step 7: Commit thay đổi Task 2**
+- [x] **Step 7: Commit thay đổi Task 2**
   ```bash
   git add src/contexts/ src/app/layout.tsx src/app/page.tsx
   git commit -m "feat(camera): implement global CameraProvider singleton to eliminate repetitive permission prompts"
