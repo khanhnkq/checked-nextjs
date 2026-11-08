@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { Providers } from './providers';
-import { ServiceWorkerRegister } from '@/components/pwa';
+import { PwaUpdateManager } from '@/components/pwa';
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -45,7 +45,7 @@ export default function RootLayout({
     <html lang="vi" className="bg-[#EDE9DF]">
       <body className="bg-[#EDE9DF] text-[#141613] antialiased min-h-screen selection:bg-[#D4EB70] selection:text-[#141613]">
         <Providers>
-          <ServiceWorkerRegister />
+          <PwaUpdateManager />
           <main className="w-full min-h-screen relative flex flex-col">
             {children}
           </main>
