@@ -28,7 +28,6 @@ export function generateServiceWorkerContent(version, builtAt) {
 const CACHE_NAME = 'checked-pwa-${version}';
 
 const PRECACHE_ASSETS = [
-  '/',
   '/offline',
   '/manifest.webmanifest',
   '/icons/icon-192x192.png',

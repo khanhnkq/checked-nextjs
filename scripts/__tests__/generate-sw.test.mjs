@@ -4,7 +4,7 @@ import path from 'node:path';
 import os from 'node:os';
 import { execSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { generateSw } from '../generate-sw.mjs';
+import { generateSw, generateServiceWorkerContent } from '../generate-sw.mjs';
 
 const isVitest = Boolean(process.env.VITEST);
 
@@ -78,20 +78,49 @@ describe('generate-sw script', () => {
     );
   });
 
+  it('không chứa "/" trong PRECACHE_ASSETS nhưng vẫn chứa /offline, manifest và icons', () => {
+    const swContent = generateServiceWorkerContent('test-version', new Date().toISOString());
+
+    // Trích xuất mảng PRECACHE_ASSETS từ nội dung swContent
+    const precacheMatch = swContent.match(/const\s+PRECACHE_ASSETS\s*=\s*\[([\s\S]*?)\];/);
+    assert.ok(precacheMatch, 'sw.js phải định nghĩa PRECACHE_ASSETS');
+
+    const precacheBlock = precacheMatch[1];
+    const precacheItems = precacheBlock
+      .split('\n')
+      .map((line) => line.trim().replace(/^['"]|['"],?$/g, ''))
+      .filter((line) => line.length > 0 && !line.startsWith('//'));
+
+    // Kiểm tra KHÔNG chứa '/'
+    assert.ok(
+      !precacheItems.includes('/'),
+      'PRECACHE_ASSETS KHÔNG được chứa "/" để tránh cache nhầm private home shell'
+    );
+    assert.ok(
+      !swContent.includes("  '/',") && !swContent.includes('  "/",'),
+      'swContent không được chứa dòng precache "/"'
+    );
+
+    // Kiểm tra PHẢI chứa '/offline', '/manifest.webmanifest' và icons
+    assert.ok(precacheItems.includes('/offline'), 'PRECACHE_ASSETS phải chứa "/offline"');
+    assert.ok(precacheItems.includes('/manifest.webmanifest'), 'PRECACHE_ASSETS phải chứa "/manifest.webmanifest"');
+    assert.ok(precacheItems.includes('/icons/icon-192x192.png'), 'PRECACHE_ASSETS phải chứa icon 192');
+    assert.ok(precacheItems.includes('/icons/icon-512x512.png'), 'PRECACHE_ASSETS phải chứa icon 512');
+  });
+
   it('có thể chạy độc lập như một CLI script (node scripts/generate-sw.mjs)', () => {
     const scriptDir = path.dirname(fileURLToPath(import.meta.url));
-    const projectRoot = path.resolve(scriptDir, '../..');
     const scriptPath = path.resolve(scriptDir, '../generate-sw.mjs');
 
     const output = execSync(`node ${scriptPath}`, {
-      cwd: projectRoot,
+      cwd: tempDir,
       env: { ...process.env, VERCEL_GIT_COMMIT_SHA: 'cli-test-sha' },
     }).toString();
 
     assert.ok(output.includes('Generated') || output.includes('checked-pwa'), 'CLI phải log thông báo thành công');
 
-    const versionPath = path.join(projectRoot, 'public', 'version.json');
-    const swPath = path.join(projectRoot, 'public', 'sw.js');
+    const versionPath = path.join(tempDir, 'public', 'version.json');
+    const swPath = path.join(tempDir, 'public', 'sw.js');
 
     assert.ok(fs.existsSync(versionPath), 'public/version.json phải tồn tại sau khi chạy CLI');
     assert.ok(fs.existsSync(swPath), 'public/sw.js phải tồn tại sau khi chạy CLI');
