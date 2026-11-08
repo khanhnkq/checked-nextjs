@@ -142,6 +142,7 @@ export function useConversations(
         conversations.find(
           (c) =>
             c.partner?.id === friend.id ||
+            c.friend?.id === friend.id ||
             (Array.isArray(c.participantIds) && c.participantIds.includes(friend.id))
         ) ?? null;
 

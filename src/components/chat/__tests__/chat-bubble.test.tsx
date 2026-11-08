@@ -11,7 +11,7 @@ describe('ChatBubble Component', () => {
     senderId: 'user-me',
     type: 'TEXT',
     content: 'Xin chào, bạn khỏe không?',
-    sentAt: '2026-11-07T14:30:00.000Z',
+    sentAt: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
   };
 
   it('renders my message right-aligned with rounded-br-[6px] and bg-primary', () => {

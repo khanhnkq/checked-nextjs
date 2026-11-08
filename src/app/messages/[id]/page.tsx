@@ -3,6 +3,7 @@
 import React, { useRef, useEffect, useCallback, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useChat } from '@/hooks/useChat';
+import { useFriendships } from '@/hooks/useFriendships';
 import { useAuthStore } from '@/stores/auth-store';
 import {
   ChatRoomTopBar,
@@ -36,6 +37,7 @@ export default function ChatRoomPage() {
       : '';
 
   const user = useAuthStore((s) => s.user);
+  const { friends } = useFriendships();
 
   const {
     conversation,
@@ -50,7 +52,14 @@ export default function ChatRoomPage() {
     setReplyingToMessage,
     isPartnerTyping,
     sendTyping,
+    isError,
   } = useChat({ targetId });
+
+  // Tìm bạn bè trong danh sách friends đã nạp để hiển thị tức thì
+  const friendFromList = useMemo(() => {
+    if (!targetId || !Array.isArray(friends)) return null;
+    return friends.find((f) => f.id === targetId) ?? null;
+  }, [friends, targetId]);
 
   const bottomAnchorRef = useRef<HTMLDivElement | null>(null);
   const lastMessageIdRef = useRef<string | null>(null);
@@ -120,8 +129,10 @@ export default function ChatRoomPage() {
   const handlePartnerClick = useCallback(() => {
     if (conversation?.partner?.username) {
       router.push(`/u/${conversation.partner.username}`);
+    } else if (friendFromList?.username) {
+      router.push(`/u/${friendFromList.username}`);
     }
-  }, [conversation?.partner?.username, router]);
+  }, [conversation?.partner?.username, friendFromList?.username, router]);
 
   // Xử lý gửi tin nhắn (kèm quote reply nếu đang trả lời)
   const handleSend = useCallback(
@@ -149,14 +160,41 @@ export default function ChatRoomPage() {
     return map;
   }, [messages]);
 
-  // Thông tin đối tác an toàn khi chưa tải xong cuộc trò chuyện
-  const partner = conversation?.partner ?? {
-    id: targetId,
-    username: '',
-    displayName: 'Trò chuyện',
-    avatarUrl: null,
-    isOnline: false,
-  };
+  // Thông tin đối tác: ưu tiên conversation partner -> conversation friend -> friends list -> fallback
+  const partner = useMemo(() => {
+    if (conversation?.partner && conversation.partner.displayName !== 'Trò chuyện') {
+      return conversation.partner;
+    }
+    if (conversation?.friend) {
+      return {
+        id: conversation.friend.id,
+        username: conversation.friend.username || '',
+        displayName:
+          conversation.friend.fullName || conversation.friend.username || 'Bạn bè',
+        avatarUrl: conversation.friend.avatarUrl ?? null,
+        isOnline: Boolean(conversation.partner?.isOnline),
+      };
+    }
+    if (friendFromList) {
+      return {
+        id: friendFromList.id,
+        username: friendFromList.username || '',
+        displayName:
+          friendFromList.displayName || friendFromList.username || 'Bạn bè',
+        avatarUrl: friendFromList.avatarUrl ?? null,
+        isOnline: Boolean((friendFromList as any).isOnline),
+      };
+    }
+    return (
+      conversation?.partner ?? {
+        id: targetId,
+        username: '',
+        displayName: 'Trò chuyện',
+        avatarUrl: null,
+        isOnline: false,
+      }
+    );
+  }, [conversation, friendFromList, targetId]);
 
   return (
     <div className="h-[100dvh] max-h-[100dvh] w-full bg-canvas text-text-primary flex flex-col items-center overflow-hidden select-none">
@@ -177,8 +215,80 @@ export default function ChatRoomPage() {
           data-testid="chat-messages-container"
           className="flex-1 overflow-y-auto w-full px-0 py-2 flex flex-col min-h-0 space-y-1"
         >
-          {isLoadingInitial && messages.length === 0 ? (
+          {isError && !conversation && !friendFromList ? (
+            <div
+              data-testid="chat-room-error"
+              className="flex-1 flex flex-col items-center justify-center p-6 text-center select-none"
+            >
+              <div className="w-16 h-16 rounded-full bg-surface-subtle flex items-center justify-center mb-3 text-text-secondary">
+                <span className="text-2xl">⚠️</span>
+              </div>
+              <h3 className="font-display font-bold text-[17px] text-text-primary">
+                Không thể tải cuộc trò chuyện
+              </h3>
+              <p className="text-[13px] text-text-secondary mt-1.5 max-w-[260px] leading-relaxed">
+                Người bạn này không tồn tại hoặc bạn chưa kết nối bạn bè trên hệ thống.
+              </p>
+              <button
+                type="button"
+                onClick={handleBack}
+                className="mt-4 px-5 py-2.5 rounded-full bg-primary text-dark-surface font-display font-bold text-[14px] active:scale-95 transition-transform"
+              >
+                Quay lại danh sách
+              </button>
+            </div>
+          ) : isLoadingInitial && messages.length === 0 ? (
             <ChatMessagesSkeleton />
+          ) : messages.length === 0 ? (
+            <div
+              data-testid="chat-room-empty-state"
+              className="flex-1 flex flex-col items-center justify-center p-6 text-center select-none"
+            >
+              <div className="w-20 h-20 rounded-full bg-[#DFDACD] flex items-center justify-center mb-3 text-text-primary text-2xl font-bold overflow-hidden shadow-none">
+                {partner.avatarUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={partner.avatarUrl}
+                    alt={partner.displayName}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span>{(partner.displayName || '?').charAt(0).toUpperCase()}</span>
+                )}
+              </div>
+              <h3 className="font-display font-bold text-[18px] text-text-primary">
+                {partner.displayName}
+              </h3>
+              {partner.username && (
+                <p className="text-[13px] text-text-secondary mt-0.5">
+                  @{partner.username}
+                </p>
+              )}
+              <p className="text-[13px] text-text-secondary mt-3 max-w-[260px] leading-relaxed">
+                Chưa có tin nhắn nào. Hãy gửi lời chào đầu tiên để bắt đầu trò chuyện!
+              </p>
+
+              {/* Gợi ý chào hỏi nhanh */}
+              <div className="flex flex-wrap gap-2 justify-center mt-4">
+                {['👋 Xin chào!', '✨ Dạo này thế nào?'].map((quickText) => (
+                  <button
+                    key={quickText}
+                    type="button"
+                    onClick={() => handleSend(quickText)}
+                    className="px-4 py-2 rounded-full bg-surface text-text-primary text-[13px] font-medium active:scale-95 transition-transform"
+                  >
+                    {quickText}
+                  </button>
+                ))}
+              </div>
+
+              {/* Neo cuộn đáy phòng chat */}
+              <div
+                ref={bottomAnchorRef}
+                data-testid="chat-bottom-anchor"
+                className="h-px w-full shrink-0 mt-4"
+              />
+            </div>
           ) : (
             <>
               {/* Nút tải thêm tin nhắn cũ khi còn trang trước */}
@@ -199,9 +309,15 @@ export default function ChatRoomPage() {
               {/* Danh sách các bong bóng tin nhắn */}
               {messages.map((message) => {
                 const isMine = Boolean(user?.id && message.senderId === user.id);
-                const replyToMsg = message.replyToMessageId
-                  ? replyMap.get(message.replyToMessageId) ?? null
-                  : null;
+                const replyToMsg = message.replyTo
+                  ? {
+                      id: message.replyTo.messageId,
+                      content: message.replyTo.content,
+                      senderName: message.replyTo.senderName,
+                    }
+                  : message.replyToMessageId
+                    ? replyMap.get(message.replyToMessageId) ?? null
+                    : null;
 
                 return (
                   <ChatBubble

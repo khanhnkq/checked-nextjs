@@ -6,6 +6,7 @@
 import { customFetcher } from './custom-fetcher';
 import type {
   ConversationResponse,
+  ConversationPartner,
   MessageCursorPage,
   MessageResponse,
   SendMessagePayload,
@@ -23,36 +24,103 @@ export const chatKeys = {
 };
 
 /**
+ * Chuẩn hóa Conversation từ Backend (Spring Boot trả về friend thay vì partner)
+ */
+export function normalizeConversation(raw: any): ConversationResponse {
+  if (!raw) return raw;
+
+  const partnerId = raw.partner?.id || raw.friend?.id || '';
+  const username = raw.partner?.username || raw.friend?.username || '';
+  const displayName =
+    raw.partner?.displayName || raw.friend?.fullName || username || 'Bạn bè';
+  const avatarUrl = raw.partner?.avatarUrl ?? raw.friend?.avatarUrl ?? null;
+  const isOnline = Boolean(raw.partner?.isOnline);
+
+  const partner: ConversationPartner = raw.partner
+    ? {
+        ...raw.partner,
+        id: String(raw.partner.id || partnerId),
+        displayName: raw.partner.displayName || displayName,
+      }
+    : {
+        id: String(partnerId),
+        username,
+        displayName,
+        avatarUrl,
+        isOnline,
+      };
+
+  const participantIds: string[] = raw.participantIds || (partnerId ? [String(partnerId)] : []);
+
+  let lastMessage = raw.lastMessage;
+  if (lastMessage && (lastMessage.messageId || lastMessage.type === 'REVOKED')) {
+    lastMessage = {
+      ...lastMessage,
+      id: lastMessage.id || lastMessage.messageId || '',
+      type: lastMessage.type,
+      isRevoked: Boolean(lastMessage.isRevoked || lastMessage.type === 'REVOKED'),
+    };
+  }
+
+  return {
+    ...raw,
+    partner,
+    participantIds,
+    ...(lastMessage !== undefined ? { lastMessage } : {}),
+  };
+}
+
+/**
+ * Chuẩn hóa Message từ Backend
+ */
+export function normalizeMessage(raw: any): MessageResponse {
+  if (!raw) return raw;
+  const id = raw.id || raw.messageId;
+  const isRevoked = Boolean(raw.isRevoked || raw.type === 'REVOKED');
+  return {
+    ...raw,
+    ...(id ? { id: String(id) } : {}),
+    ...(isRevoked ? { isRevoked: true, content: 'Tin nhắn đã được thu hồi' } : {}),
+    ...(raw.replyTo?.messageId && !raw.replyToMessageId
+      ? { replyToMessageId: raw.replyTo.messageId }
+      : {}),
+  };
+}
+
+/**
  * Lấy danh sách các cuộc trò chuyện của người dùng hiện tại
  */
-export const getMyConversations = (
+export const getMyConversations = async (
   signal?: AbortSignal
 ): Promise<ConversationResponse[]> => {
-  return customFetcher<ConversationResponse[]>('/api/v1/conversations', {
+  const data = await customFetcher<any[]>('/api/v1/conversations', {
     method: 'GET',
     signal,
   });
+  if (!Array.isArray(data)) return [];
+  return data.map(normalizeConversation);
 };
 
 /**
  * Lấy hoặc tạo mới cuộc trò chuyện 1-1 với bạn bè theo friendId
  */
-export const getOrCreateConversation = (
+export const getOrCreateConversation = async (
   friendId: string,
   signal?: AbortSignal
 ): Promise<ConversationResponse> => {
-  return customFetcher<ConversationResponse>('/api/v1/conversations', {
+  const data = await customFetcher<any>('/api/v1/conversations', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ friendId }),
     signal,
   });
+  return normalizeConversation(data);
 };
 
 /**
  * Lấy tin nhắn phân trang bằng con trỏ (reverse cursor pagination)
  */
-export const getConversationMessages = (
+export const getConversationMessages = async (
   conversationId: string,
   before?: string,
   limit?: number,
@@ -64,21 +132,28 @@ export const getConversationMessages = (
   const queryString = params.toString();
   const url = `/api/v1/conversations/${encodeURIComponent(conversationId)}/messages${queryString ? `?${queryString}` : ''}`;
 
-  return customFetcher<MessageCursorPage>(url, {
+  const data = await customFetcher<any>(url, {
     method: 'GET',
     signal,
   });
+
+  const rawMessages = Array.isArray(data?.messages) ? data.messages : [];
+  return {
+    messages: rawMessages.map(normalizeMessage),
+    nextCursor: data?.nextCursor ?? null,
+    hasMore: Boolean(data?.hasMore),
+  };
 };
 
 /**
  * Gửi tin nhắn mới tới cuộc trò chuyện
  */
-export const sendChatMessage = (
+export const sendChatMessage = async (
   conversationId: string,
   payload: SendMessagePayload,
   signal?: AbortSignal
 ): Promise<MessageResponse> => {
-  return customFetcher<MessageResponse>(
+  const data = await customFetcher<any>(
     `/api/v1/conversations/${encodeURIComponent(conversationId)}/messages`,
     {
       method: 'POST',
@@ -87,6 +162,7 @@ export const sendChatMessage = (
       signal,
     }
   );
+  return normalizeMessage(data);
 };
 
 /**

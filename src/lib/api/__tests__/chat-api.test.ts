@@ -21,7 +21,7 @@ describe('chat-api', () => {
   });
 
   it('getOrCreateConversation calls POST /api/v1/conversations with friendId', async () => {
-    const mockConv = { id: 'c1', partner: { id: 'f-123', displayName: 'Alice' } };
+    const mockConv = { id: 'c1', participantIds: ['f-123'], partner: { id: 'f-123', displayName: 'Alice' } };
     vi.mocked(customFetcher).mockResolvedValueOnce(mockConv);
 
     const result = await chatApi.getOrCreateConversation('f-123');
@@ -30,6 +30,20 @@ describe('chat-api', () => {
       body: JSON.stringify({ friendId: 'f-123' }),
     }));
     expect(result).toEqual(mockConv);
+  });
+
+  it('normalizes backend friend object into partner format', async () => {
+    const backendData = {
+      id: 'c2',
+      friend: { id: 'f-456', fullName: 'Linh Đan', username: 'linhdan', avatarUrl: 'https://avatar' },
+      unreadCount: 2,
+    };
+    vi.mocked(customFetcher).mockResolvedValueOnce(backendData);
+
+    const result = await chatApi.getOrCreateConversation('f-456');
+    expect(result.partner.displayName).toBe('Linh Đan');
+    expect(result.partner.username).toBe('linhdan');
+    expect(result.participantIds).toEqual(['f-456']);
   });
 
   it('getConversationMessages builds cursor query parameters', async () => {

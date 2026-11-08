@@ -1,11 +1,18 @@
 import type { FriendProfile } from './friendship';
 
-export type MessageType = 'TEXT' | 'PHOTO_REACTION' | 'SYSTEM';
+export type MessageType = 'TEXT' | 'PHOTO_REACTION' | 'REVOKED' | 'SYSTEM';
 
 export interface PhotoContext {
   photoId: string;
   photoUrl: string;
   caption?: string;
+}
+
+export interface ReplyToInfo {
+  messageId: string;
+  senderId?: string;
+  senderName?: string;
+  content: string;
 }
 
 export interface MessageResponse {
@@ -15,9 +22,11 @@ export interface MessageResponse {
   type: MessageType;
   content: string;
   replyToMessageId?: string | null;
+  replyTo?: ReplyToInfo | null;
   photoContext?: PhotoContext | null;
   sentAt: string;
   readAt?: string | null;
+  isRead?: boolean;
   isRevoked?: boolean;
   deletedForUserIds?: string[];
 }
@@ -31,12 +40,31 @@ export interface ConversationPartner {
   lastSeenAt?: string | null;
 }
 
+export interface FriendSummaryResponse {
+  id: string;
+  fullName?: string;
+  username?: string;
+  avatarUrl?: string | null;
+}
+
+export interface LastMessageInfo {
+  id?: string;
+  messageId?: string;
+  senderId: string;
+  content: string;
+  type: MessageType;
+  sentAt: string;
+  isRevoked?: boolean;
+}
+
 export interface ConversationResponse {
   id: string;
-  participantIds: string[];
-  partner: ConversationPartner;
-  lastMessage?: MessageResponse | null;
+  participantIds?: string[];
+  partner?: ConversationPartner;
+  friend?: FriendSummaryResponse;
+  lastMessage?: (MessageResponse & LastMessageInfo) | null;
   unreadCount: number;
+  createdAt?: string;
   updatedAt: string;
 }
 

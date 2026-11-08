@@ -76,6 +76,10 @@ export interface UseChatReturn {
   isPartnerTyping: boolean;
   /** Send typing indicator (throttled) */
   sendTyping: (isTyping: boolean) => void;
+  /** Whether loading conversation or messages encountered an error */
+  isError: boolean;
+  /** Error object if any query failed */
+  error: Error | null;
 }
 
 /**
@@ -550,6 +554,9 @@ export function useChat(options: UseChatOptions): UseChatReturn {
     conversationQuery.isLoading ||
     (Boolean(conversationId) && initialMessagesQuery.isLoading && messages.length === 0);
 
+  const isError = Boolean(conversationQuery.isError || initialMessagesQuery.isError);
+  const error = conversationQuery.error || initialMessagesQuery.error || null;
+
   return {
     conversation,
     messages,
@@ -563,5 +570,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
     setReplyingToMessage,
     isPartnerTyping,
     sendTyping,
+    isError,
+    error,
   };
 }

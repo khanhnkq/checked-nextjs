@@ -13,6 +13,9 @@ vi.mock('next/navigation', () => ({
 }));
 
 vi.mock('@/hooks/useChat');
+vi.mock('@/hooks/useFriendships', () => ({
+  useFriendships: () => ({ friends: [] }),
+}));
 
 describe('ChatRoomPage (/messages/[id])', () => {
   const mockSendMessage = vi.fn();
@@ -433,5 +436,68 @@ describe('ChatRoomPage (/messages/[id])', () => {
     fireEvent.change(input, { target: { value: 'Typing something...' } });
 
     expect(mockSendTyping).toHaveBeenCalledWith(true);
+  });
+
+  it('renders warm empty state with quick greetings when there are no messages', () => {
+    vi.mocked(useChatHook.useChat).mockReturnValue({
+      conversation: {
+        id: 'c1',
+        partner: {
+          id: 'f-bob',
+          displayName: 'Bob Smith',
+          username: 'bobsmith',
+          avatarUrl: null,
+          isOnline: false,
+        },
+        participantIds: ['f-bob'],
+        unreadCount: 0,
+        updatedAt: '2026-11-08T00:00:00Z',
+      },
+      messages: [],
+      isLoadingInitial: false,
+      isLoadingMore: false,
+      hasMore: false,
+      isPartnerTyping: false,
+      sendMessage: mockSendMessage,
+      loadMoreMessages: mockLoadMoreMessages,
+      deleteMessage: mockDeleteMessage,
+      replyingToMessage: null,
+      setReplyingToMessage: mockSetReplyingToMessage,
+      sendTyping: mockSendTyping,
+      isError: false,
+      error: null,
+    } as any);
+
+    render(<ChatRoomPage />);
+
+    expect(screen.getByTestId('chat-room-empty-state')).toBeInTheDocument();
+    expect(screen.getByText('Chưa có tin nhắn nào. Hãy gửi lời chào đầu tiên để bắt đầu trò chuyện!')).toBeInTheDocument();
+    expect(screen.getByText('👋 Xin chào!')).toBeInTheDocument();
+    expect(screen.getByText('✨ Dạo này thế nào?')).toBeInTheDocument();
+  });
+
+  it('renders error card when conversation fails to load and cannot be found', () => {
+    vi.mocked(useChatHook.useChat).mockReturnValue({
+      conversation: null,
+      messages: [],
+      isLoadingInitial: false,
+      isLoadingMore: false,
+      hasMore: false,
+      isPartnerTyping: false,
+      sendMessage: mockSendMessage,
+      loadMoreMessages: mockLoadMoreMessages,
+      deleteMessage: mockDeleteMessage,
+      replyingToMessage: null,
+      setReplyingToMessage: mockSetReplyingToMessage,
+      sendTyping: mockSendTyping,
+      isError: true,
+      error: new Error('Conversation not found'),
+    } as any);
+
+    render(<ChatRoomPage />);
+
+    expect(screen.getByTestId('chat-room-error')).toBeInTheDocument();
+    expect(screen.getByText('Không thể tải cuộc trò chuyện')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Quay lại danh sách/i })).toBeInTheDocument();
   });
 });

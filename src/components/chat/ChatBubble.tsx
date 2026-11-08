@@ -50,7 +50,9 @@ export const ChatBubble: React.FC<ChatBubbleProps> = ({
 }) => {
   const [showActions, setShowActions] = useState(false);
 
-  const isRevoked = Boolean(message.isRevoked || message.type === 'SYSTEM');
+  const isRevoked = Boolean(
+    message.isRevoked || message.type === 'REVOKED' || message.type === 'SYSTEM'
+  );
   const formattedTime = formatBubbleTime(message.sentAt);
 
   // Kiểm tra điều kiện thu hồi (tin của tôi, chưa thu hồi, trong vòng 60 phút)
