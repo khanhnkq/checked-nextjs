@@ -145,24 +145,24 @@
 - Create: `src/components/home/__tests__/CameraPermissionPrompt.test.tsx`
 - Modify: `src/components/home/CameraBox.tsx`
 
-- [ ] **Step 1: Viết test cho `CameraPermissionPrompt`**
+- [x] **Step 1: Viết test cho `CameraPermissionPrompt`**
   Tạo `src/components/home/__tests__/CameraPermissionPrompt.test.tsx` kiểm tra:
   - Hiển thị card chuẩn Checked khi quyền chưa được cấp (`camera === 'prompt'`).
   - Có icon Camera, tiêu đề "Bật Camera để bắt đầu", nội dung giải thích ngắn gọn, nút bấm "Bật Camera".
   - Khi người dùng bấm "Bật Camera", gọi `startCamera()` từ user gesture và đánh dấu `hasAskedCamera = true`.
   - Hiển thị giao diện hướng dẫn mở quyền trong Cài đặt nếu trạng thái là `denied`.
-- [ ] **Step 2: Chạy test xác nhận fail (Red)**
+- [x] **Step 2: Chạy test xác nhận fail (Red)**
   ```bash
   npx vitest run src/components/home/__tests__/CameraPermissionPrompt.test.tsx
   ```
-- [ ] **Step 3: Hiện thực `CameraPermissionPrompt.tsx` & tích hợp `CameraBox.tsx`**
+- [x] **Step 3: Hiện thực `CameraPermissionPrompt.tsx` & tích hợp `CameraBox.tsx`**
   - Thẩm mỹ: Zero Border, Zero Shadow, Zero Blur, nền `#FAF8F5`, nút Lime `#D9E872`.
   - Hiển thị overlay trực quan trong khung camera thay vì màn hình đen.
-- [ ] **Step 4: Chạy test xác nhận pass (Green)**
+- [x] **Step 4: Chạy test xác nhận pass (Green)**
   ```bash
   npx vitest run src/components/home/__tests__/CameraPermissionPrompt.test.tsx
   ```
-- [ ] **Step 5: Commit thay đổi Task 4**
+- [x] **Step 5: Commit thay đổi Task 4**
   ```bash
   git add src/components/home/CameraPermissionPrompt.tsx src/components/home/__tests__/CameraPermissionPrompt.test.tsx src/components/home/CameraBox.tsx
   git commit -m "feat(ui): add camera soft-prompt card with user gesture activation"
