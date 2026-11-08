@@ -157,22 +157,22 @@
 - Modify: `src/app/settings/page.tsx`
 - Test: `src/app/settings/__tests__/settings-version-check.test.tsx`
 
-- [ ] **Step 1: Viết test cho nút kiểm tra phiên bản trong Settings**
+- [x] **Step 1: Viết test cho nút kiểm tra phiên bản trong Settings**
   Kiểm tra:
   - Hiển thị phiên bản hiện tại (ví dụ: `v1.0.0 (Build 2026.11.08)`).
   - Có nút bấm "Kiểm tra cập nhật".
   - Khi bấm, hiển thị trạng thái "Đang kiểm tra..." và thông báo "Bạn đang ở phiên bản mới nhất" hoặc "Có bản cập nhật mới!".
-- [ ] **Step 2: Chạy test xác nhận fail**
+- [x] **Step 2: Chạy test xác nhận fail**
   ```bash
   npx vitest run src/app/settings/__tests__/settings-version-check.test.tsx
   ```
-- [ ] **Step 3: Cập nhật `src/app/settings/page.tsx`**
+- [x] **Step 3: Cập nhật `src/app/settings/page.tsx`**
   Thêm khối Thông tin phiên bản vào màn hình Settings với phong cách danh sách tối giản của Checked.
-- [ ] **Step 4: Chạy test xác nhận pass (Green)**
+- [x] **Step 4: Chạy test xác nhận pass (Green)**
   ```bash
   npx vitest run src/app/settings/__tests__/settings-version-check.test.tsx
   ```
-- [ ] **Step 5: Commit thay đổi Task 4**
+- [x] **Step 5: Commit thay đổi Task 4**
   ```bash
   git add src/app/settings/
   git commit -m "feat(settings): add app version display and manual update check button"
