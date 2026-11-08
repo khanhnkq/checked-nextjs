@@ -69,15 +69,15 @@
 - Modify: `next.config.ts`
 - Test: `src/config/__tests__/pwa-headers.test.ts`
 
-- [ ] **Step 1: Viết test cho headers của next.config.ts**
+- [x] **Step 1: Viết test cho headers của next.config.ts**
   Tạo `src/config/__tests__/pwa-headers.test.ts` kiểm tra:
   - Header cho `/sw.js` chứa `Cache-Control: no-cache, no-store, must-revalidate`.
   - Header cho `/version.json` chứa `Cache-Control: no-cache, no-store, must-revalidate`.
-- [ ] **Step 2: Chạy test xác nhận fail**
+- [x] **Step 2: Chạy test xác nhận fail**
   ```bash
   npx vitest run src/config/__tests__/pwa-headers.test.ts
   ```
-- [ ] **Step 3: Cập nhật `next.config.ts`**
+- [x] **Step 3: Cập nhật `next.config.ts`**
   Bổ sung async `headers()` trong `nextConfig`:
   ```ts
   async headers() {
@@ -102,11 +102,11 @@
     ];
   }
   ```
-- [ ] **Step 4: Chạy test xác nhận pass (Green)**
+- [x] **Step 4: Chạy test xác nhận pass (Green)**
   ```bash
   npx vitest run src/config/__tests__/pwa-headers.test.ts
   ```
-- [ ] **Step 5: Commit thay đổi Task 2**
+- [x] **Step 5: Commit thay đổi Task 2**
   ```bash
   git add next.config.ts src/config/__tests__/pwa-headers.test.ts
   git commit -m "feat(pwa): configure zero-cache headers for sw.js and version.json"
