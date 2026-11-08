@@ -112,25 +112,25 @@
 - Test: `src/hooks/__tests__/useGeolocation.test.ts`
 - Test: `src/components/home/__tests__/image-preview-view.test.tsx`
 
-- [ ] **Step 1: Viết test cho cơ chế Cache và Quyền Vị Trí của `useGeolocation`**
+- [x] **Step 1: Viết test cho cơ chế Cache và Quyền Vị Trí của `useGeolocation`**
   Cập nhật test kiểm tra:
   - Khi khởi tạo, tự động lấy vị trí từ cache `localStorage` (`checked_last_location`) hiển thị tức thì.
   - Nếu đã từng cấp quyền (`location === 'granted'`), chỉ đồng bộ ngầm khi cache quá 30 phút, không chặn UI.
   - Nếu đã từ chối (`location === 'denied'`), không bao giờ tự động gọi `getCurrentPosition` nữa.
   - Khi người dùng bấm vào badge địa điểm trong `ImagePreviewView`, gọi `refreshLocation()` chủ động.
-- [ ] **Step 2: Chạy test xác nhận fail (Red)**
+- [x] **Step 2: Chạy test xác nhận fail (Red)**
   ```bash
   npx vitest run src/hooks/__tests__/useGeolocation.test.ts
   ```
-- [ ] **Step 3: Cập nhật `useGeolocation.ts` & `ImagePreviewView.tsx`**
+- [x] **Step 3: Cập nhật `useGeolocation.ts` & `ImagePreviewView.tsx`**
   - Tích hợp `usePermissionStore` vào `useGeolocation`.
   - Lưu kết quả GPS thành công vào `localStorage`.
   - Trong `ImagePreviewView.tsx`, đổi `autoFetch: false` khi đã có cache vị trí, loại bỏ hoàn toàn popup xin quyền mỗi lần chụp ảnh.
-- [ ] **Step 4: Chạy test xác nhận pass (Green)**
+- [x] **Step 4: Chạy test xác nhận pass (Green)**
   ```bash
   npx vitest run src/hooks/__tests__/useGeolocation.test.ts src/components/home/__tests__/image-preview-view.test.tsx
   ```
-- [ ] **Step 5: Commit thay đổi Task 3**
+- [x] **Step 5: Commit thay đổi Task 3**
   ```bash
   git add src/hooks/useGeolocation.ts src/components/home/ImagePreviewView.tsx src/hooks/__tests__/useGeolocation.test.ts src/components/home/__tests__/image-preview-view.test.tsx
   git commit -m "feat(geo): cache location and prevent repeated geolocation permission popups"
