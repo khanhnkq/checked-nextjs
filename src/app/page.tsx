@@ -32,6 +32,15 @@ export default function HomePage() {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const updateUser = useAuthStore((s) => s.updateUser);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const isHydrated = useAuthStore((s) => s.isHydrated);
+
+  // Client Route Guard (Defense in Depth)
+  useEffect(() => {
+    if (isHydrated && !isAuthenticated) {
+      router.replace('/login');
+    }
+  }, [isHydrated, isAuthenticated, router]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const flashTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -203,6 +212,7 @@ export default function HomePage() {
   // Hủy ảnh và quay lại camera live
   const handleDismissPreview = () => {
     setCapturedPhoto(null);
+    if (!isAuthenticated) return;
     const isLive = camera.stream?.getVideoTracks().some((t) => !t.readyState || t.readyState === 'live');
     if (!isLive && camera.status !== 'starting' && camera.status !== 'denied') {
       camera.startCamera();
@@ -211,13 +221,14 @@ export default function HomePage() {
 
   // Đảm bảo camera được khởi động lại khi quay về Home nếu luồng video bị gián đoạn
   useEffect(() => {
+    if (!isAuthenticated) return;
     if (!capturedPhoto) {
       const isLive = camera.stream?.getVideoTracks().some((t) => !t.readyState || t.readyState === 'live');
       if (!isLive && camera.status !== 'starting' && camera.status !== 'denied') {
         camera.startCamera();
       }
     }
-  }, [capturedPhoto, camera.stream, camera.status, camera.startCamera]);
+  }, [isAuthenticated, capturedPhoto, camera.stream, camera.status, camera.startCamera]);
 
   // Gửi ảnh multipart và đồng bộ feed (Phase 5)
   const handleSendPhoto = async (data?: PreviewSubmitData) => {
@@ -247,8 +258,8 @@ export default function HomePage() {
     router.push('/history');
   };
 
-  // Nếu chưa có cache user và đang tải dữ liệu ban đầu -> Hiển thị Skeleton màn hình chính
-  if (!user && isUserLoading) {
+  // Nếu chưa hydrate, chưa xác thực, hoặc chưa có cache user và đang tải dữ liệu ban đầu -> Hiển thị Skeleton màn hình chính
+  if (!isHydrated || !isAuthenticated || (!user && isUserLoading)) {
     return <HomeSkeleton />;
   }
 

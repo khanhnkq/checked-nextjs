@@ -23,6 +23,8 @@ vi.mock('@/stores/auth-store', () => ({
         displayName: 'Người Dùng Việt',
         avatarUrl: '/avatar.jpg',
       },
+      isAuthenticated: true,
+      isHydrated: true,
       updateUser: vi.fn(),
     }),
 }));

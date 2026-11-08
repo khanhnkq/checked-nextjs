@@ -16,6 +16,8 @@ vi.mock('@/stores/auth-store', () => ({
   useAuthStore: (selector: any) =>
     selector({
       user: { id: 'u1', username: 'testuser', displayName: 'Test User', avatarUrl: '/avatar.jpg' },
+      isAuthenticated: true,
+      isHydrated: true,
       updateUser: vi.fn(),
     }),
 }));

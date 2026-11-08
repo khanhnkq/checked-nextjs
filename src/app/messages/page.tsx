@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Users, UserPlus } from 'lucide-react';
+import { useAuthStore } from '@/stores/auth-store';
 import { useConversations } from '@/hooks/useConversations';
 import { useFriendships } from '@/hooks/useFriendships';
 import {
@@ -27,6 +28,15 @@ import { haptics } from '@/lib/utils/haptics';
  */
 export default function MessagesPage() {
   const router = useRouter();
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const isHydrated = useAuthStore((s) => s.isHydrated);
+
+  // Client Route Guard (Defense in Depth)
+  useEffect(() => {
+    if (isHydrated && !isAuthenticated) {
+      router.replace('/login?redirect=/messages');
+    }
+  }, [isHydrated, isAuthenticated, router]);
 
   const { items, isLoading } = useConversations();
   const { receivedCount, receivedRequests, quota } = useFriendships();
@@ -69,8 +79,8 @@ export default function MessagesPage() {
     [router]
   );
 
-  // Trạng thái đang tải dữ liệu ban đầu
-  if (isLoading && items.length === 0) {
+  // Trạng thái chưa xác thực hoặc đang tải dữ liệu ban đầu
+  if (!isHydrated || !isAuthenticated || (isLoading && items.length === 0)) {
     return (
       <div className="min-h-screen bg-[#EDE9DF] text-text-primary select-none flex flex-col items-center">
         <main

@@ -3,12 +3,14 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import MessagesPage from '../page';
 import * as useConversationsHook from '@/hooks/useConversations';
 import * as useFriendshipsHook from '@/hooks/useFriendships';
+import { useAuthStore } from '@/stores/auth-store';
 
 const mockPush = vi.fn();
 const mockBack = vi.fn();
+const mockReplace = vi.fn();
 
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: mockPush, back: mockBack }),
+  useRouter: () => ({ push: mockPush, back: mockBack, replace: mockReplace }),
 }));
 
 vi.mock('@/hooks/useConversations');
@@ -17,6 +19,18 @@ vi.mock('@/hooks/useFriendships');
 describe('MessagesPage (/messages)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    useAuthStore.setState({
+      user: {
+        id: 'u-current',
+        username: 'alice',
+        displayName: 'Alice',
+        avatarUrl: null,
+      } as any,
+      accessToken: 'valid-token',
+      isAuthenticated: true,
+      isHydrated: true,
+      isLoading: false,
+    });
     vi.mocked(useFriendshipsHook.useFriendships).mockReturnValue({
       receivedCount: 3,
       receivedRequests: [
@@ -189,5 +203,35 @@ describe('MessagesPage (/messages)', () => {
     const backBtn = screen.getByRole('button', { name: 'Quay lại' });
     fireEvent.click(backBtn);
     expect(mockPush.mock.calls.length + mockBack.mock.calls.length).toBeGreaterThan(0);
+  });
+
+  it('redirects to /login?redirect=/messages and renders skeleton when hydrated and unauthenticated', () => {
+    useAuthStore.setState({
+      user: null,
+      accessToken: null,
+      isAuthenticated: false,
+      isHydrated: true,
+      isLoading: false,
+    });
+
+    render(<MessagesPage />);
+
+    expect(mockReplace).toHaveBeenCalledWith('/login?redirect=/messages');
+    expect(screen.getByTestId('friendship-list-skeleton')).toBeInTheDocument();
+  });
+
+  it('renders skeleton and does not redirect when not yet hydrated', () => {
+    useAuthStore.setState({
+      user: null,
+      accessToken: null,
+      isAuthenticated: false,
+      isHydrated: false,
+      isLoading: true,
+    });
+
+    render(<MessagesPage />);
+
+    expect(mockReplace).not.toHaveBeenCalled();
+    expect(screen.getByTestId('friendship-list-skeleton')).toBeInTheDocument();
   });
 });

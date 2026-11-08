@@ -6,9 +6,10 @@ import { useAuthStore } from '@/stores/auth-store';
 
 const mockBack = vi.fn();
 const mockPush = vi.fn();
+const mockReplace = vi.fn();
 
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ back: mockBack, push: mockPush }),
+  useRouter: () => ({ back: mockBack, push: mockPush, replace: mockReplace }),
   useParams: () => ({ id: 'f-bob' }),
 }));
 
@@ -34,6 +35,10 @@ describe('ChatRoomPage (/messages/[id])', () => {
         email: 'me@example.com',
         avatarUrl: null,
       } as any,
+      accessToken: 'valid-token',
+      isAuthenticated: true,
+      isHydrated: true,
+      isLoading: false,
     });
   });
 
@@ -499,5 +504,35 @@ describe('ChatRoomPage (/messages/[id])', () => {
     expect(screen.getByTestId('chat-room-error')).toBeInTheDocument();
     expect(screen.getByText('Không thể tải cuộc trò chuyện')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Quay lại danh sách/i })).toBeInTheDocument();
+  });
+
+  it('redirects to /login?redirect=/messages/f-bob and renders skeleton when hydrated and unauthenticated', () => {
+    useAuthStore.setState({
+      user: null,
+      accessToken: null,
+      isAuthenticated: false,
+      isHydrated: true,
+      isLoading: false,
+    });
+
+    render(<ChatRoomPage />);
+
+    expect(mockReplace).toHaveBeenCalledWith('/login?redirect=%2Fmessages%2Ff-bob');
+    expect(screen.getByTestId('chat-messages-skeleton')).toBeInTheDocument();
+  });
+
+  it('renders skeleton and does not redirect when not yet hydrated', () => {
+    useAuthStore.setState({
+      user: null,
+      accessToken: null,
+      isAuthenticated: false,
+      isHydrated: false,
+      isLoading: true,
+    });
+
+    render(<ChatRoomPage />);
+
+    expect(mockReplace).not.toHaveBeenCalled();
+    expect(screen.getByTestId('chat-messages-skeleton')).toBeInTheDocument();
   });
 });

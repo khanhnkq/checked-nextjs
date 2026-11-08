@@ -37,6 +37,17 @@ export default function ChatRoomPage() {
       : '';
 
   const user = useAuthStore((s) => s.user);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const isHydrated = useAuthStore((s) => s.isHydrated);
+
+  // Client Route Guard (Defense in Depth)
+  useEffect(() => {
+    if (isHydrated && !isAuthenticated) {
+      const redirectUrl = targetId ? `/messages/${targetId}` : '/messages';
+      router.replace(`/login?redirect=${encodeURIComponent(redirectUrl)}`);
+    }
+  }, [isHydrated, isAuthenticated, router, targetId]);
+
   const { friends } = useFriendships();
 
   const {
@@ -195,6 +206,10 @@ export default function ChatRoomPage() {
       }
     );
   }, [conversation, friendFromList, targetId]);
+
+  if (!isHydrated || !isAuthenticated) {
+    return <ChatMessagesSkeleton />;
+  }
 
   return (
     <div className="h-[100dvh] max-h-[100dvh] w-full bg-canvas text-text-primary flex flex-col items-center overflow-hidden select-none">
