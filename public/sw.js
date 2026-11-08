@@ -1,11 +1,11 @@
 /**
  * Checked Service Worker (Native PWA - Zero-Dependency)
- * Generated at: 2026-11-08T10:05:00.761Z
- * Version: build-1794132300761
+ * Generated at: 2026-11-08T10:43:15.887Z
+ * Version: build-1794134595887
  * Tối ưu hóa cho Next.js 15 & React 19 trên cả iOS Standalone và Android.
  */
 
-const CACHE_NAME = 'checked-pwa-build-1794132300761';
+const CACHE_NAME = 'checked-pwa-build-1794134595887';
 
 const PRECACHE_ASSETS = [
   '/offline',
