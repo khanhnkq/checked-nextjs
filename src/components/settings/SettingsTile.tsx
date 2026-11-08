@@ -14,6 +14,8 @@ export interface SettingsTileProps {
   subtitle?: string;
   /** Giá trị hiển thị bên phải (ví dụ: "Tiếng Việt") */
   value?: string;
+  /** Biểu tượng phụ bên phải (ví dụ: Lock) */
+  rightIcon?: React.ReactNode;
   /** Chế độ công tắc toggle */
   isSwitch?: boolean;
   /** Trạng thái bật/tắt của switch */
@@ -38,6 +40,7 @@ export const SettingsTile: React.FC<SettingsTileProps> = ({
   title,
   subtitle,
   value,
+  rightIcon,
   isSwitch = false,
   switchChecked = false,
   onSwitchChange,
@@ -102,6 +105,13 @@ export const SettingsTile: React.FC<SettingsTileProps> = ({
         <span className="text-[14px] text-text-secondary shrink-0 mr-1">
           {value}
         </span>
+      )}
+
+      {/* Biểu tượng phụ bên phải */}
+      {rightIcon && (
+        <div data-testid="right-icon" className="shrink-0 text-text-secondary">
+          {rightIcon}
+        </div>
       )}
 
       {/* Switch toggle iOS-style */}
