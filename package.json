@@ -6,6 +6,7 @@
     "dev": "next dev",
     "dev:network": "next dev -H 0.0.0.0",
     "dev:https": "next dev --experimental-https -H 0.0.0.0",
+    "prebuild": "node scripts/generate-sw.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",

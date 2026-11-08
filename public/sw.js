@@ -1,9 +1,11 @@
 /**
  * Checked Service Worker (Native PWA - Zero-Dependency)
+ * Generated at: 2026-11-08T06:57:59.522Z
+ * Version: build-1794121079522
  * Tối ưu hóa cho Next.js 15 & React 19 trên cả iOS Standalone và Android.
  */
 
-const CACHE_NAME = 'checked-pwa-v1';
+const CACHE_NAME = 'checked-pwa-build-1794121079522';
 
 const PRECACHE_ASSETS = [
   '/',
@@ -56,6 +58,11 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Bỏ qua sw.js và version.json để luôn fetch trực tiếp từ server
+  if (url.pathname === '/sw.js' || url.pathname === '/version.json') {
+    return;
+  }
+
   // A. Yêu cầu API & Realtime (WebSocket/STOMP): Luôn luôn Network-Only để đảm bảo tính thời gian thực
   if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/ws')) {
     return;
@@ -66,6 +73,16 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(request)
         .then((response) => {
+          // Bỏ qua cache redirect lỗi trên iOS: if response.redirected return cleanResponse
+          if (response.redirected) {
+            const cleanResponse = new Response(response.body, {
+              status: response.status,
+              statusText: response.statusText,
+              headers: response.headers,
+            });
+            return cleanResponse;
+          }
+
           if (response.status === 200) {
             const responseClone = response.clone();
             caches.open(CACHE_NAME).then((cache) => {
@@ -92,6 +109,16 @@ self.addEventListener('fetch', (event) => {
           return cachedResponse;
         }
         return fetch(request).then((networkResponse) => {
+          // Bỏ qua cache redirect lỗi trên iOS: if response.redirected return cleanResponse
+          if (networkResponse.redirected) {
+            const cleanResponse = new Response(networkResponse.body, {
+              status: networkResponse.status,
+              statusText: networkResponse.statusText,
+              headers: networkResponse.headers,
+            });
+            return cleanResponse;
+          }
+
           if (networkResponse && networkResponse.status === 200) {
             const responseClone = networkResponse.clone();
             caches.open(CACHE_NAME).then((cache) => {
@@ -110,6 +137,16 @@ self.addEventListener('fetch', (event) => {
     caches.match(request).then((cachedResponse) => {
       const fetchPromise = fetch(request)
         .then((networkResponse) => {
+          // Bỏ qua cache redirect lỗi trên iOS: if response.redirected return cleanResponse
+          if (networkResponse.redirected) {
+            const cleanResponse = new Response(networkResponse.body, {
+              status: networkResponse.status,
+              statusText: networkResponse.statusText,
+              headers: networkResponse.headers,
+            });
+            return cleanResponse;
+          }
+
           if (networkResponse && networkResponse.status === 200) {
             const responseClone = networkResponse.clone();
             caches.open(CACHE_NAME).then((cache) => {
