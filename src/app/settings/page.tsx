@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   User,
@@ -13,6 +13,7 @@ import {
   Vibrate,
   Volume2,
   Download,
+  RefreshCw,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth-store';
 import { usePreferencesStore } from '@/stores/preferences-store';
@@ -61,6 +62,85 @@ export default function SettingsPage() {
   const [isNameSheetOpen, setIsNameSheetOpen] = useState(false);
   const [isDobSheetOpen, setIsDobSheetOpen] = useState(false);
   const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
+
+  // Trạng thái phiên bản và kiểm tra cập nhật PWA
+  const [appVersion, setAppVersion] = useState<string>('v1.0.0');
+  const [updateStatus, setUpdateStatus] = useState<
+    'idle' | 'checking' | 'latest' | 'update_available'
+  >('idle');
+  const initialVersionRef = useRef<string | null>(null);
+
+  // Lấy thông tin phiên bản ban đầu từ /version.json
+  useEffect(() => {
+    fetch('/version.json', { cache: 'no-store' })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.version) {
+          if (!initialVersionRef.current) {
+            initialVersionRef.current = data.version;
+          }
+          const display = data.version.startsWith('v')
+            ? data.version
+            : `v1.0.0 (${data.version.slice(0, 7)})`;
+          setAppVersion(display);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  // Kiểm tra cập nhật thủ công
+  const handleCheckUpdate = useCallback(async () => {
+    haptics.light();
+    setUpdateStatus('checking');
+
+    try {
+      let hasUpdateAvailable = false;
+
+      // 1. Kiểm tra qua Service Worker registration
+      if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+        const registration = await navigator.serviceWorker.getRegistration();
+        if (registration) {
+          await registration.update().catch(() => {});
+          if (registration.waiting) {
+            hasUpdateAvailable = true;
+          }
+        }
+      }
+
+      // 2. Kiểm tra qua /version.json
+      const res = await fetch('/version.json', { cache: 'no-store' });
+      if (res.ok) {
+        const data = await res.json();
+        if (data?.version) {
+          if (initialVersionRef.current && data.version !== initialVersionRef.current) {
+            hasUpdateAvailable = true;
+          }
+        }
+      }
+
+      if (hasUpdateAvailable) {
+        setUpdateStatus('update_available');
+        haptics.success();
+      } else {
+        setUpdateStatus('latest');
+        haptics.selection();
+      }
+    } catch {
+      setUpdateStatus('latest');
+    }
+  }, []);
+
+  // Áp dụng cập nhật và reload
+  const handleApplyUpdate = useCallback(async () => {
+    haptics.medium();
+    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+      const registration = await navigator.serviceWorker.getRegistration();
+      if (registration?.waiting) {
+        registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+      }
+    }
+    window.location.reload();
+  }, []);
 
   // 1. Route Guard: Chuyển hướng sang /login nếu chưa đăng nhập và đã hydrate
   useEffect(() => {
@@ -175,7 +255,67 @@ export default function SettingsPage() {
             />
           </SettingsSection>
 
-          {/* Section 4: Hệ thống & Đăng xuất */}
+          {/* Section 4: PHIÊN BẢN & CẬP NHẬT */}
+          <SettingsSection title="Phiên bản & Cập nhật">
+            <div className="bg-[#FAF8F5] text-[#2C2825] p-4 flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <div className="flex flex-col">
+                  <span className="text-[12px] text-text-secondary font-medium">Phiên bản hiện tại</span>
+                  <span className="text-[15px] font-bold text-[#2C2825]" data-testid="app-version-text">
+                    {appVersion}
+                  </span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleCheckUpdate}
+                  disabled={updateStatus === 'checking'}
+                  className="bg-[#D9E872] text-[#2C2825] text-[13px] font-semibold px-3.5 py-2 rounded-full active:scale-95 transition-transform cursor-pointer flex items-center gap-1.5 disabled:opacity-60"
+                  aria-label="Kiểm tra cập nhật"
+                >
+                  <RefreshCw
+                    size={14}
+                    strokeWidth={2.4}
+                    className={updateStatus === 'checking' ? 'animate-spin' : ''}
+                  />
+                  <span>
+                    {updateStatus === 'checking' ? 'Đang kiểm tra...' : 'Kiểm tra cập nhật'}
+                  </span>
+                </button>
+              </div>
+
+              {/* Trạng thái phản hồi */}
+              {updateStatus === 'latest' && (
+                <div
+                  role="status"
+                  className="text-[13px] font-medium text-emerald-600 flex items-center gap-1.5 pt-1"
+                >
+                  <span className="text-sm">✓</span>
+                  <span>Bạn đang dùng phiên bản mới nhất</span>
+                </div>
+              )}
+
+              {updateStatus === 'update_available' && (
+                <div
+                  role="status"
+                  className="flex items-center justify-between pt-1 gap-2"
+                >
+                  <span className="text-[13px] font-medium text-amber-700">
+                    Đã có bản cập nhật mới!
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleApplyUpdate}
+                    className="bg-[#2C2825] text-[#FAF8F5] text-[12px] font-semibold px-3 py-1.5 rounded-full active:scale-95 transition-transform cursor-pointer shrink-0"
+                  >
+                    Bấm để cập nhật
+                  </button>
+                </div>
+              )}
+            </div>
+          </SettingsSection>
+
+          {/* Section 5: Hệ thống & Đăng xuất */}
           <div className="flex flex-col items-center gap-3 pt-4">
             <p className="text-[13px] text-text-secondary select-none font-medium text-center">
               Phiên bản 1.0.0 (Web)
