@@ -6,6 +6,7 @@ export interface User {
   firstName?: string | null;
   lastName?: string | null;
   avatarUrl?: string | null;
+  dob?: string | null;
   isVerified: boolean;
   profileCompleted: boolean;
   isGoldMember: boolean;
