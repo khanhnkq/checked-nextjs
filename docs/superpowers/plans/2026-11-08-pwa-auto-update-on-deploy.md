@@ -122,28 +122,28 @@
 - Modify: `src/app/layout.tsx`
 - Test: `src/components/pwa/__tests__/PwaUpdateManager.test.tsx`
 
-- [ ] **Step 1: Viết test cho `PwaUpdateManager`**
+- [x] **Step 1: Viết test cho `PwaUpdateManager`**
   Kiểm tra:
   - Tự động gọi `navigator.serviceWorker.register('/sw.js')`.
   - Lắng nghe sự kiện `visibilitychange`: khi tab trở lại `visible`, kiểm tra version và trigger `update()`.
   - Hiển thị UI Toast/Pill khi phát hiện bản mới (`hasUpdate === true`).
   - Khi người dùng bấm nút "Cập nhật", gọi `window.location.reload()`.
   - Bắt lỗi `ChunkLoadError` từ `window.onerror` hoặc unhandledrejection để reload trang.
-- [ ] **Step 2: Chạy test xác nhận fail**
+- [x] **Step 2: Chạy test xác nhận fail**
   ```bash
   npx vitest run src/components/pwa/__tests__/PwaUpdateManager.test.tsx
   ```
-- [ ] **Step 3: Hiện thực `PwaUpdateManager.tsx`**
+- [x] **Step 3: Hiện thực `PwaUpdateManager.tsx`**
   - Quản trị state: `hasUpdate`, `isUpdating`, `newVersion`.
   - Polling định kỳ mỗi 15 phút khi người dùng mở app.
   - UI Pill chuẩn phong cách Checked (vị trí `top-4` hoặc ngay dưới Safe Area, không shadow, viền sạch sẽ, nút điểm nhấn Lime `#D9E872`).
-- [ ] **Step 4: Tích hợp vào `src/app/layout.tsx`**
+- [x] **Step 4: Tích hợp vào `src/app/layout.tsx`**
   Thay thế component `ServiceWorkerRegister` cũ bằng `PwaUpdateManager`.
-- [ ] **Step 5: Chạy test xác nhận pass (Green)**
+- [x] **Step 5: Chạy test xác nhận pass (Green)**
   ```bash
   npx vitest run src/components/pwa/__tests__/PwaUpdateManager.test.tsx
   ```
-- [ ] **Step 6: Commit thay đổi Task 3**
+- [x] **Step 6: Commit thay đổi Task 3**
   ```bash
   git add src/components/pwa/ src/app/layout.tsx
   git commit -m "feat(pwa): implement PwaUpdateManager with auto-recovery and update pill UI"
