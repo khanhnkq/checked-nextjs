@@ -68,7 +68,7 @@ function FriendInviteAcceptContent({ token }: FriendInviteAcceptContentProps) {
 
   return (
     <div className="min-h-screen bg-canvas text-text-primary select-none flex flex-col items-center">
-      <main className="w-full max-w-md mx-auto flex flex-col min-h-screen relative">
+      <main className="w-full max-w-md mx-auto flex flex-col min-h-screen relative pt-safe">
         {/* 1. Top Navigation Bar */}
       <header className="flex items-center justify-between px-4 pt-3 pb-2 shrink-0">
         <button
@@ -404,7 +404,7 @@ export default function FriendInviteAcceptPage({ params }: { params: Promise<{ t
     <Suspense
       fallback={
         <div className="min-h-screen bg-canvas text-text-primary select-none flex flex-col items-center">
-          <main className="w-full max-w-md mx-auto flex flex-col min-h-screen relative">
+          <main className="w-full max-w-md mx-auto flex flex-col min-h-screen relative pt-safe">
             <header className="flex items-center justify-between px-4 pt-3 pb-2 shrink-0">
               <div className="w-11 h-11 rounded-full bg-surface-subtle animate-pulse" />
               <h1 className="text-[17px] font-bold text-text-primary font-display">

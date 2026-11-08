@@ -59,7 +59,7 @@ export default function ProfilePage() {
     return (
       <main
         data-testid="profile-loading-skeleton"
-        className="min-h-screen bg-[#EDE9DF] p-4 flex flex-col justify-between max-w-md mx-auto"
+        className="min-h-screen bg-[#EDE9DF] p-4 pt-safe flex flex-col justify-between max-w-md mx-auto"
       >
         <div className="space-y-6 pt-2">
           {/* TopBar Skeleton */}
@@ -97,7 +97,7 @@ export default function ProfilePage() {
       data-testid="profile-page-main"
       className="min-h-screen bg-[#EDE9DF] text-text-primary select-none"
     >
-      <div className="max-w-md mx-auto min-h-screen flex flex-col justify-between">
+      <div className="max-w-md mx-auto min-h-screen flex flex-col justify-between pt-safe">
         <div className="flex-1 pb-10">
           {/* 1. ProfileTopBar (44px) */}
           <ProfileTopBar

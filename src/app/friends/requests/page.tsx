@@ -178,7 +178,7 @@ export default function FriendRequestsPage() {
     <div className="min-h-screen bg-[#EDE9DF] text-text-primary select-none flex flex-col items-center">
       <main
         data-testid="friend-requests-page"
-        className="w-full max-w-md mx-auto flex flex-col min-h-screen relative"
+        className="w-full max-w-md mx-auto flex flex-col min-h-screen relative pt-safe"
       >
         {/* 1. Header Bar Flat */}
       <header className="flex items-center gap-3 px-4 pt-3 pb-2 shrink-0">

@@ -90,7 +90,7 @@ export default function SettingsPage() {
 
   return (
     <div className="w-full min-h-screen bg-canvas text-text-primary">
-      <div className="max-w-md mx-auto min-h-screen flex flex-col pb-12">
+      <div className="max-w-md mx-auto min-h-screen flex flex-col pb-12 pt-safe">
         {/* Navigation Bar */}
         <SettingsTopBar title="Cài đặt" onBack={handleBack} />
 

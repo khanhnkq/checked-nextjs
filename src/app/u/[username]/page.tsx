@@ -53,7 +53,7 @@ function UserProfileSkeleton({
     <div className="min-h-screen bg-canvas text-text-primary select-none flex flex-col items-center">
       <main
         data-testid="user-profile-skeleton"
-        className="w-full max-w-md mx-auto flex flex-col min-h-screen px-4 pt-3 pb-8 relative"
+        className="w-full max-w-md mx-auto flex flex-col min-h-screen px-4 pt-safe pb-8 relative"
       >
       {/* Header bar */}
       <header className="h-11 flex items-center justify-between shrink-0 mb-6">
@@ -314,7 +314,7 @@ function UserProfileContent({ username }: { username: string }) {
     <div className="min-h-screen bg-canvas text-text-primary select-none flex flex-col items-center">
       <main
         data-testid="user-profile-page"
-        className="w-full max-w-md mx-auto flex flex-col min-h-screen px-4 pt-3 pb-8 select-none justify-between relative"
+        className="w-full max-w-md mx-auto flex flex-col min-h-screen px-4 pt-safe pb-8 select-none justify-between relative"
       >
       <div>
         {/* 1. Header Bar: Nút Back tròn 44px */}

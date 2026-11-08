@@ -94,7 +94,7 @@ export default function CalorieDashboardPage() {
       data-testid="calorie-page-main"
       className="min-h-screen bg-canvas text-text-primary select-none flex flex-col items-center"
     >
-      <div className="w-full max-w-md mx-auto flex flex-col min-h-screen relative">
+      <div className="w-full max-w-md mx-auto flex flex-col min-h-screen relative pt-safe">
         {/* 1. Header Bar phẳng với Nút Back tròn 44x44px & Nút Thêm món */}
         <CalorieHeaderBar
           onBack={handleBack}

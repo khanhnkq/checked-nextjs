@@ -95,59 +95,61 @@ function VerifyOtpContent() {
   };
 
   return (
-    <div className="flex flex-col justify-between min-h-screen px-6 py-6 max-w-md mx-auto pt-safe pb-safe">
-      {/* Top Header */}
-      <div className="w-full flex items-center justify-between">
-        <CircleIconButton
-          size="sm"
-          variant="surface"
-          onClick={() => router.back()}
-          aria-label="Quay lại"
-        >
-          <ArrowLeft size={18} />
-        </CircleIconButton>
-      </div>
-
-      {/* Main Content */}
-      <div className="flex flex-col items-center my-auto w-full gap-8">
-        <div className="text-center">
-          <h1 className="text-3xl font-extrabold font-display text-[#141613] tracking-tight mb-2">
-            Nhập mã 6 số
-          </h1>
-          <p className="text-sm font-medium text-[#63685F] truncate max-w-xs">
-            {email ? `Gửi tới: ${email}` : 'Kiểm tra hộp thư email của bạn'}
-          </p>
+    <div className="w-full min-h-screen bg-[#EDE9DF] flex flex-col items-center">
+      <div className="w-full max-w-md min-h-screen flex flex-col justify-between px-6 py-6 pt-safe pb-safe">
+        {/* Top Header */}
+        <div className="w-full flex items-center justify-between">
+          <CircleIconButton
+            size="sm"
+            variant="surface"
+            onClick={() => router.back()}
+            aria-label="Quay lại"
+          >
+            <ArrowLeft size={18} />
+          </CircleIconButton>
         </div>
 
-        {/* 6 Discrete Boxes */}
-        <OTPInput
-          value={otp}
-          onChange={setOtp}
-          onComplete={handleVerify}
-          disabled={verifyMutation.isPending}
-          hasError={verifyMutation.isError}
-        />
+        {/* Main Content */}
+        <div className="flex flex-col items-center my-auto w-full gap-8">
+          <div className="text-center">
+            <h1 className="text-3xl font-extrabold font-display text-[#141613] tracking-tight mb-2">
+              Nhập mã 6 số
+            </h1>
+            <p className="text-sm font-medium text-[#63685F] truncate max-w-xs">
+              {email ? `Gửi tới: ${email}` : 'Kiểm tra hộp thư email của bạn'}
+            </p>
+          </div>
 
-        {/* Resend button */}
-        <button
-          type="button"
-          onClick={handleResend}
-          disabled={countdown > 0 || resendMutation.isPending}
-          className="text-sm font-bold text-[#141613] disabled:text-[#63685F] transition-colors"
-        >
-          {countdown > 0 ? `Gửi lại sau ${countdown}s` : 'Gửi lại mã'}
-        </button>
-      </div>
+          {/* 6 Discrete Boxes */}
+          <OTPInput
+            value={otp}
+            onChange={setOtp}
+            onComplete={handleVerify}
+            disabled={verifyMutation.isPending}
+            hasError={verifyMutation.isError}
+          />
 
-      {/* Submit Button */}
-      <div className="w-full pb-4">
-        <PrimaryButton
-          onClick={() => handleVerify(otp)}
-          isLoading={verifyMutation.isPending}
-          disabled={otp.length !== 6 || verifyMutation.isPending}
-        >
-          Xác nhận
-        </PrimaryButton>
+          {/* Resend button */}
+          <button
+            type="button"
+            onClick={handleResend}
+            disabled={countdown > 0 || resendMutation.isPending}
+            className="text-sm font-bold text-[#141613] disabled:text-[#63685F] transition-colors"
+          >
+            {countdown > 0 ? `Gửi lại sau ${countdown}s` : 'Gửi lại mã'}
+          </button>
+        </div>
+
+        {/* Submit Button */}
+        <div className="w-full pb-4">
+          <PrimaryButton
+            onClick={() => handleVerify(otp)}
+            isLoading={verifyMutation.isPending}
+            disabled={otp.length !== 6 || verifyMutation.isPending}
+          >
+            Xác nhận
+          </PrimaryButton>
+        </div>
       </div>
     </div>
   );

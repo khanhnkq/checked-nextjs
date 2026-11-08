@@ -204,4 +204,30 @@ describe('POST /api/ai/vision-analyze Route Handler', () => {
     expect(json.success).toBe(false);
     expect(json.errorCode).toBe('RATE_LIMIT');
   });
+
+  it('triggers resilient fallback when dev mode or local key encounters auth/model error', async () => {
+    process.env.GEMINI_API_KEY = 'AQ.Ab8RN6Jx0OvhZgkBqqUByShhH4K2oPDliurx3lhkNgaac8bnQw';
+    process.env.DEV_MODE_ENABLED = 'true';
+
+    mockGenerateContent.mockRejectedValueOnce({
+      status: 401,
+      message: 'API key not valid. Please pass a valid API key. ACCESS_TOKEN_TYPE_UNSUPPORTED',
+    });
+
+    const request = new Request('http://localhost:3000/api/ai/vision-analyze', {
+      method: 'POST',
+      body: JSON.stringify({
+        imageBase64: 'data:image/jpeg;base64,mockrawimagebytes',
+      }),
+    });
+
+    const response = await POST(request);
+    const json = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(json.success).toBe(true);
+    expect(json.data.is_food).toBe(true);
+    expect(json.data.dish_name).toBe('Cơm tấm sườn nướng Checked');
+    expect(json.data.calories).toBe(580);
+  });
 });

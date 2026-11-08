@@ -56,11 +56,11 @@ html, body {
 
 /* Safe Area Insets Utilities cho Dynamic Island & Home Indicator */
 .pt-safe {
-  padding-top: max(env(safe-area-inset-top), 12px);
+  padding-top: max(env(safe-area-inset-top), 14px) !important;
 }
 
 .pb-safe {
-  padding-bottom: max(env(safe-area-inset-bottom), 16px);
+  padding-bottom: max(env(safe-area-inset-bottom), 16px) !important;
 }
 
 /* Ẩn scrollbar nhưng vẫn cho phép cuộn mượt mà */

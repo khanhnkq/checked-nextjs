@@ -90,75 +90,77 @@ function RegisterFormContent() {
       : '/login';
 
   return (
-    <div className="flex flex-col items-center justify-between min-h-screen px-6 py-10 max-w-md mx-auto pt-safe pb-safe bg-[#FAF8F5]">
-      {/* Top Branding */}
-      <div className="flex flex-col items-center mt-6 gap-3">
-        <AppLogo size={80} priority className="transition-transform active:scale-95" />
-        <h1 className="text-3xl font-extrabold font-display text-[#141613] tracking-tight">
-          Đăng ký
-        </h1>
-        <p className="text-sm font-medium text-[#63685F] tracking-tight">
-          Bắt đầu ghi lại nhật ký khoảnh khắc
-        </p>
-      </div>
-
-      {/* Form Fields */}
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="w-full flex flex-col gap-4 my-auto"
-      >
-        <CustomTextField
-          label="Email"
-          type="email"
-          placeholder="email@domain.com"
-          autoComplete="email"
-          leftIcon={<Mail size={18} />}
-          disabled={registerMutation.isPending}
-          error={errors.email?.message}
-          {...register('email')}
-        />
-
-        <CustomTextField
-          label="Username"
-          placeholder="Tên người dùng"
-          autoComplete="username"
-          leftIcon={<UserIcon size={18} />}
-          disabled={registerMutation.isPending}
-          error={errors.username?.message}
-          {...register('username')}
-        />
-
-        <CustomTextField
-          label="Mật khẩu"
-          type="password"
-          placeholder="Mật khẩu"
-          autoComplete="new-password"
-          leftIcon={<Lock size={18} />}
-          disabled={registerMutation.isPending}
-          error={errors.password?.message}
-          {...register('password')}
-        />
-
-        <div className="pt-2">
-          <PrimaryButton
-            type="submit"
-            isLoading={registerMutation.isPending}
-            disabled={registerMutation.isPending}
-          >
-            Tiếp tục
-          </PrimaryButton>
+    <div className="w-full min-h-screen bg-[#EDE9DF] flex flex-col items-center">
+      <div className="w-full max-w-md min-h-screen flex flex-col items-center justify-between px-6 py-10 pt-safe pb-safe">
+        {/* Top Branding */}
+        <div className="flex flex-col items-center mt-6 gap-3">
+          <AppLogo size={80} priority className="transition-transform active:scale-95" />
+          <h1 className="text-3xl font-extrabold font-display text-[#141613] tracking-tight">
+            Đăng ký
+          </h1>
+          <p className="text-sm font-medium text-[#63685F] tracking-tight">
+            Bắt đầu ghi lại nhật ký khoảnh khắc
+          </p>
         </div>
-      </form>
 
-      {/* Bottom Switch to Login */}
-      <div className="w-full flex justify-center pb-2">
-        <Link
-          href={loginHref}
-          className="text-sm font-semibold text-[#63685F] hover:text-[#141613] transition-colors"
+        {/* Form Fields */}
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="w-full flex flex-col gap-4 my-auto"
         >
-          Đã có tài khoản?{' '}
-          <span className="text-[#141613] font-bold underline">Đăng nhập</span>
-        </Link>
+          <CustomTextField
+            label="Email"
+            type="email"
+            placeholder="email@domain.com"
+            autoComplete="email"
+            leftIcon={<Mail size={18} />}
+            disabled={registerMutation.isPending}
+            error={errors.email?.message}
+            {...register('email')}
+          />
+
+          <CustomTextField
+            label="Username"
+            placeholder="Tên người dùng"
+            autoComplete="username"
+            leftIcon={<UserIcon size={18} />}
+            disabled={registerMutation.isPending}
+            error={errors.username?.message}
+            {...register('username')}
+          />
+
+          <CustomTextField
+            label="Mật khẩu"
+            type="password"
+            placeholder="Mật khẩu"
+            autoComplete="new-password"
+            leftIcon={<Lock size={18} />}
+            disabled={registerMutation.isPending}
+            error={errors.password?.message}
+            {...register('password')}
+          />
+
+          <div className="pt-2">
+            <PrimaryButton
+              type="submit"
+              isLoading={registerMutation.isPending}
+              disabled={registerMutation.isPending}
+            >
+              Tiếp tục
+            </PrimaryButton>
+          </div>
+        </form>
+
+        {/* Bottom Switch to Login */}
+        <div className="w-full flex justify-center pb-2">
+          <Link
+            href={loginHref}
+            className="text-sm font-semibold text-[#63685F] hover:text-[#141613] transition-colors"
+          >
+            Đã có tài khoản?{' '}
+            <span className="text-[#141613] font-bold underline">Đăng nhập</span>
+          </Link>
+        </div>
       </div>
     </div>
   );
@@ -168,7 +170,7 @@ export default function RegisterPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex flex-col items-center justify-center min-h-screen bg-[#FAF8F5]">
+        <div className="flex flex-col items-center justify-center min-h-screen bg-[#EDE9DF]">
           <AppLogo size={64} className="animate-pulse" />
         </div>
       }

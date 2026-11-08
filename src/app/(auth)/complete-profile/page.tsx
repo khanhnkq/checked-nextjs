@@ -119,7 +119,8 @@ export default function CompleteProfilePage() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-between min-h-screen px-6 py-10 max-w-md mx-auto pt-safe pb-safe">
+    <div className="w-full min-h-screen bg-[#EDE9DF] flex flex-col items-center">
+      <div className="w-full max-w-md min-h-screen flex flex-col items-center justify-between px-6 py-10 pt-safe pb-safe">
       {/* Title */}
       <div className="flex flex-col items-center mt-6 text-center">
         <h1 className="text-3xl font-extrabold font-display text-[#141613] tracking-tight mb-2">
@@ -188,6 +189,7 @@ export default function CompleteProfilePage() {
         >
           Bắt đầu
         </PrimaryButton>
+      </div>
       </div>
     </div>
   );

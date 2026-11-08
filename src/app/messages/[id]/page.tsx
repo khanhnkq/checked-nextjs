@@ -200,7 +200,7 @@ export default function ChatRoomPage() {
     <div className="h-[100dvh] max-h-[100dvh] w-full bg-canvas text-text-primary flex flex-col items-center overflow-hidden select-none">
       <main
         data-testid="chat-room-page"
-        className="w-full max-w-md mx-auto flex flex-col h-full relative"
+        className="w-full max-w-md mx-auto flex flex-col h-full relative pt-safe"
       >
         {/* 1. Thanh tiêu đề phòng chat */}
         <ChatRoomTopBar

@@ -89,7 +89,7 @@ export default function BlockedUsersPage() {
   }, [userToUnblock, unblockMutation.isPending]);
 
   return (
-    <div className="min-h-screen bg-canvas flex flex-col text-text-primary">
+    <div className="min-h-screen bg-canvas flex flex-col text-text-primary pt-safe">
       {/* TopBar cố định với nút back 44px tròn */}
       <SettingsTopBar title="Tài khoản đã bị chặn" onBack={handleBack} />
 

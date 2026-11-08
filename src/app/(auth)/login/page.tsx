@@ -129,64 +129,66 @@ function LoginFormContent() {
       : '/register';
 
   return (
-    <div className="flex flex-col items-center justify-between min-h-screen px-6 py-10 max-w-md mx-auto pt-safe pb-safe bg-[#FAF8F5]">
-      {/* Top Branding */}
-      <div className="flex flex-col items-center mt-6 gap-3">
-        <AppLogo size={80} priority className="transition-transform active:scale-95" />
-        <h1 className="text-3xl font-extrabold font-display text-[#141613] tracking-tight">
-          Đăng nhập
-        </h1>
-        <p className="text-sm font-medium text-[#63685F] tracking-tight">
-          Chia sẻ khoảnh khắc & tài chính
-        </p>
-      </div>
-
-      {/* Form Fields */}
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="w-full flex flex-col gap-4 my-auto"
-      >
-        <CustomTextField
-          label="Tài khoản"
-          placeholder="Email hoặc username"
-          autoComplete="username"
-          leftIcon={<UserIcon size={18} />}
-          disabled={loginMutation.isPending}
-          error={errors.identifier?.message}
-          {...register('identifier')}
-        />
-
-        <CustomTextField
-          label="Mật khẩu"
-          type="password"
-          placeholder="Mật khẩu"
-          autoComplete="current-password"
-          leftIcon={<Lock size={18} />}
-          disabled={loginMutation.isPending}
-          error={errors.password?.message}
-          {...register('password')}
-        />
-
-        <div className="pt-2">
-          <PrimaryButton
-            type="submit"
-            isLoading={loginMutation.isPending}
-            disabled={loginMutation.isPending}
-          >
+    <div className="w-full min-h-screen bg-[#EDE9DF] flex flex-col items-center">
+      <div className="w-full max-w-md min-h-screen flex flex-col items-center justify-between px-6 py-10 pt-safe pb-safe">
+        {/* Top Branding */}
+        <div className="flex flex-col items-center mt-6 gap-3">
+          <AppLogo size={80} priority className="transition-transform active:scale-95" />
+          <h1 className="text-3xl font-extrabold font-display text-[#141613] tracking-tight">
             Đăng nhập
-          </PrimaryButton>
+          </h1>
+          <p className="text-sm font-medium text-[#63685F] tracking-tight">
+            Chia sẻ khoảnh khắc & tài chính
+          </p>
         </div>
-      </form>
 
-      {/* Bottom Switch to Register */}
-      <div className="w-full flex justify-center pb-2">
-        <Link
-          href={registerHref}
-          className="text-sm font-semibold text-[#63685F] hover:text-[#141613] transition-colors"
+        {/* Form Fields */}
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="w-full flex flex-col gap-4 my-auto"
         >
-          Chưa có tài khoản?{' '}
-          <span className="text-[#141613] font-bold underline">Tạo ngay</span>
-        </Link>
+          <CustomTextField
+            label="Tài khoản"
+            placeholder="Email hoặc username"
+            autoComplete="username"
+            leftIcon={<UserIcon size={18} />}
+            disabled={loginMutation.isPending}
+            error={errors.identifier?.message}
+            {...register('identifier')}
+          />
+
+          <CustomTextField
+            label="Mật khẩu"
+            type="password"
+            placeholder="Mật khẩu"
+            autoComplete="current-password"
+            leftIcon={<Lock size={18} />}
+            disabled={loginMutation.isPending}
+            error={errors.password?.message}
+            {...register('password')}
+          />
+
+          <div className="pt-2">
+            <PrimaryButton
+              type="submit"
+              isLoading={loginMutation.isPending}
+              disabled={loginMutation.isPending}
+            >
+              Đăng nhập
+            </PrimaryButton>
+          </div>
+        </form>
+
+        {/* Bottom Switch to Register */}
+        <div className="w-full flex justify-center pb-2">
+          <Link
+            href={registerHref}
+            className="text-sm font-semibold text-[#63685F] hover:text-[#141613] transition-colors"
+          >
+            Chưa có tài khoản?{' '}
+            <span className="text-[#141613] font-bold underline">Tạo ngay</span>
+          </Link>
+        </div>
       </div>
     </div>
   );
@@ -196,7 +198,7 @@ export default function LoginPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex flex-col items-center justify-center min-h-screen bg-[#FAF8F5]">
+        <div className="flex flex-col items-center justify-center min-h-screen bg-[#EDE9DF]">
           <AppLogo size={64} className="animate-pulse" />
         </div>
       }
