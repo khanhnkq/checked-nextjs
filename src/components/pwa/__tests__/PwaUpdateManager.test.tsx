@@ -145,8 +145,14 @@ describe('PwaUpdateManager', () => {
       await Promise.resolve();
     });
 
+    const alert = screen.getByRole('alert');
+    expect(alert).toBeInTheDocument();
     expect(screen.getByText(/Đã có phiên bản mới/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Cập nhật/i })).toBeInTheDocument();
+
+    const container = alert.parentElement;
+    expect(container).toHaveClass('z-[100]');
+    expect(container).toHaveStyle({ top: 'calc(max(env(safe-area-inset-top), 14px) + 68px)' });
   });
 
   it('displays update pill when updatefound event occurs with an installed worker', async () => {

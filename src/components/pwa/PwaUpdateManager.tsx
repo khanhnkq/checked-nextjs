@@ -191,16 +191,19 @@ export function PwaUpdateManager() {
   }
 
   return (
-    <div className="fixed top-2 left-0 right-0 z-50 flex justify-center px-4 pointer-events-none pt-safe">
+    <div
+      className="fixed left-0 right-0 z-[100] flex justify-center px-4 pointer-events-none transition-all duration-300"
+      style={{ top: 'calc(max(env(safe-area-inset-top), 14px) + 68px)' }}
+    >
       <div
         role="alert"
-        className="pointer-events-auto bg-[#FAF8F5] text-[#2C2825] px-4 py-2.5 rounded-full flex items-center gap-3 z-50"
+        className="pointer-events-auto bg-[#2C2825] text-[#FAF8F5] px-4 py-2.5 rounded-full flex items-center gap-3 z-[100] animate-fadeIn select-none"
       >
-        <span className="text-xs font-medium">⚡ Đã có phiên bản mới</span>
+        <span className="text-xs font-semibold tracking-wide">⚡ Đã có phiên bản mới</span>
         <button
           type="button"
           onClick={handleUpdate}
-          className="bg-[#D9E872] text-[#2C2825] font-semibold text-xs px-3 py-1.5 rounded-full active:scale-95 transition-transform cursor-pointer"
+          className="bg-[#D9E872] text-[#2C2825] font-bold text-xs px-3 py-1.5 rounded-full active:scale-95 transition-transform cursor-pointer"
         >
           Cập nhật
         </button>
@@ -208,7 +211,7 @@ export function PwaUpdateManager() {
           type="button"
           onClick={handleDismiss}
           aria-label="Đóng thông báo"
-          className="text-[#2C2825]/60 hover:text-[#2C2825] text-xs px-1 cursor-pointer transition-colors"
+          className="text-[#FAF8F5]/60 hover:text-[#FAF8F5] text-xs px-1 cursor-pointer transition-colors"
         >
           ✕
         </button>
