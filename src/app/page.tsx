@@ -22,7 +22,7 @@ import {
   type CapturedPhotoData,
   type PreviewSubmitData,
 } from '@/components/home';
-import { useWebRTCCamera } from '@/hooks/useWebRTCCamera';
+import { useCameraContext } from '@/contexts/CameraContext';
 import { usePhotoUpload } from '@/hooks/usePhotoUpload';
 import { useConversations } from '@/hooks/useConversations';
 import { captureVideoFrame, cropImageFileToSquare } from '@/lib/media/canvas-capture';
@@ -48,8 +48,8 @@ export default function HomePage() {
     };
   }, []);
 
-  // Hook Camera WebRTC thực tế (tự động khởi động luồng camera)
-  const camera = useWebRTCCamera({ autoStart: true });
+  // Hook Camera WebRTC toàn cục (Global Stream Singleton)
+  const camera = useCameraContext();
 
   // 1. API: Đồng bộ thông tin người dùng hiện tại từ Backend
   const { data: userData, isLoading: isUserLoading } = useGetCurrentUser({
