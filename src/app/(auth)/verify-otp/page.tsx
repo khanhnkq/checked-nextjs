@@ -4,7 +4,9 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
-import { useVerify, useRegister } from '@/lib/api/generated/endpoints';
+import { useMutation } from '@tanstack/react-query';
+import { useVerify } from '@/lib/api/generated/endpoints';
+import { resendOtp } from '@/lib/api/auth-api';
 import { useAuthStore } from '@/stores/auth-store';
 import { syncSessionCookies } from '@/lib/auth/session-sync';
 import { CircleIconButton, PrimaryButton } from '@/components/common';
@@ -62,15 +64,15 @@ function VerifyOtpContent() {
     },
   });
 
-  const resendMutation = useRegister({
-    mutation: {
-      onSuccess: () => {
-        toast.success('Đã gửi lại mã mới');
-        setCountdown(60);
-      },
-      onError: () => {
-        toast.error('Không thể gửi lại mã');
-      },
+  const resendMutation = useMutation({
+    mutationFn: (targetEmail: string) => resendOtp({ email: targetEmail }),
+    onSuccess: () => {
+      toast.success('Đã gửi lại mã mới');
+      setCountdown(60);
+    },
+    onError: (err: any) => {
+      const message = err?.data?.message || err?.response?.data?.message || err?.message || 'Không thể gửi lại mã';
+      toast.error(message);
     },
   });
 
@@ -88,14 +90,8 @@ function VerifyOtpContent() {
   };
 
   const handleResend = () => {
-    if (countdown > 0 || resendMutation.isPending) return;
-    resendMutation.mutate({
-      data: {
-        email,
-        username: username || email.split('@')[0],
-        password: 'TemporaryResend123!', // Required by register schema
-      },
-    });
+    if (countdown > 0 || resendMutation.isPending || !email) return;
+    resendMutation.mutate(email);
   };
 
   return (

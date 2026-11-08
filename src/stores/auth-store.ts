@@ -77,7 +77,8 @@ export const useAuthStore = create<AuthStore>()(
 
         // 1. Đồng bộ cookie trình duyệt tức thời
         if (typeof document !== 'undefined') {
-          document.cookie = `checked_token=${encodeURIComponent(token)}; path=/; max-age=${7 * 86400}; SameSite=Lax`;
+          const isSecure = typeof window !== 'undefined' && window.location.protocol === 'https:';
+          document.cookie = `checked_token=${encodeURIComponent(token)}; path=/; max-age=${7 * 86400}; SameSite=Lax${isSecure ? '; Secure' : ''}`;
         }
 
         // 2. Cập nhật state đồng bộ
@@ -99,7 +100,8 @@ export const useAuthStore = create<AuthStore>()(
         }
 
         if (typeof document !== 'undefined') {
-          document.cookie = `checked_token=${encodeURIComponent(token)}; path=/; max-age=${7 * 86400}; SameSite=Lax`;
+          const isSecure = typeof window !== 'undefined' && window.location.protocol === 'https:';
+          document.cookie = `checked_token=${encodeURIComponent(token)}; path=/; max-age=${7 * 86400}; SameSite=Lax${isSecure ? '; Secure' : ''}`;
         }
 
         set((state) => {
@@ -118,7 +120,8 @@ export const useAuthStore = create<AuthStore>()(
       logout: () => {
         // 1. Xóa cookie client-side tức thì
         if (typeof document !== 'undefined') {
-          document.cookie = 'checked_token=; path=/; max-age=0; SameSite=Lax';
+          const isSecure = typeof window !== 'undefined' && window.location.protocol === 'https:';
+          document.cookie = `checked_token=; path=/; max-age=0; SameSite=Lax${isSecure ? '; Secure' : ''}`;
         }
 
         // 2. Xóa store state
