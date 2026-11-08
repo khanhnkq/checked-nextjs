@@ -115,6 +115,17 @@ describe('Home Components (iOS Parity, Zero Border, Zero Blur, Zero Shadow)', ()
       expect(handleRetry).toHaveBeenCalled();
     });
 
+    it('integrates CameraPermissionPrompt when not streaming and invokes onEnableCamera', async () => {
+      const handleEnable = vi.fn();
+      const user = userEvent.setup();
+      render(<CameraBox status="idle" onEnableCamera={handleEnable} />);
+
+      expect(screen.getByText('Bật Camera để bắt đầu')).toBeInTheDocument();
+      const enableBtn = screen.getByRole('button', { name: 'Bật Camera' });
+      await user.click(enableBtn);
+      expect(handleEnable).toHaveBeenCalledTimes(1);
+    });
+
     it('toggles flash button state in uncontrolled mode', async () => {
       const user = userEvent.setup();
       render(<CameraBox />);

@@ -1,10 +1,11 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Camera, CameraOff, Zap, ZapOff } from 'lucide-react';
+import { Camera, Zap, ZapOff } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
 import { haptics } from '@/lib/utils/haptics';
 import type { CameraStatus, CameraFacingMode, CameraZoomLevel } from '@/hooks/useWebRTCCamera';
+import { CameraPermissionPrompt } from './CameraPermissionPrompt';
 
 export interface CameraBoxProps {
   videoRef?: React.RefObject<HTMLVideoElement | null>;
@@ -17,6 +18,7 @@ export interface CameraBoxProps {
   zoomLevel?: CameraZoomLevel;
   onToggleZoom?: () => void;
   onRetryPermission?: () => void;
+  onEnableCamera?: () => void;
   className?: string;
 }
 
@@ -36,6 +38,7 @@ export const CameraBox: React.FC<CameraBoxProps> = ({
   zoomLevel: controlledZoom,
   onToggleZoom,
   onRetryPermission,
+  onEnableCamera,
   className,
 }) => {
   // Fallback internal state nếu không truyền controlled props từ hook
@@ -101,6 +104,7 @@ export const CameraBox: React.FC<CameraBoxProps> = ({
   };
 
   const isStreaming = isLive || status === 'streaming';
+  const isStarting = status === 'starting';
   const isDenied = status === 'denied';
 
   return (
@@ -122,35 +126,22 @@ export const CameraBox: React.FC<CameraBoxProps> = ({
             facingMode === 'user' && '-scale-x-100'
           )}
         />
-      ) : isDenied ? (
-        /* 2. TRẠNG THÁI TỪ CHỐI QUYỀN CAMERA */
-        <div className="flex flex-col items-center justify-center gap-3 px-6 text-center">
-          <div className="w-[64px] h-[64px] rounded-full bg-white/10 flex items-center justify-center">
-            <CameraOff size={28} className="text-[#FF5C5C]" strokeWidth={2} />
+      ) : isStarting ? (
+        /* 2. ĐANG KHỞI ĐỘNG CAMERA */
+        <div className="flex flex-col items-center justify-center gap-3">
+          <div className="w-[72px] h-[72px] rounded-full bg-white/10 flex items-center justify-center animate-pulse">
+            <Camera size={32} className="text-[#D9E872]" strokeWidth={1.8} />
           </div>
           <span className="text-[14px] font-semibold font-display text-white/80">
-            Chưa cấp quyền camera
+            Đang khởi động camera...
           </span>
-          {onRetryPermission && (
-            <button
-              type="button"
-              onClick={onRetryPermission}
-              className="mt-1 px-4 py-2 rounded-full bg-[#D4EB70] text-[#141613] text-xs font-bold font-display active:scale-95 transition-transform"
-            >
-              Cấp quyền
-            </button>
-          )}
         </div>
       ) : (
-        /* 3. GIAO DIỆN ỐNG KÍNH CHECKED MẶC ĐỊNH */
-        <div className="flex flex-col items-center justify-center gap-3">
-          <div className="w-[72px] h-[72px] rounded-full bg-white/10 flex items-center justify-center">
-            <Camera size={32} className="text-white/60" strokeWidth={1.8} />
-          </div>
-          <span className="text-[15px] font-semibold font-display text-white/70 tracking-tight">
-            Ống kính Checked
-          </span>
-        </div>
+        /* 3. SOFT-PROMPT CARD HOẶC DENIED GUIDANCE */
+        <CameraPermissionPrompt
+          status={status}
+          onEnableCamera={onEnableCamera || onRetryPermission}
+        />
       )}
 
       {/* Top Controls Overlay: Nút Flash và Zoom trên khung ngắm */}

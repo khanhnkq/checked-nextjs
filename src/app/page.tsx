@@ -311,6 +311,7 @@ export default function HomePage() {
               zoomLevel={camera.zoomLevel}
               onToggleZoom={camera.toggleZoom}
               onRetryPermission={() => camera.startCamera()}
+              onEnableCamera={() => camera.startCamera()}
             />
           </div>
 
