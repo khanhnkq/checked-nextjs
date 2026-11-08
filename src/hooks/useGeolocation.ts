@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { usePermissionStore } from '@/stores/permission-store';
 
 export interface GeolocationCoords {
   latitude: number;
@@ -11,6 +12,7 @@ export interface GeolocationCoords {
 export interface UseGeolocationOptions {
   autoFetch?: boolean;
   defaultLocationName?: string;
+  cacheTtlMs?: number;
 }
 
 export interface UseGeolocationReturn {
@@ -21,6 +23,8 @@ export interface UseGeolocationReturn {
   refreshLocation: () => void;
   setLocationName: (name: string) => void;
 }
+
+export const LOCATION_CACHE_TTL = 30 * 60 * 1000; // 30 minutes
 
 /**
  * Chuyển đổi tọa độ GPS sang tên địa phương (Quận/Huyện, Tỉnh/Thành phố)
@@ -73,17 +77,33 @@ export async function reverseGeocodeCoords(
 
 /**
  * useGeolocation
- * Hook quản lý định vị GPS và chuyển đổi địa danh.
+ * Hook quản lý định vị GPS, chuyển đổi địa danh và cache vị trí bền vững.
  * Tái hiện 100% logic của LocationService.swift trên Checked iOS.
  */
 export function useGeolocation(options: UseGeolocationOptions = {}): UseGeolocationReturn {
-  const { autoFetch = true, defaultLocationName = 'TP. Hồ Chí Minh' } = options;
+  const {
+    autoFetch = true,
+    defaultLocationName = 'TP. Hồ Chí Minh',
+    cacheTtlMs = LOCATION_CACHE_TTL,
+  } = options;
 
-  const [locationName, setLocationName] = useState(defaultLocationName);
-  const [coords, setCoords] = useState<GeolocationCoords | null>(null);
+  const cachedLocation = usePermissionStore((state) => state.cachedLocation);
+  const locationPermission = usePermissionStore((state) => state.permissions.location);
+
+  const [locationName, setLocationName] = useState<string>(
+    () => cachedLocation?.locationName || defaultLocationName
+  );
+  const [coords, setCoords] = useState<GeolocationCoords | null>(
+    () => cachedLocation?.coords || null
+  );
   const [isLocating, setIsLocating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const isMountedRef = useRef(true);
+  const locationNameRef = useRef(locationName);
+
+  useEffect(() => {
+    locationNameRef.current = locationName;
+  }, [locationName]);
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -91,6 +111,14 @@ export function useGeolocation(options: UseGeolocationOptions = {}): UseGeolocat
       isMountedRef.current = false;
     };
   }, []);
+
+  // Đồng bộ state khi cachedLocation trong store thay đổi
+  useEffect(() => {
+    if (cachedLocation) {
+      setLocationName(cachedLocation.locationName);
+      setCoords(cachedLocation.coords);
+    }
+  }, [cachedLocation]);
 
   const refreshLocation = useCallback(() => {
     if (typeof window === 'undefined' || !navigator.geolocation) {
@@ -111,19 +139,35 @@ export function useGeolocation(options: UseGeolocationOptions = {}): UseGeolocat
         };
         setCoords(newCoords);
 
+        // Cập nhật trạng thái quyền vị trí thành granted
+        usePermissionStore.getState().setPermission('location', 'granted');
+
         // Reverse Geocoding
-        const placeName = await reverseGeocodeCoords(newCoords.latitude, newCoords.longitude);
+        let placeName = await reverseGeocodeCoords(newCoords.latitude, newCoords.longitude);
         if (isMountedRef.current) {
           if (placeName) {
             setLocationName(placeName);
           }
           setIsLocating(false);
         }
+
+        const finalPlaceName = placeName || locationNameRef.current || defaultLocationName;
+
+        // Lưu vị trí vào cache store và localStorage
+        usePermissionStore.getState().setCachedLocation({
+          coords: newCoords,
+          locationName: finalPlaceName,
+          timestamp: Date.now(),
+        });
       },
       (geoError) => {
         if (!isMountedRef.current) return;
         setIsLocating(false);
         setError(geoError.message);
+        // Code 1 tương ứng PERMISSION_DENIED
+        if (geoError.code === 1) {
+          usePermissionStore.getState().setPermission('location', 'denied');
+        }
       },
       {
         enableHighAccuracy: true,
@@ -131,13 +175,29 @@ export function useGeolocation(options: UseGeolocationOptions = {}): UseGeolocat
         maximumAge: 60000,
       }
     );
-  }, []);
+  }, [defaultLocationName]);
 
   useEffect(() => {
-    if (autoFetch) {
-      refreshLocation();
+    if (!autoFetch) return;
+
+    const currentPermission = usePermissionStore.getState().permissions.location;
+    const currentCached = usePermissionStore.getState().cachedLocation;
+
+    // Không tự động xin lại nếu người dùng đã từ chối
+    if (currentPermission === 'denied') {
+      return;
     }
-  }, [autoFetch, refreshLocation]);
+
+    // Nếu đã có cache còn hạn, không gọi lại getCurrentPosition
+    if (currentCached) {
+      const isFresh = Date.now() - currentCached.timestamp < cacheTtlMs;
+      if (isFresh) {
+        return;
+      }
+    }
+
+    refreshLocation();
+  }, [autoFetch, cacheTtlMs, refreshLocation]);
 
   return {
     locationName,

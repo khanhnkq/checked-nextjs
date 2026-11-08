@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils/cn';
 import { haptics } from '@/lib/utils/haptics';
 import { useVisionAnalysis } from '@/hooks/useVisionAnalysis';
 import { useGeolocation } from '@/hooks/useGeolocation';
+import { usePermissionStore } from '@/stores/permission-store';
 import { GeminiBrandPill } from './GeminiBrandPill';
 import { PreviewPinnedTags } from './PreviewPinnedTags';
 import { PreviewCaptionBar } from './PreviewCaptionBar';
@@ -114,8 +115,16 @@ export const ImagePreviewView: React.FC<ImagePreviewViewProps> = ({
   const [billCategory, setBillCategory] = useState<string>('Ăn uống');
   const [billItems, setBillItems] = useState<BillItemData[]>([]);
 
+  const cachedLocation = usePermissionStore((state) => state.cachedLocation);
+  const locationPermission = usePermissionStore((state) => state.permissions.location);
+
+  const effectiveInitialLocation =
+    initialLocationName && initialLocationName !== 'TP. Hồ Chí Minh'
+      ? initialLocationName
+      : (cachedLocation?.locationName || initialLocationName);
+
   // Trạng thái Pinned Tags
-  const [locationName, setLocationName] = useState(initialLocationName);
+  const [locationName, setLocationName] = useState(effectiveInitialLocation);
   const [isLocationPinned, setIsLocationPinned] = useState(true);
 
   const [dishName, setDishName] = useState<string | null>(initialDishName || null);
@@ -128,9 +137,10 @@ export const ImagePreviewView: React.FC<ImagePreviewViewProps> = ({
   const [isCaloriePinned, setIsCaloriePinned] = useState(true);
 
   // Hook Định vị GPS Geolocation (Đồng bộ LocationService.swift)
+  // Chỉ tự động fetch nếu đã có quyền 'granted' VÀ chưa có cache, không bao giờ pop-up xin quyền bất ngờ
   const geo = useGeolocation({
-    autoFetch: true,
-    defaultLocationName: initialLocationName,
+    autoFetch: Boolean(locationPermission === 'granted' && !cachedLocation),
+    defaultLocationName: effectiveInitialLocation,
   });
 
   // Ref lưu ảnh đã phân tích để chống gọi lại nhiều lần (chống vòng lặp vô hạn)
@@ -438,6 +448,13 @@ export const ImagePreviewView: React.FC<ImagePreviewViewProps> = ({
         onConfirm={(newLocation) => {
           setLocationName(newLocation);
           setIsLocationPinned(true);
+          if (geo.coords) {
+            usePermissionStore.getState().setCachedLocation({
+              coords: geo.coords,
+              locationName: newLocation,
+              timestamp: Date.now(),
+            });
+          }
         }}
         onDismiss={() => setIsShowingLocationSheet(false)}
       />

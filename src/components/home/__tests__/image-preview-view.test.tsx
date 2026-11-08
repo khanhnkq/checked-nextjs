@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ImagePreviewView, type CapturedPhotoData } from '../ImagePreviewView';
+import { usePermissionStore } from '@/stores/permission-store';
 
 describe('ImagePreviewView Component (1:1 iOS Parity Integration)', () => {
   const originalFetch = global.fetch;
@@ -15,6 +16,7 @@ describe('ImagePreviewView Component (1:1 iOS Parity Integration)', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    usePermissionStore.getState().reset();
   });
 
   afterEach(() => {
@@ -364,6 +366,99 @@ describe('ImagePreviewView Component (1:1 iOS Parity Integration)', () => {
     await user.clear(input);
     await user.click(sparklesBtn);
     expect(input).toHaveValue('🍜 Bún Bò Huế đậm đà chuẩn vị');
+  });
+
+  it('renders with cached location and coords from permissionStore without prompting geolocation', async () => {
+    const mockGetCurrentPosition = vi.fn();
+    Object.defineProperty(global.navigator, 'geolocation', {
+      value: { getCurrentPosition: mockGetCurrentPosition },
+      configurable: true,
+      writable: true,
+    });
+
+    usePermissionStore.getState().setCachedLocation({
+      coords: { latitude: 10.7769, longitude: 106.7009, accuracy: 5 },
+      locationName: 'Landmark 81, Bình Thạnh',
+      timestamp: Date.now(),
+    });
+
+    const handleSend = vi.fn();
+    const user = userEvent.setup();
+
+    render(
+      <ImagePreviewView
+        photo={mockPhoto}
+        autoAnalyze={false}
+        onDismiss={vi.fn()}
+        onSend={handleSend}
+      />
+    );
+
+    // Location tag should show cached location
+    expect(screen.getByText('Landmark 81, Bình Thạnh')).toBeInTheDocument();
+
+    // Geolocation API should NOT have been invoked automatically
+    expect(mockGetCurrentPosition).not.toHaveBeenCalled();
+
+    // Clicking send includes cached latitude & longitude
+    const sendBtn = screen.getByRole('button', { name: 'Gửi khoảnh khắc' });
+    await user.click(sendBtn);
+
+    expect(handleSend).toHaveBeenCalledWith(
+      expect.objectContaining({
+        locationName: 'Landmark 81, Bình Thạnh',
+        latitude: 10.7769,
+        longitude: 106.7009,
+      })
+    );
+  });
+
+  it('allows manual location refresh via LocationEditSheet when clicking location tag', async () => {
+    const mockGetCurrentPosition = vi.fn();
+    Object.defineProperty(global.navigator, 'geolocation', {
+      value: { getCurrentPosition: mockGetCurrentPosition },
+      configurable: true,
+      writable: true,
+    });
+
+    const user = userEvent.setup();
+    render(
+      <ImagePreviewView
+        photo={mockPhoto}
+        autoAnalyze={false}
+        onDismiss={vi.fn()}
+        initialLocationName="Hồ Gươm"
+      />
+    );
+
+    const locTag = screen.getByRole('button', { name: 'Địa điểm: Hồ Gươm' });
+    await user.click(locTag);
+
+    expect(screen.getByRole('dialog', { name: 'Vị trí & Địa điểm' })).toBeInTheDocument();
+
+    const refreshBtn = screen.getByRole('button', { name: 'Cập nhật lại GPS hiện tại' });
+    await user.click(refreshBtn);
+
+    expect(mockGetCurrentPosition).toHaveBeenCalledTimes(1);
+  });
+
+  it('does NOT aggressively auto-prompt geolocation on mount when no cached location exists and permission is prompt', () => {
+    const mockGetCurrentPosition = vi.fn();
+    Object.defineProperty(global.navigator, 'geolocation', {
+      value: { getCurrentPosition: mockGetCurrentPosition },
+      configurable: true,
+      writable: true,
+    });
+
+    render(
+      <ImagePreviewView
+        photo={mockPhoto}
+        autoAnalyze={false}
+        onDismiss={vi.fn()}
+      />
+    );
+
+    expect(mockGetCurrentPosition).not.toHaveBeenCalled();
   });
 
   it('strictly conforms to zero border, blur, shadow rule', () => {
