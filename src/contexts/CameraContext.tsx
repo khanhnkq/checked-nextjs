@@ -11,6 +11,7 @@ import React, {
   type RefObject,
 } from 'react';
 import { usePermissionStore } from '@/stores/permission-store';
+import { useAuthStore } from '@/stores/auth-store';
 import { useWebRTCCamera } from '@/hooks/useWebRTCCamera';
 
 export type CameraStatus = 'idle' | 'starting' | 'streaming' | 'denied' | 'unsupported';
@@ -334,10 +335,13 @@ export const CameraProvider: React.FC<CameraProviderProps> = ({
     return nextZoom;
   }, [zoomLevel, setZoom]);
 
-  // Tự động khởi động nếu autoStart = true hoặc quyền camera đã được cấp (granted) trước đó
+  // Tự động khởi động nếu autoStart = true hoặc quyền camera đã được cấp (granted) trước đó,
+  // và người dùng đã xác thực (tránh tự bật camera ở trang public /login, /register)
   useEffect(() => {
+    const isAuthenticated = useAuthStore.getState().isAuthenticated;
     const cameraPermission = usePermissionStore.getState().permissions.camera;
-    if (autoStart || cameraPermission === 'granted') {
+
+    if (isAuthenticated && (autoStart || cameraPermission === 'granted')) {
       startCamera();
     }
 

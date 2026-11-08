@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, renderHook, act, screen } from '@testing-library/react';
 import { CameraProvider, useCameraContext } from '../CameraContext';
 import { usePermissionStore } from '@/stores/permission-store';
+import { useAuthStore } from '@/stores/auth-store';
 
 describe('CameraContext (Global MediaStream Singleton & Hardware Lifecycle)', () => {
   let mockTrack: {
@@ -21,6 +22,11 @@ describe('CameraContext (Global MediaStream Singleton & Hardware Lifecycle)', ()
 
   beforeEach(() => {
     usePermissionStore.getState().reset();
+    useAuthStore.setState({
+      isAuthenticated: false,
+      user: null,
+      accessToken: null,
+    });
 
     mockTrack = {
       kind: 'video',
@@ -118,7 +124,8 @@ describe('CameraContext (Global MediaStream Singleton & Hardware Lifecycle)', ()
     expect(usePermissionStore.getState().permissions.camera).toBe('denied');
   });
 
-  it('auto-starts camera stream when camera permission is already granted in permission store', async () => {
+  it('auto-starts camera stream when camera permission is already granted in permission store and user is authenticated', async () => {
+    useAuthStore.setState({ isAuthenticated: true });
     usePermissionStore.getState().setPermission('camera', 'granted');
 
     const { result } = renderHook(() => useCameraContext(), {
@@ -133,6 +140,24 @@ describe('CameraContext (Global MediaStream Singleton & Hardware Lifecycle)', ()
     expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalledTimes(1);
     expect(result.current.status).toBe('streaming');
     expect(result.current.stream).toBe(mockStream);
+  });
+
+  it('does NOT auto-start camera stream if user is unauthenticated even when permission is granted', async () => {
+    useAuthStore.setState({ isAuthenticated: false });
+    usePermissionStore.getState().setPermission('camera', 'granted');
+
+    const { result } = renderHook(() => useCameraContext(), {
+      wrapper: ({ children }) => <CameraProvider>{children}</CameraProvider>,
+    });
+
+    // Wait for auto-start effect to settle
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(navigator.mediaDevices.getUserMedia).not.toHaveBeenCalled();
+    expect(result.current.status).toBe('idle');
+    expect(result.current.stream).toBeNull();
   });
 
   it('DOES NOT stop MediaStream tracks when child component unmounts (survives tab navigation)', async () => {

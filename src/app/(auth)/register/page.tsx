@@ -37,8 +37,13 @@ function RegisterFormContent() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const isHydrated = useAuthStore((s) => s.isHydrated);
 
+  // Lấy đường dẫn chuyển tiếp an toàn (chống open redirect)
   const redirectTarget = searchParams?.get('redirect') || '/';
-  const safeRedirect = redirectTarget.startsWith('/') ? redirectTarget : '/';
+  const isSafe =
+    redirectTarget.startsWith('/') &&
+    !redirectTarget.startsWith('//') &&
+    !redirectTarget.startsWith('/\\');
+  const safeRedirect = isSafe ? redirectTarget : '/';
 
   useEffect(() => {
     if (isHydrated && isAuthenticated && accessToken && !isTokenExpired(accessToken)) {

@@ -99,6 +99,78 @@ describe('Server Middleware (src/middleware.ts)', () => {
       expect(res.headers.get('location')).toBe('http://localhost:3000/settings');
     });
 
+    it('Authenticated GET /login with valid redirect=/messages -> redirects to /messages', () => {
+      const req = new NextRequest('http://localhost:3000/login?redirect=%2Fmessages', {
+        headers: {
+          cookie: `checked_token=${validToken}`,
+        },
+      });
+      const res = middleware(req);
+
+      expect(res.status).toBe(307);
+      expect(res.headers.get('location')).toBe('http://localhost:3000/messages');
+    });
+
+    it('Authenticated GET /login with open redirect //attacker.com -> sanitizes and redirects to /', () => {
+      const req = new NextRequest('http://localhost:3000/login?redirect=//attacker.com', {
+        headers: {
+          cookie: `checked_token=${validToken}`,
+        },
+      });
+      const res = middleware(req);
+
+      expect(res.status).toBe(307);
+      expect(res.headers.get('location')).toBe('http://localhost:3000/');
+    });
+
+    it('Authenticated GET /login with open redirect /\\attacker.com -> sanitizes and redirects to /', () => {
+      const req = new NextRequest('http://localhost:3000/login?redirect=/\\attacker.com', {
+        headers: {
+          cookie: `checked_token=${validToken}`,
+        },
+      });
+      const res = middleware(req);
+
+      expect(res.status).toBe(307);
+      expect(res.headers.get('location')).toBe('http://localhost:3000/');
+    });
+
+    it('Authenticated GET /login with loop redirect=/login -> redirects to /', () => {
+      const req = new NextRequest('http://localhost:3000/login?redirect=%2Flogin', {
+        headers: {
+          cookie: `checked_token=${validToken}`,
+        },
+      });
+      const res = middleware(req);
+
+      expect(res.status).toBe(307);
+      expect(res.headers.get('location')).toBe('http://localhost:3000/');
+    });
+
+    it('Authenticated GET /login with loop redirect=/register -> redirects to /', () => {
+      const req = new NextRequest('http://localhost:3000/login?redirect=%2Fregister', {
+        headers: {
+          cookie: `checked_token=${validToken}`,
+        },
+      });
+      const res = middleware(req);
+
+      expect(res.status).toBe(307);
+      expect(res.headers.get('location')).toBe('http://localhost:3000/');
+    });
+
+    it('Authenticated GET /register with open redirect //attacker.com -> redirects to /', () => {
+      const req = new NextRequest('http://localhost:3000/register?redirect=//attacker.com', {
+        headers: {
+          cookie: `checked_token=${validToken}`,
+        },
+      });
+      const res = middleware(req);
+
+      expect(res.status).toBe(307);
+      expect(res.headers.get('location')).toBe('http://localhost:3000/');
+    });
+
     it('Authenticated GET /messages -> NextResponse.next()', () => {
       const req = new NextRequest('http://localhost:3000/messages', {
         headers: {

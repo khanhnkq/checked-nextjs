@@ -59,8 +59,17 @@ export function middleware(request: NextRequest) {
   // 4. Người dùng đã đăng nhập hợp lệ truy cập /login hoặc /register -> Chuyển về trang đích
   if (isAuth && (pathname === '/login' || pathname === '/register')) {
     const redirectTarget = searchParams.get('redirect') || '/';
-    const safeTarget = redirectTarget.startsWith('/') ? redirectTarget : '/';
-    return NextResponse.redirect(new URL(safeTarget, request.url));
+    const isSafe =
+      redirectTarget.startsWith('/') &&
+      !redirectTarget.startsWith('//') &&
+      !redirectTarget.startsWith('/\\');
+    const safeTarget = isSafe ? redirectTarget : '/';
+    const isTargetAuthPage =
+      safeTarget === '/login' ||
+      safeTarget.startsWith('/login/') ||
+      safeTarget === '/register' ||
+      safeTarget.startsWith('/register/');
+    return NextResponse.redirect(new URL(isTargetAuthPage ? '/' : safeTarget, request.url));
   }
 
   return NextResponse.next();

@@ -35,7 +35,11 @@ function LoginFormContent() {
 
   // Lấy đường dẫn chuyển tiếp an toàn (chống open redirect)
   const redirectTarget = searchParams?.get('redirect') || '/';
-  const safeRedirect = redirectTarget.startsWith('/') ? redirectTarget : '/';
+  const isSafe =
+    redirectTarget.startsWith('/') &&
+    !redirectTarget.startsWith('//') &&
+    !redirectTarget.startsWith('/\\');
+  const safeRedirect = isSafe ? redirectTarget : '/';
 
   // Nếu người dùng đã có token hợp lệ -> Chuyển thẳng về trang đích
   useEffect(() => {
