@@ -4,3 +4,5 @@ export * from './SettingsTile';
 export * from './ProfileAvatarBanner';
 export * from './NameInputBottomSheet';
 export * from './DobInputBottomSheet';
+export * from './LogoutConfirmDialog';
+
